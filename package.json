@@ -1,0 +1,19 @@
+{
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-contrib-jshint": "~0.7.2",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt-contrib-nodeunit": "~0.2.2",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-uglify": "~0.2.7",
+    "grunt-node-inspector": "~0.1.5",
+    "grunt-rename": "~0.1.3"
+  },
+  "dependencies": {
+    "grunt-shell": "~0.7.0",
+    "grunt-contrib-copy": "~0.5.0"
+  }
+}
