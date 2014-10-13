@@ -4,17 +4,18 @@
 			testAPI();
 		} else if (response.status === 'not_authorized') {
 			console.log('Please log into this app.');
-			FBLogin()
+			//FBLogin()
 		} else {
 			console.log('Please auth this app.');
-			FBLogin()
+			//FBLogin()
 		}
 	}
 
-	function FBLogin() {
+	function FBLogin(callback) {
 		FB.login(function(response) {
 			if (response.authResponse) {
 				console.log('Welcome!  Fetching your information.... ');
+				if (callback) callback.call(this);
 			} else {
 				console.log('User cancelled login or did not fully authorize.');
 			}
@@ -42,6 +43,10 @@
 					if (response && !response.error) {
 						console.log('invitable_friends',response)
 						renderFriendSelector(response);
+					}
+					else {
+						console.log('invitable_friends error', response);
+						FBLogin(FB.inviteFriends);
 					}
 				}
 			);
