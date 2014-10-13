@@ -13,7 +13,7 @@
 		}
 	}
 
-	function FBLogin(callback) {
+	function FBLogin(callback, display) {
 		FB.login(function(response) {
 			if (response.authResponse) {
 				console.log('Welcome!  Fetching your information.... ');
@@ -21,8 +21,9 @@
 			} else {
 				console.log('User cancelled login or did not fully authorize.');
 			}
-		}, {scope: 'user_friends'});
+		}, {scope: 'user_friends', display: display || 'touch' });
 	}
+	window.FBLogin = FBLogin;
 
 	function checkLoginState() {
 		FB.getLoginStatus(function(response) {
@@ -123,7 +124,7 @@
 			console.log(response);
 		});
 	}
-	
+
 	var a=document.getElementsByTagName("a");
 	for(var i=0;i<a.length;i++)
 	{
