@@ -4,16 +4,21 @@
 			testAPI();
 		} else if (response.status === 'not_authorized') {
 			console.log('Please log into this app.');
-			
+			FBLogin()
 		} else {
-			FB.login(function(response) {
-				if (response.authResponse) {
-					console.log('Welcome!  Fetching your information.... ');
-				} else {
-					console.log('User cancelled login or did not fully authorize.');
-				}
-			}, {scope: 'user_friends'});
+			console.log('Please auth this app.');
+			FBLogin()
 		}
+	}
+
+	function FBLogin() {
+		FB.login(function(response) {
+			if (response.authResponse) {
+				console.log('Welcome!  Fetching your information.... ');
+			} else {
+				console.log('User cancelled login or did not fully authorize.');
+			}
+		}, {scope: 'user_friends'});
 	}
 
 	function checkLoginState() {
