@@ -6,7 +6,7 @@ module.exports = function(grunt) {
     // Metadata.
         // Metadata.
     meta: {
-      version: '0.1'
+      version: '0.2'
     },
     filename: 'gfsdk',
     buildFilename: 'dist/<%= filename %>-<%= meta.version %>.js',

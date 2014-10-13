@@ -102,6 +102,7 @@
 			fjs.parentNode.insertBefore(js, fjs);
 		}(document, 'script', 'facebook-jssdk'));
 	}
+	if (window.location.search.indexOf('fbstart') > -1) FBStart();
 	
 	function testAPI() {
 		console.log('Welcome!  Fetching your information.... ');
