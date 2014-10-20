@@ -1,3 +1,4 @@
+var Facebook = (function() {
 	// This is called with the results from from FB.getLoginStatus().
 	function statusChangeCallback(response) {
 		if (response.status === 'connected') {
@@ -12,6 +13,7 @@
 	}
 
 	function FBLogin(callback, display) {
+		var chosenDisplay = document.body.clientWidth > 600 ? 'popup' : 'touch';
 		FB.login(function(response) {
 			if (response.authResponse) {
 				console.log('Welcome!  Fetching your information.... ');
@@ -19,9 +21,9 @@
 			} else {
 				console.log('User cancelled login or did not fully authorize.');
 			}
-		}, {scope: 'user_friends', display: display || 'touch' });
+		}, {scope: 'user_friends', display: chosenDisplay });
 	}
-	window.FBLogin = FBLogin;
+	//window.FBLogin = FBLogin;
 
 	function checkLoginState() {
 		FB.getLoginStatus(function(response) {
@@ -31,7 +33,7 @@
 
 	window.fbAsyncInit = function() {
 		FB.init({
-			appId      : '218613018316690',
+			appId      : '218613018316690', // take from GamefiveSDK??
 			cookie     : true,  // enable cookies to allow the server to access 
 			xfbml      : false,  // parse social plugins on this page
 			version    : 'v2.1' // use version 2.1
@@ -99,8 +101,6 @@
 				console.log(res);
 			});
 		}
-
-
 	};
 
 	// Load the SDK asynchronously
@@ -113,7 +113,7 @@
 			fjs.parentNode.insertBefore(js, fjs);
 		}(document, 'script', 'facebook-jssdk'));
 	}
-	if (window.location.search.indexOf('fbstart') > -1) FBStart();
+	if (window.location.search.toLowerCase().indexOf('fbstart') > -1) FBStart();
 	
 	function testAPI() {
 		console.log('Welcome!  Fetching your information.... ');
@@ -123,12 +123,4 @@
 		});
 	}
 
-	var a=document.getElementsByTagName("a");
-	for(var i=0;i<a.length;i++)
-	{
-	    a[i].onclick=function()
-	    {
-	        window.location=this.getAttribute("href");
-	        return false
-	    }
-	}
+})()

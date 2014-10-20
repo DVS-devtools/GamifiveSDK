@@ -30,7 +30,7 @@
     GamefiveSDK
     </h2>
     
-        <div class="class-description">Minified Source CDN: <a href="http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.1.min.js">http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.1.min.js</a></div>
+        <div class="class-description">Minified Source CDN: <a href="http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.3.min.js">http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.3.min.js</a></div>
     
 </header>
 
@@ -41,7 +41,7 @@
     
         
 <dt>
-    <h4 class="name" id="GamefiveSDK"><span class="type-signature"></span>new GamefiveSDK<span class="signature">(autoInit<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="GamefiveSDK"><span class="type-signature"></span>new GamefiveSDK<span class="signature">()</span><span class="type-signature"></span></h4>
 
     
 </dt>
@@ -57,74 +57,6 @@
 
     
 
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-        <th>Attributes</th>
-        
-
-        
-        <th>Default</th>
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>autoInit</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">boolean</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    false
-                
-                </td>
-            
-
-            <td class="description last">if TRUE the constructor calls init function at startup</td>
-        </tr>
-
-    
-    </tbody>
-</table>
     
 
     
@@ -157,7 +89,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="gfsdk.js.html">gfsdk.js</a>, <a href="gfsdk.js.html#line9">line 9</a>
+        <a href="gfsdk.js.html">gfsdk.js</a>, <a href="gfsdk.js.html#line8">line 8</a>
     </li></ul></dd>
     
 
@@ -225,8 +157,8 @@
         Defines the end of a session. A session is a continued user activity like a game match. <br>
 It should end with the score of that session. 
 Ideally a session ends when the player cannot continue his match and must play again from the beginning. <br>
-For example: if the player has x "lifes" then the session only ends when all the x "lifes" are lost. <br>
-<i>.startSession must be called first.</i>
+Usually endSession corresponds to the 'Game Over' state. <br>
+<i> <a href="GamefiveSDK.html#startSession">startSession</a> must be called first.</i>
     </div>
     
 
@@ -355,7 +287,7 @@ For example: if the player has x "lifes" then the session only ends when all the
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="gfsdk.js.html">gfsdk.js</a>, <a href="gfsdk.js.html#line116">line 116</a>
+        <a href="gfsdk.js.html">gfsdk.js</a>, <a href="gfsdk.js.html#line188">line 188</a>
     </li></ul></dd>
     
 
@@ -385,6 +317,151 @@ For example: if the player has x "lifes" then the session only ends when all the
         
             
 <dt>
+    <h4 class="name" id="onStartSession"><span class="type-signature"></span>onStartSession<span class="signature">(callback)</span><span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Attach a callback to be called at the end of the <a href="GamefiveSDK.html#startSession">startSession</a> method.<br>
+You should have a public "play" function for starting the game and that's the main task for which
+this event callback will be used.
+    </div>
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Function to be executed whenever startSession is called</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="gfsdk.js.html">gfsdk.js</a>, <a href="gfsdk.js.html#line175">line 175</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>
+function playGame() {
+	//your custom play method 
+}
+
+// here we define the callback for startSession, 
+// it will start the game match and log into console
+GamefiveSDK.onStartSession(function() {  
+	playGame();
+	console.log('Game Started!')
+})
+
+// your custom "play" or "replay" action button
+var playButton = document.querySelector('#myPlayButton');	
+
+// click handler
+playButton.addEventListener('click', function() {
+	// just call SDK method which will also execute your play function
+	GamefiveSDK.startSession();								
+});</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
     <h4 class="name" id="startSession"><span class="type-signature"></span>startSession<span class="signature">()</span><span class="type-signature"></span></h4>
 
     
@@ -393,9 +470,11 @@ For example: if the player has x "lifes" then the session only ends when all the
 
     
     <div class="description">
-        Defines the start of a session. A session is a continued user activity like a game match. <br>
-Ideally a session starts when the player starts playing the game from the beginning and his score is set to zero. <br>
-For example: when the players has lost all his "lifes" and clicks on "Play Again" button. <br>
+        Defines the start of a session. A session is a continued user activity like a game match and the start of a session usually corresponds
+<br>
+Ideally a session starts when the player starts playing from the beginning and his score is set to zero. <br>
+You <b>must</b> always call startSession instead of directly call any "play" method. <br>
+See <a href="GamefiveSDK.html#onStartSession">onStartSession</a> to understand how to start a game match using startSession().
     </div>
     
 
@@ -428,10 +507,17 @@ For example: when the players has lost all his "lifes" and clicks on "Play Again
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="gfsdk.js.html">gfsdk.js</a>, <a href="gfsdk.js.html#line102">line 102</a>
+        <a href="gfsdk.js.html">gfsdk.js</a>, <a href="gfsdk.js.html#line123">line 123</a>
     </li></ul></dd>
     
 
+    
+    <dt class="tag-tutorial">Tutorials:</dt>
+    <dd class="tag-tutorial">
+        <ul>
+            <li><em class="disabled">Tutorial: <a href="GamefiveSDK.html#onStartSession">onStartSession</a></em></li>
+        </ul>
+    </dd>
     
 
     
@@ -499,7 +585,7 @@ For example: when the players has lost all his "lifes" and clicks on "Play Again
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="gfsdk.js.html">gfsdk.js</a>, <a href="gfsdk.js.html#line136">line 136</a>
+        <a href="gfsdk.js.html">gfsdk.js</a>, <a href="gfsdk.js.html#line208">line 208</a>
     </li></ul></dd>
     
 
@@ -714,6 +800,83 @@ For example: when the players has lost all his "lifes" and clicks on "Play Again
         </tr>
 
     
+
+        <tr>
+            
+                <td class="name"><code>debugMode</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last">Set to TRUE if you want to enable debug mode, only for development environment,
+the Debug Mode will avoid any external call.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>startCallback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">default callback on startSession</td>
+        </tr>
+
+    
     </tbody>
 </table>
             </td>
@@ -747,7 +910,7 @@ For example: when the players has lost all his "lifes" and clicks on "Play Again
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="gfsdk.js.html">gfsdk.js</a>, <a href="gfsdk.js.html#line91">line 91</a>
+        <a href="gfsdk.js.html">gfsdk.js</a>, <a href="gfsdk.js.html#line107">line 107</a>
     </li></ul></dd>
     
 
@@ -796,7 +959,7 @@ For example: when the players has lost all his "lifes" and clicks on "Play Again
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Mon Oct 13 2014 17:12:42 GMT+0200 (CEST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Mon Oct 20 2014 17:38:18 GMT+0200 (CEST)
 </footer>
 
 <script> prettyPrint(); </script>

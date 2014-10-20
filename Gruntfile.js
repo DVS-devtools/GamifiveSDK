@@ -6,7 +6,7 @@ module.exports = function(grunt) {
     // Metadata.
         // Metadata.
     meta: {
-      version: '0.2'
+      version: '0.3'
     },
     filename: 'gfsdk',
     buildFilename: 'dist/<%= filename %>-<%= meta.version %>.js',
@@ -24,6 +24,13 @@ module.exports = function(grunt) {
       },
       index: {  
           command: 'rm <%= docPath %>index.html'
+      }
+    },
+    qunit: {
+      all: {
+        options: {
+          urls: ['http://localhost:8000/test/all.html']
+        }
       }
     },
     wrap: {
@@ -69,10 +76,12 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-qunit');
   //grunt.loadNpmTasks('grunt-jsdoc');
 
   // Default task.
   grunt.registerTask('build', ['shell:jsdoc', 'shell:index','concat', 'wrap', 'uglify']);
+  grunt.registerTask('test', ['concat', 'wrap', 'qunit']);
 
 
 };
