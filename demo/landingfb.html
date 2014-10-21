@@ -14,14 +14,32 @@
     <p>See the <a href="./../manual/GamefiveSDK.html">project documentation</a>.
     <p>Check out the <a href="https://github.com/bolza/GamifiveSDK">project repo</a>.
     <p>Copyright 2014 Buongiorno.com</p>
-    	
+   	
+    <button id="see-button"></button>
+
     <div id="url-data"></div>
 
+    <div id="request-data"></div>
 
+    <script src="./../dist/gfsdk-0.3.js"></script>
     <script>
       /* begin demo script */
       document.querySelector('#url-data').innerHTML = document.location.search;
+      document.querySelector('#see-button').addEventListener('click', showInvites);
       console.log( ' ####GamefiveSDK ',  document.location.search );
+
+      function showInvites() {
+	      FB.api(
+	          "/me/apprequests",
+	          function (response) {
+	          	console.log( ' ####response ',  response );
+	            if (response && !response.error) {
+	              	document.querySelector('#request-data').innerHTML = JSON.stringify(response);
+	            }
+	          }
+	      );
+      }
+
 
       /* end demo script */
     </script>
