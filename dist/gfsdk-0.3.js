@@ -25,7 +25,6 @@ var Facebook = (function() {
 			}
 		}, {scope: 'user_friends', display: chosenDisplay });
 	}
-	//window.FBLogin = FBLogin;
 
 	function checkLoginState() {
 		FB.getLoginStatus(function(response) {
@@ -97,8 +96,9 @@ var Facebook = (function() {
 			// Use FB.ui to send the Request(s)
 			FB.ui({method: 'apprequests',
 				to: sendUIDs,
-				title: 'My Great Invite',
-				message: 'Check out this Awesome App!',
+				title: 'Play with me on Gamefive',
+				message: 'My score is XXX, try to beat me! Play gratis on Gamefive.',
+				data: 'requestid=666'
 			}, function(res) {
 				console.log(res);
 			});
