@@ -1,14 +1,16 @@
 var Facebook = (function() {
 	// This is called with the results from from FB.getLoginStatus().
+	var fb_start = window.location.search.toLowerCase().indexOf('fbstart');
+	var fb_login = window.location.search.toLowerCase().indexOf('fblogin');
 	function statusChangeCallback(response) {
 		if (response.status === 'connected') {
 			testAPI();
 		} else if (response.status === 'not_authorized') {
 			console.log('Please log into this app.');
-			//FBLogin()
+			if (fb_login) FBLogin();
 		} else {
 			console.log('Please auth this app.');
-			//FBLogin()
+			if (fb_login) FBLogin();
 		}
 	}
 
@@ -113,7 +115,7 @@ var Facebook = (function() {
 			fjs.parentNode.insertBefore(js, fjs);
 		}(document, 'script', 'facebook-jssdk'));
 	}
-	if (window.location.search.toLowerCase().indexOf('fbstart') > -1) FBStart();
+	if (fb_start || fb_login) FBStart();
 	
 	function testAPI() {
 		console.log('Welcome!  Fetching your information.... ');
