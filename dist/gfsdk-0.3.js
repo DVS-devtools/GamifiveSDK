@@ -87,7 +87,7 @@ var Facebook = (function() {
 			if (response.authResponse) {
 				console.log('Welcome!  Fetching your information.... ');
 				if (callback) callback.call(this);
-			} else {
+			} else {9
 				console.log('User cancelled login or did not fully authorize.');
 			}
 		}, {scope: 'user_friends', display: chosenDisplay });
@@ -104,7 +104,7 @@ var Facebook = (function() {
 		var n = 0;
 		var copyFriends = function (resp) {
 			if (resp && !resp.error) {
-				friends.concat(resp.data);
+				friends = friends.concat(resp.data);
 				if (n>1) callback(friends); 
 			}
 			else FBLogin(FB.inviteFriends);
