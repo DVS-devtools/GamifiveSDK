@@ -6,7 +6,6 @@
 	* @author Stefano Sergio
 	*/
 	function GamefiveSDK() {
-		var mipId, appId, userId, label;
 		var sessionData = {};	
 		var currentConf = {
 			logEnabled: false,
@@ -21,73 +20,22 @@
 			userInfo: '/v01/user.lightinfo/'
 		}
 
-		if (!Date.now) {
-	    	Date.now = function() { return new Date().getTime() };
-		}
-
-		var cookie = {
-			get: function (sKey) {
-				return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
-			},
-			set: function (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
-				if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) { return false; }
-				var sExpires = "";
-				if (vEnd) {
-					switch (vEnd.constructor) {
-						case Number:
-						sExpires = vEnd === Infinity ? "; expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + vEnd;
-						break;
-						case String:
-						sExpires = "; expires=" + vEnd;
-						break;
-						case Date:
-						sExpires = "; expires=" + vEnd.toUTCString();
-						break;
-					}
-				}
-				document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "") + (bSecure ? "; secure" : "");
-				return true;
-			},
-			remove: function (sKey, sPath, sDomain) {
-				if (!sKey || !this.has(sKey)) { return false; }
-				document.cookie = encodeURIComponent(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + ( sDomain ? "; domain=" + sDomain : "") + ( sPath ? "; path=" + sPath : "");
-				return true;
-			},
-			has: function (sKey) {
-				return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
-			}
-		};
-
-		var xhr = function() {
-		    return function( method, url, callback ) {
-		    	var xhr = new XMLHttpRequest();
-		        xhr.onreadystatechange = function() {
-		            if ( xhr.readyState === 4 ) {
-		                if (callback) callback( xhr.responseText, xhr );
-		            }
-		        };
-		        xhr.open( method, url );
-		        xhr.send();
-		        return xhr;
-		    };
-		}();
-
-		function querify(obj) {
-			var str = [];
-			for(var p in obj) {
-				if (obj.hasOwnProperty(p)) str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-			}
-			return '?'+str.join("&");
-		}
-
+		var fb_start = window.location.search.toLowerCase().indexOf('fbstart');
+		var fb_login = window.location.search.toLowerCase().indexOf('fblogin');
 		var GamefiveInfo = window.GamefiveInfo || null;
-
+		
+		/**
+		* Anything you can do at startup time you must define in here
+		*/
 		var init = function() {
 			if (!GamefiveInfo && currentConf.debugMode) GamefiveInfo = {};
-			sessionData.userId = GamefiveInfo.userid || 'userid-not-found';
-			sessionData.label = GamefiveInfo.label || 'label-not-found';
+			sessionData.userId = GamefiveInfo.userid;9
+			sessionData.label = GamefiveInfo.logEnabled;
 			sessionData.appId = GamefiveInfo.contentId || window.location.pathname.split('/')[4] || null;
 			sessionData.fbAppId = GamefiveInfo.fbAppId;
+			var FBConnector = new Facebook();
+
+			if (fb_start || fb_login) FBConnector.start();
 
 			xhr('GET', API.userInfo, function(resp, req) {
 				if (req.response) sessionData.user = resp;
@@ -97,7 +45,7 @@
 
 		/**
 		* Updates the config if needed by the user
-		* @param {object} confObject - Configuration object
+		* @param {object} confObject - Configuration Object
 		* @param {boolean} [confObject.logEnabled=false] - Logging state, only for debug
 		* @param {boolean} [confObject.httpEnabled=true] - Enable/Disable xhr calls, should always be TRUE
 		* @param {boolean} [confObject.debugMode=false] - Set to TRUE if you want to enable debug mode, only for development environment,
@@ -220,6 +168,3 @@
 		// Initialize the library
 		init();
 	}
-
-
-	window.GamefiveSDK = new GamefiveSDK();

@@ -38,7 +38,7 @@ module.exports = function(grunt) {
         src: ['<%= buildFilename %>'],
         dest: '<%= buildFilename %>',
         options: {
-          wrapper: ['(function(target) {\n', '\n})(window);']
+          wrapper: ['(function(target) {\n', '\n target.GamefiveSDK = new GamefiveSDK(); \n})(window);']
         }
       }
     },
@@ -53,7 +53,7 @@ module.exports = function(grunt) {
     },
     concat: {
       dist: {
-        src: ['src/FB.js','src/gfsdk.js'],
+        src: ['src/Utils.js','src/FB.js','src/gfsdk.js'],
         dest: '<%= buildFilename %>'
       }
     },

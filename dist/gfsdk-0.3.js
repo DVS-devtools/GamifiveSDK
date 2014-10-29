@@ -1,20 +1,87 @@
 (function(target) {
 
+if (!Date.now) {
+	Date.now = function() { return new Date().getTime() };
+}
+
+var cookie = {
+	get: function (sKey) {
+		return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
+	},
+	set: function (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
+		if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) { return false; }
+		var sExpires = "";
+		if (vEnd) {
+			switch (vEnd.constructor) {
+				case Number:
+				sExpires = vEnd === Infinity ? "; expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + vEnd;
+				break;
+				case String:
+				sExpires = "; expires=" + vEnd;
+				break;
+				case Date:
+				sExpires = "; expires=" + vEnd.toUTCString();
+				break;
+			}
+		}
+		document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "") + (bSecure ? "; secure" : "");
+		return true;
+	},
+	remove: function (sKey, sPath, sDomain) {
+		if (!sKey || !this.has(sKey)) { return false; }
+		document.cookie = encodeURIComponent(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + ( sDomain ? "; domain=" + sDomain : "") + ( sPath ? "; path=" + sPath : "");
+		return true;
+	},
+	has: function (sKey) {
+		return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
+	}
+};
+
+var xhr = function() {
+    return function( method, url, callback ) {
+		//if(currentConf.debugMode || !currentConf.httpEnabled) return;
+    	var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if ( xhr.readyState === 4 ) {
+                if (callback) callback( xhr.responseText, xhr );
+            }
+        };
+        xhr.open( method, url );
+        xhr.send();
+        return xhr;
+    };
+}();
+
+function querify(obj) {
+	var str = [];
+	for(var p in obj) {
+		if (obj.hasOwnProperty(p)) str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+	}
+	return '?'+str.join("&");
+}
+
 var Facebook = (function() {
+	var friends = [];
 	// This is called with the results from from FB.getLoginStatus().
+	var config = {
+		appId: '218613018316690',
+		autoLogin: false, 
+		autoStart: false
+	}
+	;
 	function statusChangeCallback(response) {
 		if (response.status === 'connected') {
 			testAPI();
 		} else if (response.status === 'not_authorized') {
 			console.log('Please log into this app.');
-			//FBLogin()
+			if (config.autoLogin) FBLogin();
 		} else {
 			console.log('Please auth this app.');
-			//FBLogin()
+			if (config.autoLogin) FBLogin();
 		}
 	}
 
-	function FBLogin(callback, display) {
+	function FBLogin(callback) {
 		var chosenDisplay = document.body.clientWidth > 600 ? 'popup' : 'touch';
 		FB.login(function(response) {
 			if (response.authResponse) {
@@ -32,77 +99,83 @@ var Facebook = (function() {
 		});
 	}
 
+	var getAllFriends = function (callback) {
+		if (friends.length > 0) return friends;
+		var n = 0;
+		var copyFriends = function (resp) {
+			if (resp && !resp.error) {
+				friends.concat(resp.data);
+				if (n>1) callback(friends); 
+			}
+			else FBLogin(FB.inviteFriends);
+		}
+		FB.api( "/me/invitable_friends", copyFriends);
+		FB.api( "/me/friends", copyFriends);
+	}
+
+
+
 	window.fbAsyncInit = function() {
 		FB.init({
-			appId      : '218613018316690', // take from GamefiveSDK??
+			appId      : config.appId,
 			cookie     : true,  // enable cookies to allow the server to access 
 			xfbml      : false,  // parse social plugins on this page
 			version    : 'v2.1' // use version 2.1
 		});
 
-		FB.inviteFriends = function() {
-			FB.api(
-				"/me/invitable_friends",
-				function (response) {
-					if (response && !response.error) {
-						console.log('invitable_friends',response)
-						renderFriendSelector(response);
-					}
-					else {
-						console.log('invitable_friends error', response);
-						FBLogin(FB.inviteFriends);
-					}
-				}
-			);
-		}
-
 		FB.getLoginStatus(function(response) {
 			statusChangeCallback(response);
 		});
 
-		function renderFriendSelector(response) {
-			var container = document.body;
-			var mfsForm = document.createElement('form');
-			mfsForm.id = 'mfsForm';
-			// Iterate through the array of friends object and create a checkbox for each one.
-			for(var i = 0; i < Math.min(response.data.length, 10); i++) {
-				var friendItem = document.createElement('div');
-				friendItem.id = 'friend_' + response.data[i].id;
-				friendItem.innerHTML = '<input type="checkbox" name="friends" value="'
-				+ response.data[i].id
-				+ '" />' + response.data[i].name;
-				mfsForm.appendChild(friendItem);
-			}
-			container.appendChild(mfsForm);
-			// Create a button to send the Request(s)
-			var sendButton = document.createElement('input');
-			sendButton.type = 'button';
-			sendButton.value = 'Send Request';
-			sendButton.onclick = sendRequest;
-			mfsForm.appendChild(sendButton);
-		}
 
 
-		function sendRequest() {
-			// Get the list of selected friends
-			var sendUIDs = '';
-			var mfsForm = document.getElementById('mfsForm');
-			for(var i = 0; i < mfsForm.friends.length; i++) {
-				if(mfsForm.friends[i].checked) {
-					sendUIDs += mfsForm.friends[i].value + ',';
+		FB.inviteFriends = function(options) {
+			getAllFriends(renderFriendSelector);
+
+			function renderFriendSelector(friendsList) {
+				var container = document.body;
+				var mfsForm = document.createElement('form');
+				mfsForm.id = 'mfsForm';
+				// Iterate through the array of friends object and create a checkbox for each one.
+				for(var i = 0; i < Math.min(friendsList.length, 10); i++) {
+					var friendItem = document.createElement('div');
+					friendItem.id = 'friend_' + friendsList[i].id;
+					friendItem.innerHTML = '<input type="checkbox" name="friends" value="'
+					+ friendsList[i].id
+					+ '" />' + friendsList[i].name;
+					mfsForm.appendChild(friendItem);
 				}
+				container.appendChild(mfsForm);
+				// Create a button to send the Request(s)
+				var sendButton = document.createElement('input');
+				sendButton.type = 'button';
+				sendButton.value = 'Send Request';
+				sendButton.onclick = sendRequest;
+				mfsForm.appendChild(sendButton);
 			}
 
-			// Use FB.ui to send the Request(s)
-			FB.ui({method: 'apprequests',
-				to: sendUIDs,
-				title: 'Play with me on Gamefive',
-				message: 'My score is XXX, try to beat me! Play gratis on Gamefive.',
-				data: 'requestid=666'
-			}, function(res) {
-				console.log(res);
-			});
+
+			function sendRequest() {
+				// Get the list of selected friends
+				var sendUIDs = '';
+				var mfsForm = document.getElementById('mfsForm');
+				for(var i = 0; i < mfsForm.friends.length; i++) {
+					if(mfsForm.friends[i].checked) {
+						sendUIDs += mfsForm.friends[i].value + ',';
+					}
+				}
+				// Use FB.ui to send the Request(s)
+				FB.ui({method: 'apprequests',
+					to: sendUIDs,
+					title: 'Play with me on Gamefive',
+					message: 'My score is '+options.score+', try to beat me! Play gratis on Gamefive.',
+					data: JSON.stringify(options)
+				}, function(res) {
+					console.log(res);
+				});
+			}
 		}
+
 	};
 
 	// Load the SDK asynchronously
@@ -115,7 +188,6 @@ var Facebook = (function() {
 			fjs.parentNode.insertBefore(js, fjs);
 		}(document, 'script', 'facebook-jssdk'));
 	}
-	if (window.location.search.toLowerCase().indexOf('fbstart') > -1) FBStart();
 	
 	function testAPI() {
 		console.log('Welcome!  Fetching your information.... ');
@@ -125,7 +197,16 @@ var Facebook = (function() {
 		});
 	}
 
-})()
+	return {
+		start: FBStart,
+		login: FBLogin,
+		getFriends: getAllFriends,
+		appId:  config.appId,
+		autoLogin: config.autoLogin,
+		autoStart: config.autoStart
+	}
+
+}); 
 	/**
 	* Main SDK Class
 	* @class
@@ -134,7 +215,6 @@ var Facebook = (function() {
 	* @author Stefano Sergio
 	*/
 	function GamefiveSDK() {
-		var mipId, appId, userId, label;
 		var sessionData = {};	
 		var currentConf = {
 			logEnabled: false,
@@ -149,73 +229,22 @@ var Facebook = (function() {
 			userInfo: '/v01/user.lightinfo/'
 		}
 
-		if (!Date.now) {
-	    	Date.now = function() { return new Date().getTime() };
-		}
-
-		var cookie = {
-			get: function (sKey) {
-				return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
-			},
-			set: function (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
-				if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) { return false; }
-				var sExpires = "";
-				if (vEnd) {
-					switch (vEnd.constructor) {
-						case Number:
-						sExpires = vEnd === Infinity ? "; expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + vEnd;
-						break;
-						case String:
-						sExpires = "; expires=" + vEnd;
-						break;
-						case Date:
-						sExpires = "; expires=" + vEnd.toUTCString();
-						break;
-					}
-				}
-				document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "") + (bSecure ? "; secure" : "");
-				return true;
-			},
-			remove: function (sKey, sPath, sDomain) {
-				if (!sKey || !this.has(sKey)) { return false; }
-				document.cookie = encodeURIComponent(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + ( sDomain ? "; domain=" + sDomain : "") + ( sPath ? "; path=" + sPath : "");
-				return true;
-			},
-			has: function (sKey) {
-				return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
-			}
-		};
-
-		var xhr = function() {
-		    return function( method, url, callback ) {
-		    	var xhr = new XMLHttpRequest();
-		        xhr.onreadystatechange = function() {
-		            if ( xhr.readyState === 4 ) {
-		                if (callback) callback( xhr.responseText, xhr );
-		            }
-		        };
-		        xhr.open( method, url );
-		        xhr.send();
-		        return xhr;
-		    };
-		}();
-
-		function querify(obj) {
-			var str = [];
-			for(var p in obj) {
-				if (obj.hasOwnProperty(p)) str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-			}
-			return '?'+str.join("&");
-		}
-
+		var fb_start = window.location.search.toLowerCase().indexOf('fbstart');
+		var fb_login = window.location.search.toLowerCase().indexOf('fblogin');
 		var GamefiveInfo = window.GamefiveInfo || null;
-
+		
+		/**
+		* Anything you can do at startup time you must define in here
+		*/
 		var init = function() {
 			if (!GamefiveInfo && currentConf.debugMode) GamefiveInfo = {};
-			sessionData.userId = GamefiveInfo.userid || 'userid-not-found';
-			sessionData.label = GamefiveInfo.label || 'label-not-found';
+			sessionData.userId = GamefiveInfo.userid;9
+			sessionData.label = GamefiveInfo.logEnabled;
 			sessionData.appId = GamefiveInfo.contentId || window.location.pathname.split('/')[4] || null;
 			sessionData.fbAppId = GamefiveInfo.fbAppId;
+			var FBConnector = new Facebook();
+
+			if (fb_start || fb_login) FBConnector.start();
 
 			xhr('GET', API.userInfo, function(resp, req) {
 				if (req.response) sessionData.user = resp;
@@ -225,7 +254,7 @@ var Facebook = (function() {
 
 		/**
 		* Updates the config if needed by the user
-		* @param {object} confObject - Configuration object
+		* @param {object} confObject - Configuration Object
 		* @param {boolean} [confObject.logEnabled=false] - Logging state, only for debug
 		* @param {boolean} [confObject.httpEnabled=true] - Enable/Disable xhr calls, should always be TRUE
 		* @param {boolean} [confObject.debugMode=false] - Set to TRUE if you want to enable debug mode, only for development environment,
@@ -349,7 +378,5 @@ var Facebook = (function() {
 		init();
 	}
 
-
-	window.GamefiveSDK = new GamefiveSDK();
-
+ target.GamefiveSDK = new GamefiveSDK(); 
 })(window);
