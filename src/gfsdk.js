@@ -6,7 +6,33 @@
 	* @author Stefano Sergio
 	*/
 	function GamefiveSDK() {
-		var sessionData = {};	
+		var sessionData = {};
+		var _dom;
+		Object.defineProperty(sessionData, "dom", {
+			get: function () { 
+				if (!_dom) _dom = document.querySelector('#gfsdk_root') || createRoot();
+				return _dom;
+			}, 
+			set: function (value) {
+				if (sessionData.dom) _dom.innerHTML = value;
+				return _dom;
+			} 
+		});
+
+		var createRoot = function() {
+			var domRoot = document.createElement('div');
+			domRoot.id = "gfsdk_root";
+			domRoot.style.position = 'absolute';
+			domRoot.style.width = '100%';
+			domRoot.style.height = '100%';
+			domRoot.style.top = '0';
+			domRoot.style.left = '0';
+			domRoot.style.background = 'white';
+			//domRoot.style.display = 'none';
+			document.body.appendChild(domRoot);
+			return domRoot;
+		}
+
 		var currentConf = {
 			logEnabled: false,
 			httpEnabled: true,
@@ -17,19 +43,20 @@
 		var API = {
 			canDownload: '/v01/user.candownload/',
 			leaderboard: '/v01/leaderboard/',
-			userInfo: '/v01/user.lightinfo/'
+			userInfo: '/v01/user.lightinfo/',
+			gameover: '/v01/gameover/',
+			updateCredits: '/v01/mipuser.updatecredits'
 		}
 
 		var fb_start = window.location.search.toLowerCase().indexOf('fbstart');
 		var fb_login = window.location.search.toLowerCase().indexOf('fblogin');
-		var GamefiveInfo = window.GamefiveInfo || null;
 		
 		/**
 		* Anything you can do at startup time you must define in here
 		*/
 		var init = function() {
 			if (!GamefiveInfo && currentConf.debugMode) GamefiveInfo = {};
-			sessionData.userId = GamefiveInfo.userid;9
+			sessionData.userId = GamefiveInfo.userId;
 			sessionData.label = GamefiveInfo.logEnabled;
 			sessionData.appId = GamefiveInfo.contentId || window.location.pathname.split('/')[4] || null;
 			sessionData.fbAppId = GamefiveInfo.fbAppId;
@@ -40,8 +67,10 @@
 			xhr('GET', API.userInfo, function(resp, req) {
 				if (req.response) sessionData.user = resp;
 			});
-			if (currentConf.logEnabled) console.log('GamefiveSDK->init', sessionData);
+			if (currentConf.logEnabled) console.log('Game9fiveSDK->init', sessionData);
 		}
+
+
 
 		/**
 		* Updates the config if needed by the user
@@ -86,7 +115,7 @@
 					call_start_callback();
 				}
 				else {
-					console.log(' GameOver special ');
+					console.log(' GameOver fail ',resp, req);
 					//get GameOver special
 				}
 			});
@@ -131,22 +160,31 @@
 		* Usually endSession corresponds to the 'Game Over' state. <br>
 		* <i> [startSession]{@link GamefiveSDK#startSession} must be called first.</i>
 		* @param {object} endingParams - Some parameters can be sent inside an object to enrich the user statistics.
-		* @param {object} endingParams.score - User score for the ended session.
+		* @param {float} endingParams.score - User score for the ended session.
 		*/	
 		this.endSession = function(endingParams) {
 			if (currentConf.logEnabled) console.log('GamefiveSDK.endSession', arguments);
 			sessionData.timeend = Date.now();
+			sessionData.score = parseFloat(endingParams.score) || 0;
+			//content_id | id gel gioco
+          	//challenge_id | id sfida
 			var querystring = querify({ 
-				'newapps': 1,
-				'appId': sessionData.appId,
-				'label': sessionData.label,
-				'userId': sessionData.userId,
+				//'newapps': 1,
+				//'appId': sessionData.appId,
+				//'label': sessionData.label,
+				//'userId': sessionData.userId,
 				'start': sessionData.timestart,
 				'duration': sessionData.timeend - sessionData.timestart,
-				'score': parseFloat(endingParams.score) || 0
+				'score': sessionData.score
 			});
 			
-			if (currentConf.httpEnabled) xhr('GET', API.leaderboard+querystring);
+			//if (currentConf.httpEnabled) xhr('GET', API.leaderboard+querystring);
+			if (currentConf.httpEnabled) xhr('GET', API.gameover+sessionData.userId+querystring, renderPage);
+		}
+
+		var renderPage = function(html) {
+			console.log('render', { 'da': html } );
+			sessionData.dom = html; 
 		}
 
 		/**
@@ -157,10 +195,13 @@
 			return sessionData;
 		}
 
-		this.fbInvite = function () {
-			xhr('GET', 'https://graph.facebook.com/me/friends', function(e){
-				console.log(e);
-				
+		this.invite = function() {
+			FB.invite(sessionData, function(response) {
+				console.log('FB.invite resp',response);
+				var querystring = querify({ 
+					'fbusers_id': response.to
+				});
+				if (currentConf.httpEnabled) xhr('GET', API.updateCredits+querystring);
 			});
 		}
 

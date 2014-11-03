@@ -2,7 +2,7 @@ var Facebook = (function() {
 	var friends = [];
 	// This is called with the results from from FB.getLoginStatus().
 	var config = {
-		appId: '218613018316690',
+		appId: '218613018316690',//'',497938953670292
 		autoLogin: false, 
 		autoStart: false
 	}
@@ -25,7 +25,7 @@ var Facebook = (function() {
 			if (response.authResponse) {
 				console.log('Welcome!  Fetching your information.... ');
 				if (callback) callback.call(this);
-			} else {9
+			} else {
 				console.log('User cancelled login or did not fully authorize.');
 			}
 		}, {scope: 'user_friends', display: chosenDisplay });
@@ -42,6 +42,7 @@ var Facebook = (function() {
 		var n = 0;
 		var copyFriends = function (resp) {
 			if (resp && !resp.error) {
+				n++;
 				friends = friends.concat(resp.data);
 				if (n>1) callback(friends); 
 			}
@@ -65,8 +66,14 @@ var Facebook = (function() {
 			statusChangeCallback(response);
 		});
 
+		FB.invite = function(options, callback) {
+			FB.ui({method: 'apprequests',
+				message: 'My score is '+options.score+', try to beat me! Play gratis on Gamefive.'
+			}, callback);
+		}
 
 
+/*
 		FB.inviteFriends = function(options) {
 			getAllFriends(renderFriendSelector);
 
@@ -110,9 +117,11 @@ var Facebook = (function() {
 					data: JSON.stringify(options)
 				}, function(res) {
 					console.log(res);
+					// call to updatecredits
 				});
 			}
 		}
+*/
 
 	};
 
