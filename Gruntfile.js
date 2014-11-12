@@ -49,6 +49,10 @@ module.exports = function(grunt) {
       dist: {
         src: '<%= buildFilename %>',
         dest: '<%= minFilename %>'
+      },
+      old: {
+        src: 'dist/gfsdk-0.1.js',
+        dest: 'dist/gfsdk-0.1.min.js'
       }
     },
     concat: {
@@ -81,6 +85,7 @@ module.exports = function(grunt) {
 
   // Default task.
   grunt.registerTask('build', ['shell:jsdoc', 'shell:index','concat', 'wrap', 'uglify']);
+  grunt.registerTask('build_old', ['uglify:old']);
   grunt.registerTask('test', ['concat', 'wrap', 'qunit']);
 
 

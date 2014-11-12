@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>GamifiveSDK demo</title>
+    <title>GamefiveSDK demo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script type="text/javascript">
       var GamefiveInfo={
@@ -13,34 +13,28 @@
     </script>
   </head>
   <body>
-    <h1>GamifiveSDK demo</h1>
-
-    <!-- begin demo markup -->
-
-    <!-- end demo markup -->
-
+    <h1>GamefiveSDK demo</h1>
     <p>See the <a href="./../manual/GamefiveSDK.html">project documentation</a>.
-    <p>Check out the <a href="https://github.com/bolza/GamifiveSDK">project repo</a>.
+    <p>Check out the <a href="https://github.com/bolza/GamefiveSDK">project repo</a>.
     <p>Copyright 2014 Buongiorno.com</p>
     
-    <!--script src="./../src/FB.js"></script>
-    <script src="./../src/gfsdk.js"></script
-http://s2.motime.com/js/wl/webstore_html5game/gfsdk/
-    -->
-    <script src="./../dist/gfsdk-0.3.js"></script>
+    <script src="./../src/Utils.js"></script>
+    <script src="./../src/FB.js"></script>
+    <script id="gfsdk" src="./../src/gfsdk.js?debug=true"></script>
+    <!--script src="./../dist/gfsdk-0.3.js"></script-->
 
-    <button onclick="FB.inviteFriends()">Invite FB Friends</button>
-    
-    <!--button onclick="FBLogin(null, 'touch')">touch Login</button>
-    <button onclick="FBLogin(null, 'iframe')">iframe Login</button>
-    <button onclick="FBLogin(null, 'popup')">popup Login</button>
-    <button onclick="FBLogin(null, 'page')">page Login</button-->
+    <button onclick="GamefiveSDK.invite()">Request to FB Friends</button>
+    <button onclick="GamefiveSDK.startSession()">Start Session</button>
+    <button onclick="GamefiveSDK.endSession({score: 11})">End Session</button>
 
     <script>
       /* begin demo script */ 
+      window.GamefiveSDK = new GamefiveSDK();
+      GamefiveSDK.onStartSession(function(e) {
+        console.log('onStartSession', e);
+      });
       
-      console.log( 'GamefiveSDK:', window.GamefiveSDK );
-
+      //console.log( 'GamefiveSDK:', window.GamefiveSDK );
       /* end demo script */
     </script>
   </body>

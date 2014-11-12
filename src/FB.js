@@ -1,15 +1,16 @@
-var Facebook = (function() {
+var FBConnector = (function() {
 	var friends = [];
 	// This is called with the results from from FB.getLoginStatus().
 	var config = {
-		appId: '218613018316690',//'',497938953670292
+		appId: '',//'497938953670292',//'218613018316690',
 		autoLogin: false, 
-		autoStart: false
-	}
-	;
+		autoStart: false,
+		onLogged: function() {}
+	};
 	function statusChangeCallback(response) {
 		if (response.status === 'connected') {
 			testAPI();
+			config.onLogged.call(this, response);
 		} else if (response.status === 'not_authorized') {
 			console.log('Please log into this app.');
 			if (config.autoLogin) FBLogin();
@@ -24,8 +25,9 @@ var Facebook = (function() {
 		FB.login(function(response) {
 			if (response.authResponse) {
 				console.log('Welcome!  Fetching your information.... ');
-				if (callback) callback.call(this);
+				config.onLogged.call(this, response);
 			} else {
+				config.onLogged.call(this, response);
 				console.log('User cancelled login or did not fully authorize.');
 			}
 		}, {scope: 'user_friends', display: chosenDisplay });
@@ -66,64 +68,14 @@ var Facebook = (function() {
 			statusChangeCallback(response);
 		});
 
-		FB.invite = function(options, callback) {
-			FB.ui({method: 'apprequests',
-				message: 'My score is '+options.score+', try to beat me! Play gratis on Gamefive.'
-			}, callback);
-		}
-
-
-/*
-		FB.inviteFriends = function(options) {
-			getAllFriends(renderFriendSelector);
-
-			function renderFriendSelector(friendsList) {
-				var container = document.body;
-				var mfsForm = document.createElement('form');
-				mfsForm.id = 'mfsForm';
-				// Iterate through the array of friends object and create a checkbox for each one.
-				for(var i = 0; i < Math.min(friendsList.length, 10); i++) {
-					var friendItem = document.createElement('div');
-					friendItem.id = 'friend_' + friendsList[i].id;
-					friendItem.innerHTML = '<input type="checkbox" name="friends" value="'
-					+ friendsList[i].id
-					+ '" />' + friendsList[i].name;
-					mfsForm.appendChild(friendItem);
-				}
-				container.appendChild(mfsForm);
-				// Create a button to send the Request(s)
-				var sendButton = document.createElement('input');
-				sendButton.type = 'button';
-				sendButton.value = 'Send Request';
-				sendButton.onclick = sendRequest;
-				mfsForm.appendChild(sendButton);
-			}
-
-
-			function sendRequest() {
-				// Get the list of selected friends
-				var sendUIDs = '';
-				var mfsForm = document.getElementById('mfsForm');
-				for(var i = 0; i < mfsForm.friends.length; i++) {
-					if(mfsForm.friends[i].checked) {
-						sendUIDs += mfsForm.friends[i].value + ',';
-					}
-				}
-				// Use FB.ui to send the Request(s)
-				FB.ui({method: 'apprequests',
-					to: sendUIDs,
-					title: 'Play with me on Gamefive',
-					message: 'My score is '+options.score+', try to beat me! Play gratis on Gamefive.',
-					data: JSON.stringify(options)
-				}, function(res) {
-					console.log(res);
-					// call to updatecredits
-				});
-			}
-		}
-*/
-
 	};
+
+	var appRequest = function(options, callback) {
+		FB.ui({method: 'apprequests',
+			message: 'My score is '+options.score+', try to beat me! Play gratis on Gamefive.',
+			data: JSON.stringify(options)
+		}, callback);
+	}
 
 	// Load the SDK asynchronously
 	function FBStart() {
@@ -147,10 +99,9 @@ var Facebook = (function() {
 	return {
 		start: FBStart,
 		login: FBLogin,
+		invite: appRequest,
 		getFriends: getAllFriends,
-		appId:  config.appId,
-		autoLogin: config.autoLogin,
-		autoStart: config.autoStart
+		setConfig: function(name, value) { if(config[name] != undefined) config[name] = value }		
 	}
 
-}); 
+})(); 

@@ -25,15 +25,27 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>	/**
-	* Main SDK Class
+            <pre class="prettyprint source linenums"><code>
+	/**
+	* GamefiveSDK 0.3 JSDOC Reference
 	* @class
-	* Minified Source CDN: {@link  http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.3.min.js}
-	* @tutorial {@link http://s.motime.com/js/wl/webstore_html5game/gfsdk/manual/GamefiveSDK.html}
+	* The GamefiveSDK for JavaScript consists of a single JS file to be included in a SCRIPT element in the HEAD tag of your game HTML. 
+	* Please see the TUTORIAL section below for resources.   
+	*
+	* @tutorial [Version 0.1 Minified Source CDN]{@link  http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.1.min.js}
+	* @tutorial [Version 0.3 Minified Source CDN]{@link  http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.3.min.js}
+	* @tutorial [Version 0.3 Repository for Game Developers]{@link  https://github.com/Bolza/GamifiveSDK/}
+	* @tutorial [Version 0.3 JSDOC Reference]{@link http://s.motime.com/js/wl/webstore_html5game/gfsdk/manual/GamefiveSDK.html}
+	* @version 0.3
 	* @author Stefano Sergio
 	*/
+	
+		
 	function GamefiveSDK() {
-		var sessionData = {};
+		var sessionData = {
+			version: '0.3',
+			contentId: ''
+		};
 		var _dom;
 		Object.defineProperty(sessionData, "dom", {
 			get: function () { 
@@ -41,9 +53,15 @@
 				return _dom;
 			}, 
 			set: function (value) {
-				if (sessionData.dom) _dom.innerHTML = value;
+				if (!value &amp;&amp; _dom) {
+					document.body.removeChild(_dom);
+					_dom = null;
+				}
+				else if (value) { 
+					sessionData.dom.innerHTML = value; // NB: sessionData.dom implicitly calls the getter before assigning value
+				}
 				return _dom;
-			} 
+			}
 		});
 
 		var createRoot = function() {
@@ -55,7 +73,7 @@
 			domRoot.style.top = '0';
 			domRoot.style.left = '0';
 			domRoot.style.background = 'white';
-			//domRoot.style.display = 'none';
+			domRoot.style.zIndex = '1000';
 			document.body.appendChild(domRoot);
 			return domRoot;
 		}
@@ -63,41 +81,58 @@
 		var currentConf = {
 			logEnabled: false,
 			httpEnabled: true,
-			debugMode: true,
-			startCallback: null
+			debugMode: false,
+			startCallback: null,
+			eventCallback: {}
 		};
 
-		var API = {
-			canDownload: '/v01/user.candownload/',
-			leaderboard: '/v01/leaderboard/',
-			userInfo: '/v01/user.lightinfo/',
-			gameover: '/v01/gameover/',
-			updateCredits: '/v01/mipuser.updatecredits'
+		var API = function(name, paramsObject) {
+			var query = querify(paramsObject);
+			var callurl = {
+				canDownload: currentConf.debugMode ? 'user.candownload' : 'user.candownload/'+sessionData.contentId,
+				gameover: currentConf.debugMode ? 'gameover' : 'gameover/'+sessionData.contentId,
+				userInfo: currentConf.debugMode ? 'user.lightinfo' : 'user.lightinfo',
+				updateCredits: currentConf.debugMode ? 'mipuser.updatecredits' : 'mipuser.updatecredits',
+				gamifiveInfo: currentConf.debugMode ? 'GamifiveInfo' : null,
+				newChallenge: currentConf.debugMode ? 'challenge.post' : 'challenge.post',
+				mipConnect: currentConf.debugMode ? 'mipuser.fbconnect' : 'mipuser.fbconnect'
+			}
+			return currentConf.debugMode ? getAbsoluteUrl()+'/mock01/'+callurl[name] : '/v01/'+callurl[name]+query;
 		}
 
 		var fb_start = window.location.search.toLowerCase().indexOf('fbstart');
 		var fb_login = window.location.search.toLowerCase().indexOf('fblogin');
 		
+
 		/**
 		* Anything you can do at startup time you must define in here
 		*/
 		var init = function() {
-			if (!GamefiveInfo &amp;&amp; currentConf.debugMode) GamefiveInfo = {};
-			sessionData.userId = GamefiveInfo.userId;
-			sessionData.label = GamefiveInfo.logEnabled;
-			sessionData.appId = GamefiveInfo.contentId || window.location.pathname.split('/')[4] || null;
-			sessionData.fbAppId = GamefiveInfo.fbAppId;
-			var FBConnector = new Facebook();
+			var gfInfo = window.GamifiveInfo;
+			currentConf.debugMode = getScriptParams().debug;
+			if (typeof gfInfo == 'undefined' &amp;&amp; currentConf.debugMode) {
+				xhr('GET', API('gamifiveInfo'), function(resp, req) {
+					if (req.response) window.GamifiveInfo = resp;
+					//copyProperties(gfInfo, sessionData);
+					//console.log('gamifiveInfo by xhr', gfInfo);
+					init();
+				});	
+			}
+			else {
+				console.warn('No GamifiveInfo found. Set debugMode=TRUE if you are debugging.');
+			}
 
-			if (fb_start || fb_login) FBConnector.start();
+			if (typeof gfInfo == 'object') {
+				copyProperties(gfInfo, sessionData);
+				FBConnector.setConfig('appId', sessionData.fbAppId);
+				if (fb_start || fb_login) FBConnector.start();
 
-			xhr('GET', API.userInfo, function(resp, req) {
-				if (req.response) sessionData.user = resp;
-			});
-			if (currentConf.logEnabled) console.log('Game9fiveSDK->init', sessionData);
+				xhr('GET', API('userInfo'), function(resp, req) {
+					if (req.response) sessionData.user = resp;
+				});
+			}
+			if (currentConf.logEnabled) console.log('GamefiveSDK->init', sessionData);
 		}
-
-
 
 		/**
 		* Updates the config if needed by the user
@@ -110,10 +145,9 @@
 		*/
 		this.updateConfig = function(confObj) {
 			if (typeof confObj != 'object') confObj = {};
-			currentConf.logEnabled = confObj.logEnabled || currentConf.logEnabled;
-			currentConf.httpEnabled = confObj.httpEnabled || currentConf.httpEnabled;
-			currentConf.debugMode = confObj.debugMode || currentConf.debugMode;
-			currentConf.startCallback = confObj.startCallback || currentConf.startCallback;
+			copyProperties(confObj, currentConf);
+			if (currentConf.logEnabled) console.log('GamefiveSDK', 'updateConfig', currentConf);
+			return currentConf;
 		}
 
 		/**
@@ -129,21 +163,19 @@
 			sessionData.timestart = Date.now();
 
 			function call_start_callback() {
+				if (currentConf.logEnabled) console.log('startSession callback now');
+				sessionData.dom = null;
 				if (currentConf.startCallback) currentConf.startCallback.call();
 				else throw new Error('No startSession callback found. use GamefiveSDK.onStartSession(callback) to define one before calling the startSession() method');
 			}
 
-			xhr('GET', API.canDownload+sessionData.userId, function(resp, req) {
-				console.log('XHR what happened', resp, req);
-				if (!req.response &amp;&amp; !req.status &amp;&amp; currentConf.debugMode) resp = { canDownload:true };
-				
+			xhr('GET', API('canDownload'), function(resp, req) {
+				if (currentConf.logEnabled) console.log('API::canDownload', resp.canDownload, req);
 				if (resp.canDownload) {
-					console.log(' call_start_callback ');
 					call_start_callback();
 				}
 				else {
-					console.log(' GameOver fail ',resp, req);
-					//get GameOver special
+					throwEvent('user_no_credits');
 				}
 			});
 		}
@@ -177,7 +209,22 @@
 		*
 		*/
 		this.onStartSession = function(callback) {
+			if (currentConf.logEnabled) console.log('GamefiveSDK.onStartSession', callback);
 			currentConf.startCallback = callback;
+		}
+
+		/**
+		* Attach an event handler on a defined event name. 
+		* @param {string} name - event name or name associated to the event handler
+		* @param {function} callback - Function to be executed whenever the event name is thrown
+		*/
+		this.onEvent = function(name, callback) {
+			if (currentConf.logEnabled) console.log('GamefiveSDK.onError', callback);
+			currentConf.eventCallback[name] = callback;
+		}
+
+		var throwEvent = function(name) {
+			if (currentConf.eventCallback[name]) currentConf.eventCallback[name].call();
 		}
 		
 		/**
@@ -190,48 +237,88 @@
 		* @param {float} endingParams.score - User score for the ended session.
 		*/	
 		this.endSession = function(endingParams) {
-			if (currentConf.logEnabled) console.log('GamefiveSDK.endSession', arguments);
+			if (currentConf.logEnabled) console.log('GamefiveSDK.endSession', endingParams);
 			sessionData.timeend = Date.now();
 			sessionData.score = parseFloat(endingParams.score) || 0;
-			//content_id | id gel gioco
-          	//challenge_id | id sfida
-			var querystring = querify({ 
-				//'newapps': 1,
-				//'appId': sessionData.appId,
+			var qobj = { 
 				//'label': sessionData.label,
 				//'userId': sessionData.userId,
 				'start': sessionData.timestart,
 				'duration': sessionData.timeend - sessionData.timestart,
 				'score': sessionData.score
-			});
+          		//challenge_id | id sfida
+			};
 			
-			//if (currentConf.httpEnabled) xhr('GET', API.leaderboard+querystring);
-			if (currentConf.httpEnabled) xhr('GET', API.gameover+sessionData.userId+querystring, renderPage);
+			//if (currentConf.httpEnabled) xhr('GET', API().leaderboard+querystring);
+			if (currentConf.httpEnabled) xhr('GET', API('gameover', qobj), renderPage);
 		}
 
 		var renderPage = function(html) {
-			console.log('render', { 'da': html } );
+			if (currentConf.logEnabled) console.log('render', { 'da': html } );
 			sessionData.dom = html; 
 		}
 
 		/**
 		* Get SDK Status and Data 
-		* @returns {Object} Object containing Session and User Information
+		* @returns {Object} Object containing session and user Information
 		*/
 		this.status = function() {
 			return sessionData;
 		}
 
-		this.invite = function() {
-			FB.invite(sessionData, function(response) {
-				console.log('FB.invite resp',response);
-				var querystring = querify({ 
-					'fbusers_id': response.to
-				});
-				if (currentConf.httpEnabled) xhr('GET', API.updateCredits+querystring);
+		var fbAppRequest = function() {			
+			var opt = { 
+				score: sessionData.score,
+				contentId: sessionData.contentId,
+				userId: sessionData.userId 
+			}
+			FBConnector.invite(opt, function(inviteResp) {
+				console.log('FBConnector.invite resp', inviteResp);		
+				if (!inviteResp) {
+					throwEvent('fb_invite_error');
+				}
+				else if (!inviteResp.length) {
+					throwEvent('fb_invite_empty');
+				}
+				else {
+					var qobj = querify({ 
+						'fbusers_id': inviteResp.to || null,
+						'userId': sessionData.userId || null
+					});
+					if (currentConf.httpEnabled) xhr('GET', API('updateCredits', qobj));
+				}
 			});
 		}
 
+		this.invite = function() {
+			// User is already fb-connected. Skip to appRequest
+			if (!sessionData.requireFbConnect &amp;&amp; sessionData.fbConnected) {
+				fbAppRequest();
+			}
+			// In this case we require to connect the user on FB and we can do it via JS API
+			else if (sessionData.requireFbConnect &amp;&amp; !sessionData.fbExternal) {
+				FB.login(function(loginResp){
+					if (loginResp.status === 'connected') {
+						xhr('GET', API('mipConnect', {access_token: loginResp.authResponse.accessToken}), function(e) {
+							console.log('mipConnect response',e);
+							if (parseInt(e.status) == 200) fbAppRequest();
+							else throwEvent('user_fbconnect_fail');
+						});
+					} 
+					else if (loginResp.status === 'not_authorized') {
+						throwEvent('fb_login_noauth');
+					} 
+					else {
+						throwEvent('fb_login_fail');
+					} 
+					console.log(loginResp);
+				});
+			}
+			// In this case we require to connect the user on FB but we must redirect on an external page
+			else if (sessionData.requireFbConnect &amp;&amp; sessionData.fbExternal) {
+				document.location.href = sessionData.fbExternal;
+			}
+		}
 
 		// Initialize the library
 		init();
@@ -251,7 +338,7 @@
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Mon Nov 03 2014 12:50:49 GMT+0100 (CET)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Wed Nov 12 2014 18:40:41 GMT+0100 (CET)
 </footer>
 
 <script> prettyPrint(); </script>
