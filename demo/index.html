@@ -3,14 +3,6 @@
   <head>
     <title>GamefiveSDK demo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script type="text/javascript">
-      var GamefiveInfo={
-        fbAppId:'497938953670292',
-        contentId:'94bbda9eaeeadc8c8edbf175653e8021',
-        label:'it_igames',
-        userId:'5bdbf7325f8111e4aabf005056b60712'
-      }
-    </script>
   </head>
   <body>
     <h1>GamefiveSDK demo</h1>
@@ -18,10 +10,10 @@
     <p>Check out the <a href="https://github.com/bolza/GamefiveSDK">project repo</a>.
     <p>Copyright 2014 Buongiorno.com</p>
     
-    <script src="./../src/Utils.js"></script>
-    <script src="./../src/FB.js"></script>
-    <script id="gfsdk" src="./../src/gfsdk.js?debug=true"></script>
-    <!--script src="./../dist/gfsdk-0.3.js"></script-->
+    <!--script src="./../src/Utils.js"></script-->
+    <!--script src="./../src/FB.js"></script-->
+    <!--script id="gfsdk" src="./../src/gfsdk.js?debug=true"></script-->
+    <script id="gfsdk" src="./../dist/gfsdk-0.3.js?debug=true"></script>
 
     <button onclick="GamefiveSDK.invite()">Request to FB Friends</button>
     <button onclick="GamefiveSDK.startSession()">Start Session</button>
@@ -29,7 +21,7 @@
 
     <script>
       /* begin demo script */ 
-      window.GamefiveSDK = new GamefiveSDK();
+      //window.GamefiveSDK = new GamefiveSDK();
       GamefiveSDK.onStartSession(function(e) {
         console.log('onStartSession', e);
       });
