@@ -10,7 +10,7 @@ The script element must have an ID with value 'gfsdk'. There is no need to call 
 The new interface is explained in detail inside the JSDOC Reference, any non-documented method is not meant to be used by the Game Developers for the moment.
 
 
-### Use of the SDK in Production
+### Use of the SDK in Production (will actually work only on Gamifive servers)
 You just include the minified sdk inside a script tag with id 'gfsdk'
 ```html
 <script id="gfsdk" src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.3.min.js"></script>	
