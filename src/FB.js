@@ -25,9 +25,9 @@ var FBConnector = (function() {
 		FB.login(function(response) {
 			if (response.authResponse) {
 				console.log('Welcome!  Fetching your information.... ');
-				config.onLogged.call(this, response);
+				callback.call(this, response);
 			} else {
-				config.onLogged.call(this, response);
+				callback.call(this, response);
 				console.log('User cancelled login or did not fully authorize.');
 			}
 		}, {scope: 'user_friends', display: chosenDisplay });

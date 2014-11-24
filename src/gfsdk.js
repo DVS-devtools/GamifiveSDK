@@ -16,7 +16,7 @@
 		
 	function GamefiveSDK() {
 		var sessionData = {
-			version: '0.3',
+			version: '0.3.1',
 			contentId: ''
 		};
 		var _dom;
@@ -40,71 +40,59 @@
 		var createRoot = function() {
 			var domRoot = document.createElement('div');
 			domRoot.id = "gfsdk_root";
-			domRoot.style.position = 'absolute';
-			domRoot.style.width = '100%';
-			domRoot.style.height = '100%';
-			domRoot.style.top = '0';
-			domRoot.style.left = '0';
-			domRoot.style.background = 'white';
-			domRoot.style.zIndex = '1000';
 			document.body.appendChild(domRoot);
+			var stopPropagation = function(e) {e.stopPropagation();}
+			domRoot.addEventListener('touchmove', stopPropagation);
+			domRoot.addEventListener('touchstart', stopPropagation);
+			domRoot.addEventListener('touchend', stopPropagation);
+			var src = "http://s2.motime.com/js/wl/webstore_html5game/gameover.js";
+			var script = document.createElement('script');
+			script.src = src;
+			if (!currentConf.debugMode) domRoot.appendChild(script);
 			return domRoot;
 		}
 
-		var currentConf = {
-			logEnabled: false,
-			httpEnabled: true,
-			debugMode: false,
-			startCallback: null,
-			eventCallback: {}
-		};
-
 		var API = function(name, paramsObject) {
-			var query = querify(paramsObject);
+			var query = Utils().querify(paramsObject);
 			var callurl = {
 				canDownload: currentConf.debugMode ? 'user.candownload' : 'user.candownload/'+sessionData.contentId,
 				gameover: currentConf.debugMode ? 'gameover' : 'gameover/'+sessionData.contentId,
+				paywall: currentConf.debugMode ? 'gameoverpaywall' : 'gameoverpaywall'+sessionData.contentId,
 				userInfo: currentConf.debugMode ? 'user.lightinfo' : 'user.lightinfo',
 				updateCredits: currentConf.debugMode ? 'mipuser.updatecredits' : 'mipuser.updatecredits',
 				gamifiveInfo: currentConf.debugMode ? 'GamifiveInfo' : null,
 				newChallenge: currentConf.debugMode ? 'challenge.post' : 'challenge.post',
 				mipConnect: currentConf.debugMode ? 'mipuser.fbconnect' : 'mipuser.fbconnect'
 			}
-			return currentConf.debugMode ? getAbsoluteUrl()+'/mock01/'+callurl[name] : '/v01/'+callurl[name]+query;
+			return currentConf.debugMode ? Utils().getAbsoluteUrl()+'/mock01/'+callurl[name] : '/v01/'+callurl[name]+query;
 		}
-
-		var fb_start = window.location.search.toLowerCase().indexOf('fbstart');
-		var fb_login = window.location.search.toLowerCase().indexOf('fblogin');
-		
 
 		/**
 		* Anything you can do at startup time you must define in here
 		*/
 		var init = function() {
 			var gfInfo = window.GamifiveInfo;
-			currentConf.debugMode = getScriptParams().debug;
+			currentConf.debugMode = Utils().getScriptParams().debug;
 			if (typeof gfInfo == 'undefined' && currentConf.debugMode) {
-				xhr('GET', API('gamifiveInfo'), function(resp, req) {
+				Utils().xhr('GET', API('gamifiveInfo'), function(resp, req) {
 					if (req.response) window.GamifiveInfo = resp;
-					//copyProperties(gfInfo, sessionData);
-					//console.log('gamifiveInfo by xhr', gfInfo);
 					init();
 				});	
 			}
-			else {
-				console.warn('No GamifiveInfo found. Set debugMode=TRUE if you are debugging.');
+			else if (typeof gfInfo == 'undefined' && !currentConf.debugMode) {
+				console.warn('No GamifiveInfo found. Set add ?debug=true if you are debugging.');
 			}
 
 			if (typeof gfInfo == 'object') {
-				copyProperties(gfInfo, sessionData);
+				Utils().copyProperties(gfInfo, sessionData);
 				FBConnector.setConfig('appId', sessionData.fbAppId);
-				if (fb_start || fb_login) FBConnector.start();
+				FBConnector.start();
 
-				xhr('GET', API('userInfo'), function(resp, req) {
+				Utils().xhr('GET', API('userInfo'), function(resp, req) {
 					if (req.response) sessionData.user = resp;
 				});
+				if (currentConf.logEnabled) console.log('GamefiveSDK->init', sessionData);
 			}
-			if (currentConf.logEnabled) console.log('GamefiveSDK->init', sessionData);
 		}
 
 		/**
@@ -117,8 +105,15 @@
 		* @param {function} [confObject.startCallback] - default callback on startSession 
 		*/
 		this.updateConfig = function(confObj) {
-			if (typeof confObj != 'object') confObj = {};
-			copyProperties(confObj, currentConf);
+			if (!confObj || typeof confObj != 'object') confObj = {
+				logEnabled: false,
+				httpEnabled: true,
+				debugMode: false,
+				startCallback: null,
+				eventCallback: {}
+			};
+			Utils().copyProperties(confObj, currentConf);
+			Utils().xhrDisabled = !currentConf.httpEnabled;
 			if (currentConf.logEnabled) console.log('GamefiveSDK', 'updateConfig', currentConf);
 			return currentConf;
 		}
@@ -142,13 +137,18 @@
 				else throw new Error('No startSession callback found. use GamefiveSDK.onStartSession(callback) to define one before calling the startSession() method');
 			}
 
-			xhr('GET', API('canDownload'), function(resp, req) {
+			if (currentConf.debugMode && !currentConf.httpEnabled) call_start_callback();
+			
+			Utils().xhr('GET', API('canDownload'), function(resp, req) {
 				if (currentConf.logEnabled) console.log('API::canDownload', resp.canDownload, req);
 				if (resp.canDownload) {
 					call_start_callback();
 				}
 				else {
-					throwEvent('user_no_credits');
+					Utils().xhr('GET', API('gameover'), function(resp, req) {
+						renderPage(resp);
+						throwEvent('user_no_credits');
+					});
 				}
 			});
 		}
@@ -182,7 +182,7 @@
 		*
 		*/
 		this.onStartSession = function(callback) {
-			if (currentConf.logEnabled) console.log('GamefiveSDK.onStartSession', callback);
+			if (currentConf.logEnabled) console.log('GamefiveSDK.onStartSession', currentConf);
 			currentConf.startCallback = callback;
 		}
 
@@ -191,15 +191,21 @@
 		* @param {string} name - event name or name associated to the event handler
 		* @param {function} callback - Function to be executed whenever the event name is thrown
 		*/
-		this.onEvent = function(name, callback) {
-			if (currentConf.logEnabled) console.log('GamefiveSDK.onError', callback);
-			currentConf.eventCallback[name] = callback;
+		this.onEvent = function(event, callback) {
+			if (currentConf.logEnabled) console.log('GamefiveSDK.onEvent', event);
+			if (event instanceof Array) {
+				for(var k=0; k < event.length; k++){
+					currentConf.eventCallback[event[k]] = callback;
+				}
+			} else {
+				currentConf.eventCallback[event] = callback;
+			}
 		}
 
-		var throwEvent = function(name) {
-			if (currentConf.eventCallback[name]) currentConf.eventCallback[name].call();
+		var throwEvent = function(name, paramsObject) {
+			if (currentConf.eventCallback[name]) currentConf.eventCallback[name].call(this, paramsObject);
 		}
-		
+
 		/**
 		* Defines the end of a session. A session is a continued user activity like a game match. <br>
 		* It should end with the score of that session. 
@@ -222,8 +228,7 @@
           		//challenge_id | id sfida
 			};
 			
-			//if (currentConf.httpEnabled) xhr('GET', API().leaderboard+querystring);
-			if (currentConf.httpEnabled) xhr('GET', API('gameover', qobj), renderPage);
+			Utils().xhr('GET', API('gameover', qobj), renderPage);
 		}
 
 		var renderPage = function(html) {
@@ -238,7 +243,7 @@
 		this.status = function() {
 			return sessionData;
 		}
-
+ 
 		var fbAppRequest = function() {			
 			var opt = { 
 				score: sessionData.score,
@@ -246,19 +251,23 @@
 				userId: sessionData.userId 
 			}
 			FBConnector.invite(opt, function(inviteResp) {
-				console.log('FBConnector.invite resp', inviteResp);		
+				//console.log('FBConnector.invite resp', inviteResp);
 				if (!inviteResp) {
-					throwEvent('fb_invite_error');
+					throwEvent('fb_invite_error', inviteResp);
 				}
-				else if (!inviteResp.length) {
-					throwEvent('fb_invite_empty');
+				else if (!inviteResp.to.length) {
+					throwEvent('fb_invite_empty', inviteResp);
 				}
 				else {
-					var qobj = querify({ 
+					//newChallenge ?
+					throwEvent('fb_invite_success', inviteResp);
+					var qobj = { 
 						'fbusers_id': inviteResp.to || null,
 						'userId': sessionData.userId || null
+					};
+					Utils().xhr('GET', API('updateCredits', qobj), function(e) {
+						throwEvent('user_credits_updated', e);
 					});
-					if (currentConf.httpEnabled) xhr('GET', API('updateCredits', qobj));
 				}
 			});
 		}
@@ -270,10 +279,10 @@
 			}
 			// In this case we require to connect the user on FB and we can do it via JS API
 			else if (sessionData.requireFbConnect && !sessionData.fbExternal) {
-				FB.login(function(loginResp){
+				FBConnector.login(function(loginResp){
 					if (loginResp.status === 'connected') {
-						xhr('GET', API('mipConnect', {access_token: loginResp.authResponse.accessToken}), function(e) {
-							console.log('mipConnect response',e);
+						Utils().xhr('GET', API('mipConnect', {access_token: loginResp.authResponse.accessToken}), function(e) {
+							//console.log('mipConnect response',e);
 							if (parseInt(e.status) == 200) fbAppRequest();
 							else throwEvent('user_fbconnect_fail');
 						});
@@ -284,7 +293,7 @@
 					else {
 						throwEvent('fb_login_fail');
 					} 
-					console.log(loginResp);
+					//console.log(loginResp);
 				});
 			}
 			// In this case we require to connect the user on FB but we must redirect on an external page
@@ -292,6 +301,11 @@
 				document.location.href = sessionData.fbExternal;
 			}
 		}
+
+		// Update config
+		var currentConf = {};
+		this.updateConfig();
+		//this.throwEvent = throwEvent;
 
 		// Initialize the library
 		init();

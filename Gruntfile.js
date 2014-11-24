@@ -44,7 +44,8 @@ module.exports = function(grunt) {
     },
     uglify: {
       options: {
-        banner: '<%= banner %>'
+        banner: '<%= banner %>',
+        sourceMap: true
       },
       dist: {
         src: '<%= buildFilename %>',

@@ -13,6 +13,9 @@ QUnit.test("init phase works correctly", function() {
 	ok(sessionData.fbAppId);
 });
 
+QUnit.test("Utils is singleton", function() {
+	ok(Utils() === Utils());
+});
 
 
 

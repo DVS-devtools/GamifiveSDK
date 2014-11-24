@@ -124,7 +124,7 @@
 	function GamefiveSDK() {
 		var mipId, appId, userId, label;
 		var sessionData = {
-			version: '0.1.1'
+			version: '0.1.2'
 		};		
 		var currentConf = {
 			logEnabled: false,
@@ -192,9 +192,10 @@
 
 
 		var init = function() {
-			sessionData.userId = GamifiveInfo.userId;
-			sessionData.label = GamifiveInfo.label;
-			sessionData.appId = GamifiveInfo.contentId;
+			var gfInfo = window.GamifiveInfo || {};
+			sessionData.userId = gfInfo.userId;
+			sessionData.label = gfInfo.label;
+			sessionData.appId = gfInfo.contentId;
 			if (currentConf.logEnabled) console.log('GamefiveSDK->init', sessionData);
 		}
 
