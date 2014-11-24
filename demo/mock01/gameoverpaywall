@@ -1,0 +1,19 @@
+
+<!-- saved from url=(0079)http://www2.giochissimo.it/v01/gameoverpaywall/74990332995a695e0dba36441ff7f631 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body><div class="container game-over"><!-- qui ci dovrebbe andare il bg personalizzato -->
+<div class="box-game-over"><!-- qui inizia il contenitore neutro della game over -->
+<!-- pay wal -->
+<!-- questo blocco viene caricato sia dalla gameover che da un'altra pagina che presenta SOLO il paywall
+hide ... (nome di una classe css che nn fa altro che un mero display:none) viene messo SOLO nel caso
+di game over. E dve essere rimossa dall'sdk
+-->
+<div id="paywall" class=" ">
+<a href="http://www2.giochissimo.it/games/play_monsterjong_HAIT990001690/" class="btn" type="button">Subscribe</a>
+</div>
+ 
+<!-- ################################################################################# -->
+</div>
+</div>
+<!-- modalità edit del template mettiamo i tag html completi-->
+ 
+</body></html>
