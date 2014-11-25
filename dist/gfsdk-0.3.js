@@ -191,7 +191,7 @@ var FBConnector = (function() {
 
 	var appRequest = function(options, callback) {
 		FB.ui({method: 'apprequests',
-			message: 'My score is '+options.score+', try to beat me! Play gratis on Gamefive.',
+			message: options.message,
 			data: JSON.stringify(options)
 		}, callback);
 	}
@@ -471,11 +471,14 @@ var FBConnector = (function() {
 			return sessionData;
 		}
  
-		var fbAppRequest = function() {			
+		var fbAppRequest = function() {		
+			var message = window.GamifiveInfo.dictionary.messageOfFbChallenge;
+			message = message.replace("%s", sessionData.score);
 			var opt = { 
 				score: sessionData.score,
 				contentId: sessionData.contentId,
-				userId: sessionData.userId 
+				userId: sessionData.userId,
+				message: message 
 			}
 			FBConnector.invite(opt, function(inviteResp) {
 				//console.log('FBConnector.invite resp', inviteResp);

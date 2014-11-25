@@ -72,7 +72,7 @@ var FBConnector = (function() {
 
 	var appRequest = function(options, callback) {
 		FB.ui({method: 'apprequests',
-			message: 'My score is '+options.score+', try to beat me! Play gratis on Gamefive.',
+			message: options.message,
 			data: JSON.stringify(options)
 		}, callback);
 	}

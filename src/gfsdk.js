@@ -245,11 +245,14 @@
 			return sessionData;
 		}
  
-		var fbAppRequest = function() {			
+		var fbAppRequest = function() {		
+			var message = window.GamifiveInfo.dictionary.messageOfFbChallenge;
+			message = message.replace("%s", sessionData.score);
 			var opt = { 
 				score: sessionData.score,
 				contentId: sessionData.contentId,
-				userId: sessionData.userId 
+				userId: sessionData.userId,
+				message: message 
 			}
 			FBConnector.invite(opt, function(inviteResp) {
 				//console.log('FBConnector.invite resp', inviteResp);
