@@ -1,10 +1,9 @@
 	/**
-	* Main SDK Class 0.1
+	* Main SDK Class 0.1 JSDoc Reference
 	* @class
-	* Minified Source CDN: {@link  http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.1.min.js}
-	* @tutorial {@link http://s.motime.com/js/wl/webstore_html5game/gfsdk/manual/GamefiveSDK.html}
+	* The GamefiveSDK for JavaScript consists of a single JS file to be included in a SCRIPT element in the HEAD tag of your game HTML. 
+	* @tutorial [Version 0.1 Minified Source CDN]{@link  http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.1.min.js}
 	* @author Stefano Sergio
-	* @param {boolean} [autoInit=false] - if TRUE the constructor calls init function at startup
 	*/
 	function GamefiveSDK() {
 		var mipId, appId, userId, label;
@@ -97,9 +96,10 @@
 		}
 
 		/**
-		* Defines the start of a session. A session is a continued user activity like a game match. <br>
-		* Ideally a session starts when the player starts playing the game from the beginning and his score is set to zero. <br>
-		* For example: when the players has lost all his "lifes" and clicks on "Play Again" button. <br>	
+		* Defines the start of a session. A session is a continued user activity like a game match and the start of a session usually corresponds
+		* <br>
+		* Ideally a session starts when the player starts playing from the beginning and his score is set to zero. So in this version of the API
+		* the startSession must be called alongside with the PLAY function of your game.<br>
 		*/
 		this.startSession = function() {
 			if (currentConf.logEnabled) console.log('GamefiveSDK.startSession', arguments);

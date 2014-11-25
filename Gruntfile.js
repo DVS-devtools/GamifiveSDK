@@ -18,12 +18,20 @@ module.exports = function(grunt) {
       '* http://gamifive.com/\n' +
       '* Copyright (c) <%= grunt.template.today("yyyy") %> ' +
       'Gamifive; Licensed MIT */\n',
+    /*
     shell: {
       jsdoc: {
           command: './node_modules/jsdoc/jsdoc.js ./src/gfsdk.js -d <%= docPath %>'
       },
       index: {  
           command: 'rm <%= docPath %>index.html'
+      }
+    },
+    */
+    jsdoc2md: {
+      oneOutputFile: {
+        src: "src/gfsdk.js",
+        dest: "manual/reference.md"
       }
     },
     qunit: {
@@ -78,10 +86,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-qunit');
+  grunt.loadNpmTasks("grunt-jsdoc-to-markdown");
   //grunt.loadNpmTasks('grunt-jsdoc');
 
   // Default task.
-  grunt.registerTask('build', ['shell:jsdoc', 'shell:index','concat', 'wrap', 'uglify']);
+  grunt.registerTask('build', ['jsdoc2md','concat', 'wrap', 'uglify']);
   grunt.registerTask('test', ['concat', 'wrap', 'qunit']);
 
 

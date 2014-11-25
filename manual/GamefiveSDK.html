@@ -23,33 +23,36 @@
 
 
 
+
 <section>
 
 <header>
-    <h2>
-    GamefiveSDK
-    </h2>
     
-        <div class="class-description">Minified Source CDN: <a href="http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.1.min.js">http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.1.min.js</a></div>
+        <h2>
+        GamefiveSDK
+        </h2>
+        
+            <div class="class-description">The GamefiveSDK for JavaScript consists of a single JS file to be included in a SCRIPT element in the HEAD tag of your game HTML.</div>
+        
     
 </header>
 
 <article>
     <div class="container-overview">
     
-
-    
         
 <dt>
-    <h4 class="name" id="GamefiveSDK"><span class="type-signature"></span>new GamefiveSDK<span class="signature">(autoInit<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+        <h4 class="name" id="GamefiveSDK"><span class="type-signature"></span>new GamefiveSDK<span class="signature">()</span><span class="type-signature"></span></h4>
 
+        
     
 </dt>
 <dd>
 
     
     <div class="description">
-        Main SDK Class 0.1
+        Main SDK Class 0.1 JSDoc Reference
     </div>
     
 
@@ -58,77 +61,18 @@
     
 
     
-        <h5>Parameters:</h5>
-        
 
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-        <th>Attributes</th>
-        
-
-        
-        <th>Default</th>
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>autoInit</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">boolean</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    false
-                
-                </td>
-            
-
-            <td class="description last">if TRUE the constructor calls init function at startup</td>
-        </tr>
-
-    
-    </tbody>
-</table>
     
 
     
+
+
 <dl class="details">
+
+    
+
+    
+
     
 
     
@@ -157,7 +101,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="gfsdk.js.html">gfsdk.js</a>, <a href="gfsdk.js.html#line9">line 9</a>
+        <a href="gfsdk.js.html">gfsdk.js</a>, <a href="gfsdk.js.html#line8">line 8</a>
     </li></ul></dd>
     
 
@@ -165,7 +109,7 @@
     <dt class="tag-tutorial">Tutorials:</dt>
     <dd class="tag-tutorial">
         <ul>
-            <li><em class="disabled">Tutorial: <a href="http://s.motime.com/js/wl/webstore_html5game/gfsdk/manual/GamefiveSDK.html">http://s.motime.com/js/wl/webstore_html5game/gfsdk/manual/GamefiveSDK.html</a></em></li>
+            <li><em class="disabled">Tutorial: <a href="http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.1.min.js">Version 0.1 Minified Source CDN</a></em></li>
         </ul>
     </dd>
     
@@ -200,8 +144,6 @@
 
     
 
-    
-
      
 
     
@@ -214,8 +156,10 @@
         <dl>
             
 <dt>
-    <h4 class="name" id="endSession"><span class="type-signature"></span>endSession<span class="signature">(endingParams)</span><span class="type-signature"></span></h4>
+    
+        <h4 class="name" id="endSession"><span class="type-signature"></span>endSession<span class="signature">(endingParams)</span><span class="type-signature"></span></h4>
 
+        
     
 </dt>
 <dd>
@@ -228,6 +172,8 @@ Ideally a session ends when the player cannot continue his match and must play a
 For example: if the player has x "lifes" then the session only ends when all the x "lifes" are lost. <br>
 <i>.startSession must be called first.</i>
     </div>
+    
+
     
 
     
@@ -333,7 +279,14 @@ For example: if the player has x "lifes" then the session only ends when all the
     
 
     
+
+
 <dl class="details">
+
+    
+
+    
+
     
 
     
@@ -385,17 +338,20 @@ For example: if the player has x "lifes" then the session only ends when all the
         
             
 <dt>
-    <h4 class="name" id="startSession"><span class="type-signature"></span>startSession<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+        <h4 class="name" id="startSession"><span class="type-signature"></span>startSession<span class="signature">()</span><span class="type-signature"></span></h4>
 
+        
     
 </dt>
 <dd>
 
     
     <div class="description">
-        Defines the start of a session. A session is a continued user activity like a game match. <br>
-Ideally a session starts when the player starts playing the game from the beginning and his score is set to zero. <br>
-For example: when the players has lost all his "lifes" and clicks on "Play Again" button. <br>
+        Defines the start of a session. A session is a continued user activity like a game match and the start of a session usually corresponds
+<br>
+Ideally a session starts when the player starts playing from the beginning and his score is set to zero. So in this version of the API
+the startSession must be called alongside with the PLAY function of your game.<br>
     </div>
     
 
@@ -406,7 +362,16 @@ For example: when the players has lost all his "lifes" and clicks on "Play Again
     
 
     
+
+    
+
+
 <dl class="details">
+
+    
+
+    
+
     
 
     
@@ -458,8 +423,10 @@ For example: when the players has lost all his "lifes" and clicks on "Play Again
         
             
 <dt>
-    <h4 class="name" id="status"><span class="type-signature"></span>status<span class="signature">()</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+        <h4 class="name" id="status"><span class="type-signature"></span>status<span class="signature">()</span><span class="type-signature"> &rarr; {Object}</span></h4>
 
+        
     
 </dt>
 <dd>
@@ -477,7 +444,16 @@ For example: when the players has lost all his "lifes" and clicks on "Play Again
     
 
     
+
+    
+
+
 <dl class="details">
+
+    
+
+    
+
     
 
     
@@ -551,8 +527,10 @@ For example: when the players has lost all his "lifes" and clicks on "Play Again
         
             
 <dt>
-    <h4 class="name" id="updateConfig"><span class="type-signature"></span>updateConfig<span class="signature">(confObject)</span><span class="type-signature"></span></h4>
+    
+        <h4 class="name" id="updateConfig"><span class="type-signature"></span>updateConfig<span class="signature">(confObject)</span><span class="type-signature"></span></h4>
 
+        
     
 </dt>
 <dd>
@@ -561,6 +539,8 @@ For example: when the players has lost all his "lifes" and clicks on "Play Again
     <div class="description">
         Updates the config if needed by the user
     </div>
+    
+
     
 
     
@@ -725,7 +705,14 @@ For example: when the players has lost all his "lifes" and clicks on "Play Again
     
 
     
+
+
 <dl class="details">
+
+    
+
+    
+
     
 
     
@@ -747,7 +734,7 @@ For example: when the players has lost all his "lifes" and clicks on "Play Again
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="gfsdk.js.html">gfsdk.js</a>, <a href="gfsdk.js.html#line93">line 93</a>
+        <a href="gfsdk.js.html">gfsdk.js</a>, <a href="gfsdk.js.html#line92">line 92</a>
     </li></ul></dd>
     
 
@@ -796,7 +783,7 @@ For example: when the players has lost all his "lifes" and clicks on "Play Again
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Tue Nov 25 2014 11:23:33 GMT+0100 (CET)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha10</a> on Tue Nov 25 2014 15:06:12 GMT+0100 (CET)
 </footer>
 
 <script> prettyPrint(); </script>

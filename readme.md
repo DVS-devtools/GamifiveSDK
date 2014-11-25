@@ -3,7 +3,7 @@ GamefiveSDK 0.3 - HOW-TO for Game Developers
 
 The GamefiveSDK for JavaScript consists of a single JS file to be included in a SCRIPT element in the HEAD tag of your game HTML. 
 
-The script element must have an ID with value 'gfsdk'. There is no need to call any init function so strip away any GamefiveSDK.init() call you'll have an error otherwise.
+The script element must have an ID with value 'gfsdk'. There is NO need to call any init function so <b>remove</b>b> any GamefiveSDK.init() in your code if you have one.
 
 <b>To properly use the SDK read the JSDOC Reference from [our CDN](http://s.motime.com/js/wl/webstore_html5game/gfsdk/manual/GamefiveSDK.html)</b>
 
@@ -13,7 +13,7 @@ The new interface is explained in detail inside the JSDOC Reference, any non-doc
 ### Use of the SDK in Production (will actually work only on Gamifive servers)
 You just include the minified sdk inside a script tag with id 'gfsdk'
 ```html
-<script id="gfsdk" src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.3.min.js"></script>	
+<script id="gfsdk" src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.1.min.js"></script>	
 ```
 
 ### Debug the SDK inside your game in development environment
