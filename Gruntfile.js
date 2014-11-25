@@ -6,7 +6,7 @@ module.exports = function(grunt) {
     // Metadata.
         // Metadata.
     meta: {
-      version: '0.3'
+      version: '0.1'
     },
     filename: 'gfsdk',
     buildFilename: 'dist/<%= filename %>-<%= meta.version %>.js',
@@ -50,15 +50,11 @@ module.exports = function(grunt) {
       dist: {
         src: '<%= buildFilename %>',
         dest: '<%= minFilename %>'
-      },
-      old: {
-        src: 'dist/gfsdk-0.1.js',
-        dest: 'dist/gfsdk-0.1.min.js'
       }
     },
     concat: {
       dist: {
-        src: ['src/Utils.js','src/FB.js','src/gfsdk.js'],
+        src: ['src/Utils.js','src/gfsdk.js'],
         dest: '<%= buildFilename %>'
       }
     },
@@ -86,7 +82,6 @@ module.exports = function(grunt) {
 
   // Default task.
   grunt.registerTask('build', ['shell:jsdoc', 'shell:index','concat', 'wrap', 'uglify']);
-  grunt.registerTask('build_old', ['uglify:old']);
   grunt.registerTask('test', ['concat', 'wrap', 'qunit']);
 
 

@@ -114,7 +114,7 @@
 		});
 	}
 	/**
-	* Main SDK Class 1.1
+	* Main SDK Class 0.1
 	* @class
 	* Minified Source CDN: {@link  http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.1.min.js}
 	* @tutorial {@link http://s.motime.com/js/wl/webstore_html5game/gfsdk/manual/GamefiveSDK.html}
@@ -267,6 +267,5 @@
 	}
 
 
-	window.GamefiveSDK = new GamefiveSDK();
-
+ target.GamefiveSDK = new GamefiveSDK(); 
 })(window);
