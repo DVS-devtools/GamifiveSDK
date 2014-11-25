@@ -1,4 +1,4 @@
-GamefiveSDK 0.3 - HOW-TO for Game Developers 
+GamefiveSDK 0.1 - HOW-TO for Game Developers 
 ===========
 
 The GamefiveSDK for JavaScript consists of a single JS file to be included in a SCRIPT element in the HEAD tag of your game HTML. 
