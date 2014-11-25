@@ -15,3 +15,17 @@ You just include the minified sdk inside a script tag with id 'gfsdk'
 ```html
 <script id="gfsdk" src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.1.min.js"></script>	
 ```
+
+# Follow this example to understand how to implement the sdk in your code, let's say your game has this two methods to start the game match called "playGame" and a method that is called when the player loses or wins the game called "endGame" which receives the score as parameter.
+
+```javascript
+function playGame() {
+	//your custom play method 
+	GamefiveSDK.startSession();		
+}
+function endGame(myscore) {
+	// whatever you have to do on the end of the game
+	// myscore is the current score for this game
+	GamefiveSDK.endSession( {score: myscore} );		
+}
+```
