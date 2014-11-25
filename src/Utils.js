@@ -74,6 +74,7 @@ var Utils = function() {
 	            	catch(e) {
 	            		//console.warn('xhr failed to json.parse', url, xhr);
 	            	}
+	            	resp.success = (xhr.status <= 399 || xhr.status >= 200);
 	                if (callback) callback(resp , xhr );
 	            }
 	        };

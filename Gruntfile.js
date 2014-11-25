@@ -21,7 +21,7 @@ module.exports = function(grunt) {
     shell: {
       jsdoc: {
           command: './node_modules/jsdoc/jsdoc.js ./src/gfsdk.js -d <%= docPath %>'
-      },
+      }
       index: {  
           command: 'rm <%= docPath %>index.html'
       }
@@ -50,10 +50,6 @@ module.exports = function(grunt) {
       dist: {
         src: '<%= buildFilename %>',
         dest: '<%= minFilename %>'
-      },
-      old: {
-        src: 'dist/gfsdk-0.1.js',
-        dest: 'dist/gfsdk-0.1.min.js'
       }
     },
     concat: {
@@ -85,8 +81,7 @@ module.exports = function(grunt) {
   //grunt.loadNpmTasks('grunt-jsdoc');
 
   // Default task.
-  grunt.registerTask('build', ['shell:jsdoc', 'shell:index','concat', 'wrap', 'uglify']);
-  grunt.registerTask('build_old', ['uglify:old']);
+  grunt.registerTask('build', ['shell:jsdoc03', 'shell:index','concat', 'wrap', 'uglify']);
   grunt.registerTask('test', ['concat', 'wrap', 'qunit']);
 
 
