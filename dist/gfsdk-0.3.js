@@ -326,8 +326,6 @@ var FBConnector = (function() {
 		* @param {object} confObject - Configuration Object
 		* @param {boolean} [confObject.logEnabled=false] - Logging state, only for debug
 		* @param {boolean} [confObject.httpEnabled=true] - Enable/Disable xhr calls, should always be TRUE
-		* @param {boolean} [confObject.debugMode=false] - Set to TRUE if you want to enable debug mode, only for development environment,
-		* the Debug Mode will avoid any external call.
 		* @param {function} [confObject.startCallback] - default callback on startSession 
 		*/
 		this.updateConfig = function(confObj) {

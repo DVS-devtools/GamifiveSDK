@@ -20,11 +20,19 @@ module.exports = function(grunt) {
       'Gamifive; Licensed MIT */\n',
     shell: {
       jsdoc: {
-          command: './node_modules/jsdoc/jsdoc.js ./src/gfsdk.js -d <%= docPath %>'
+         // command: './node_modules/jsdoc/jsdoc.js ./src/gfsdk.js -d <%= docPath %>'
       },
       index: {  
-          command: 'rm <%= docPath %>index.html'
+          command: 'cp <%= docPath %>GamefiveSDK.html <%= docPath %>index.html'
       }
+    },
+    jsdoc : {
+        dist : {
+            src: ['./src/gfsdk.js'], 
+            options: {
+                destination: 'manual'
+            }
+        }
     },
     qunit: {
       all: {
@@ -78,10 +86,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-qunit');
-  //grunt.loadNpmTasks('grunt-jsdoc');
+  grunt.loadNpmTasks('grunt-jsdoc');
 
   // Default task.
-  grunt.registerTask('build', [/*'shell:jsdoc', 'shell:index',*/'concat', 'wrap', 'uglify']);
+  grunt.registerTask('build', ['jsdoc','shell:index','concat', 'wrap', 'uglify']);
   grunt.registerTask('test', ['concat', 'wrap', 'qunit']);
 
 
