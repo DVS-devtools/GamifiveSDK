@@ -254,6 +254,11 @@
 			return sessionData;
 		}
 
+		this.init = function() {
+			console.log('GamefiveSDK', 'WARNING: init() is deprecated, don\'t call it');
+			return true;
+		}
+
 		this.fbInvite = function () {
 			xhr('GET', 'https://graph.facebook.com/me/friends', function(e){
 				console.log(e);
