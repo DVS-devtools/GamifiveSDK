@@ -253,7 +253,6 @@
 				message: message 
 			}
 			FBConnector.invite(opt, function(inviteResp) {
-				//console.log('FBConnector.invite resp', inviteResp);
 				if (!inviteResp) {
 					throwEvent('fb_invite_error', inviteResp);
 				}
@@ -286,32 +285,61 @@
 			});
 		}
 
+		this.login = function(callbackSuccess, callbackError){
+			if (sessionData.fbConnected) {
+				// user is already fb-connected
+				callbackSuccess.call(this);
+			} else {
+				// user is not fb-connected
+				if(sessionData.fbExternal){
+					document.location.href = sessionData.fbExternal;
+				} else {
+					FBConnector.login(function(loginResp){
+						if (loginResp.status === 'connected') {
+							Utils().xhr('GET', API('mipConnect', {access_token: loginResp.authResponse.accessToken}), function(e, xhr) {
+								if (parseInt(xhr.status) == 200) {
+									// call callback success
+									callbackSuccess.call(this, e);
+									// set gamefive info
+									sessionData.fbConnected = true;
+									if(!!loginResp.authResponse && !!loginResp.authResponse.userID){
+										sessionData.fbUserId = loginResp.authResponse.userID;
+									}
+									// throw event
+									throwEvent('mip_login_success', e);
+								} else { 
+									if(!!callbackError) { callbackError.call(this, e); }
+									throwEvent('mip_login_error', e);
+								}
+							});
+						} else if (loginResp.status === 'not_authorized') {
+							throwEvent('fb_login_noauth', loginResp);
+						} else {
+							throwEvent('fb_login_fail', loginResp);
+						} 
+					});
+				}
+			}
+		}
+
 		this.invite = function() {
-			// User is already fb-connected. Skip to appRequest
-			if (!sessionData.requireFbConnect && sessionData.fbConnected) {
+			this.login(function(e){
+				// success case
 				fbAppRequest();
-			}
-			// In this case we require to connect the user on FB and we can do it via JS API
-			else if (sessionData.requireFbConnect && !sessionData.fbExternal) {
-				FBConnector.login(function(loginResp){
-					if (loginResp.status === 'connected') {
-						Utils().xhr('GET', API('mipConnect', {access_token: loginResp.authResponse.accessToken}), function(e, xhr) {
-							if (parseInt(xhr.status) == 200) fbAppRequest();
-							else throwEvent('user_fbconnect_fail', e);
-						});
-					} 
-					else if (loginResp.status === 'not_authorized') {
-						throwEvent('fb_login_noauth', loginResp);
-					} 
-					else {
-						throwEvent('fb_login_fail', loginResp);
-					} 
-				});
-			}
-			// In this case we require to connect the user on FB but we must redirect on an external page
-			else if (sessionData.requireFbConnect && sessionData.fbExternal) {
-				document.location.href = sessionData.fbExternal;
-			}
+			}, function(e){
+				// error case
+				throwEvent('mip_connect_error', e);
+			});
+		}
+
+		this.connect = function(){
+			this.login(function(e){
+				// success case
+				throwEvent('mip_connect_success', e);
+			}, function(e){
+				// error case
+				throwEvent('mip_connect_error', e);
+			});
 		}
 
 		// Update config

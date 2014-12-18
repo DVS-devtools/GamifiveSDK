@@ -30,7 +30,7 @@ var FBConnector = (function() {
 				callback.call(this, response);
 				console.log('User cancelled login or did not fully authorize.');
 			}
-		}, {scope: 'user_friends', display: chosenDisplay });
+		}, {scope: 'email,user_friends', display: chosenDisplay });
 	}
 
 	function checkLoginState() {
