@@ -51,6 +51,9 @@ function playGame(){
 <button onclick="playGame()">START MATCH</button>
 ```
 
+Here's a simple schema:
+<img src="http://s2.motime.com/js/wl/webstore_html5game/gfsdk/doc/start_flow.png" width="100%" />
+
 <h3>3) End a session</h3>
 Ideally a session ends when the player cannot continue his match and must play again from the beginning. 
 Usually endSession corresponds to the 'Game Over' state. 
