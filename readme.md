@@ -1,3 +1,66 @@
+<h1>GamefiveSDK 0.3</h1>
+<p>This is the how-to for Game Developers, you have to follow all steps to install and use GamifiveSDK.</p>
+
+<h2>Instructions</h2>
+
+<h3>1) Include GamefiveSDK</h3>
+Include the minified sdk with a SCRIPT tag with id 'gfsdk', inside HEAD tag of your HTML code game:
+
+```html
+<script id="gfsdk" src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.3.min.js"></script>	
+```
+
+<h3>2) Start a session</h3>
+A session is a continued user activity like a game match. 
+Ideally a session starts when the player starts playing from the beginning and his score is set to zero.
+
+You have to move the start of the game into <i>GamefiveSDK.onStartSession()</i> method and call <i>GamefiveSDK.startSession()</i> method to start the game.
+Here's an example:
+
+<b>Before, without GamifiveSDK</b>
+```javascript
+// your method to start a game match
+function startMatch(){ /* ... */ }
+```
+```html
+<!-- button to start a game match -->
+<button onclick="startMatch()">START MATCH</button>
+```
+
+<b>After, with GamifiveSDK</b>
+```javascript
+// your method to start a game match
+function startMatch(){ /* ... */ }
+
+// onStartSession include startMatch() method
+GamefiveSDK.onStartSession(function() {  
+  startMatch();
+});
+
+// new method to call GamefiveSDK.startSession()
+function playGame(){
+  GamefiveSDK.startSession();
+}
+```
+```html
+<button onclick="playGame()">START MATCH</button>
+```
+
+<h3>3) End a session</h3>
+Ideally a session ends when the player cannot continue his match and must play again from the beginning. 
+Usually endSession corresponds to the 'Game Over' state. 
+
+To end a session, you can call GamefiveSDK.endSession() method.
+It should end with the score of that session.
+
+```javascript
+// call this method when a user end a game match
+// score must be a float or integer value
+GamefiveSDK.endSession(score);
+```
+
+
+<!--
 GamefiveSDK 0.3 - HOW-TO for Game Developers 
 ===========
 
@@ -39,4 +102,5 @@ The SDK will search for these files inside the root of your game, the same folde
 -- mock01
 -- index.html //file that includes the SDK
 ```
+-->
 
