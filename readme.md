@@ -14,7 +14,12 @@ Include the minified sdk with a SCRIPT tag with id 'gfsdk', inside HEAD tag of y
 A session is a continued user activity like a game match. 
 Ideally a session starts when the player starts playing from the beginning and his score is set to zero.
 
-You have to move the start of the game into <i>GamefiveSDK.onStartSession()</i> method and call <i>GamefiveSDK.startSession()</i> method to start the game.
+You have to:
+<ol>
+<li>move the start of the game into <i>GamefiveSDK.onStartSession()</i> method</li>
+<li>call <i>GamefiveSDK.startSession()</i> method to start the game</li>
+</ol>
+
 Here's an example:
 
 <b>Before, without GamifiveSDK</b>
