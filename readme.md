@@ -4,7 +4,7 @@
 <h2>Instructions</h2>
 
 <h3>1) Include GamefiveSDK</h3>
-Include the minified sdk with a SCRIPT tag with id 'gfsdk', inside HEAD tag of your HTML code game:
+Include the minified sdk within a SCRIPT tag with id <i>'gfsdk'</i>, inside HEAD tag of your HTML code game:
 
 ```html
 <script id="gfsdk" src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.3.min.js"></script>	
@@ -48,6 +48,7 @@ function playGame(){
 }
 ```
 ```html
+<!-- button to start a game match -->
 <button onclick="playGame()">START MATCH</button>
 ```
 
@@ -58,7 +59,7 @@ Here's a simple schema:
 Ideally a session ends when the player cannot continue his match and must play again from the beginning. 
 Usually endSession corresponds to the 'Game Over' state. 
 
-To end a session, you can call GamefiveSDK.endSession() method.
+To end a session, you can call <i>GamefiveSDK.endSession()</i> method.
 It should end with the score of that session.
 
 ```javascript
