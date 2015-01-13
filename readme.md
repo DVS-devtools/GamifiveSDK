@@ -34,7 +34,8 @@ function startMatch(){ /* ... */ }
 
 <b>After, with GamifiveSDK</b>
 ```javascript
-// your method to start a game match
+// your method to start a game match 
+// (don't change it)
 function startMatch(){ /* ... */ }
 
 // onStartSession include startMatch() method
@@ -59,8 +60,15 @@ Here's a simple schema:
 Ideally a session ends when the player cannot continue his match and must play again from the beginning. 
 Usually endSession corresponds to the 'Game Over' state. 
 
-To end a session, you can call <i>GamefiveSDK.endSession()</i> method.
-It should end with the score of that session.
+To end a session, you have to:
+<ol>
+<li>call <i>GamefiveSDK.endSession()</i> method.
+You should call it with the score (integer or float) of that session.</li>
+<li>remove your game over screen</li>
+</ol>
+
+You have to remove your game over screen because SDK display a game over screen already. If you don't remove your game over screen, there would be two screens duplicate.
+
 
 ```javascript
 // call this method when a user end a game match
