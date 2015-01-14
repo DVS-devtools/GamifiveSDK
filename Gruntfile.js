@@ -11,7 +11,7 @@ module.exports = function(grunt) {
     filename: 'gfsdk',
     buildFilename: 'dist/<%= filename %>-<%= meta.version %>.js',
     minFilename: 'dist/<%= filename %>-<%= meta.version %>.min.js',
-    docPath: 'manual/',
+    docPath: 'jsdoc/',
     pkg: grunt.file.readJSON('package.json'),
     banner: '/*! GAMIFIVE SDK - v<%= meta.version %> - ' +
       '<%= grunt.template.today("dd-mm-yyyy") %>\n' +
@@ -30,7 +30,7 @@ module.exports = function(grunt) {
         dist : {
             src: ['./src/gfsdk.js'], 
             options: {
-                destination: 'manual'
+                destination: 'jsdoc'
             }
         }
     },
@@ -76,6 +76,10 @@ module.exports = function(grunt) {
       lib_test: {
         src: ['lib/**/*.js', 'test/**/*.js']
       }
+    },
+    clean: {
+      jsdoc: ['<%= docPath %>'],
+      dist: ['dist/']
     }
   });
 
@@ -87,9 +91,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-qunit');
   grunt.loadNpmTasks('grunt-jsdoc');
+  grunt.loadNpmTasks('grunt-contrib-clean');
 
   // Default task.
-  grunt.registerTask('build', ['jsdoc','shell:index','concat', 'wrap', 'uglify']);
+  grunt.registerTask('build', ['clean','jsdoc','shell:index','concat', 'wrap', 'uglify']);
   grunt.registerTask('test', ['concat', 'wrap', 'qunit']);
 
 
