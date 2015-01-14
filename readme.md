@@ -54,7 +54,7 @@ function playGame(){
 ```
 
 Here's a simple schema:
-<img src="http://s2.motime.com/js/wl/webstore_html5game/gfsdk/doc/start_flow.png" width="100%" />
+<img src="http://s2.motime.com/js/wl/webstore_html5game/gfsdk/manual/start_flow.png" width="100%" />
 
 <h3>3) End a session</h3>
 Ideally a session ends when the player cannot continue his match and must play again from the beginning. 
