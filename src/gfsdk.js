@@ -227,12 +227,12 @@
           		'challenge_id': challenge_id
 			};
 			
-			Utils().xhr('GET', API('gameover', qobj), renderPage);
+			Utils().xhr('GET', API('gameover', qobj), renderPage);		
 		}
 
 		var renderPage = function(html) {
 			if (currentConf.logEnabled) console.log('render', { 'da': html } );
-			sessionData.dom = html; 
+			sessionData.dom = html;
 		}
 
 		/**
@@ -340,6 +340,12 @@
 				// error case
 				throwEvent('mip_connect_error', e);
 			});
+		}
+
+		this.controlFbConnected = function(){
+			if(!!window.localStorage.getItem("_gameoverOpenFbModal_") && !sessionData.fbConnected){
+				throwEvent('fb_connect_show');
+			}
 		}
 
 		// Update config
