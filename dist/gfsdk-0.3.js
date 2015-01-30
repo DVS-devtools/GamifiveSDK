@@ -313,10 +313,6 @@ var FBConnector = (function() {
 				Utils().copyProperties(gfInfo, sessionData);
 				FBConnector.setConfig('appId', sessionData.fbAppId);
 				FBConnector.start();
-
-				Utils().xhr('GET', API('userInfo'), function(resp, req) {
-					if (req.response) sessionData.user = resp;
-				});
 				if (currentConf.logEnabled) console.log('GamefiveSDK->init', sessionData);
 			}
 		}
@@ -445,8 +441,7 @@ var FBConnector = (function() {
 			sessionData.score = parseFloat(endingParams.score) || 0;
 			var challenge_id = sessionData.challenge ? sessionData.challenge.id : null;
 			var qobj = { 
-				//'label': sessionData.label,
-				//'userId': sessionData.userId,
+				//'userId': sessionData.user.userId,
 				'start': sessionData.timestart,
 				'duration': sessionData.timeend - sessionData.timestart,
 				'score': sessionData.score,
@@ -470,12 +465,12 @@ var FBConnector = (function() {
 		}
  
 		var fbAppRequest = function() {		
-			var message = window.GamifiveInfo.dictionary.messageOfFbChallenge;
+			var message = sessionData.dictionary.messageOfFbChallenge;
 			message = message.replace("%s", sessionData.score);
 			var opt = { 
 				score: sessionData.score,
 				contentId: sessionData.contentId,
-				userId: sessionData.userId,
+				userId: sessionData.user.userId,
 				message: message 
 			}
 			FBConnector.invite(opt, function(inviteResp) {
@@ -489,7 +484,7 @@ var FBConnector = (function() {
 					throwEvent('fb_invite_success', inviteResp);
 					var qobj = { 
 						'fbusers_id': inviteResp.to || null,
-						'userId': sessionData.userId || null
+						'userId': sessionData.user.userId || null
 					};
 					Utils().xhr('GET', API('updateCredits', qobj), function(e) {
 						throwEvent('user_credits_updated', e);
@@ -501,7 +496,7 @@ var FBConnector = (function() {
 		this.challenge = function(vsid) {
 			var qobj = { 
 				'content_id': sessionData.contentId,
-				'challenger_id': sessionData.userId,
+				'challenger_id': sessionData.user.userId,
 				'challenged_id': vsid,
 				'challenger_score': sessionData.score
 			};
@@ -512,7 +507,7 @@ var FBConnector = (function() {
 		}
 
 		this.login = function(callbackSuccess, callbackError){
-			if (sessionData.fbConnected) {
+			if (sessionData.user.fbConnected) {
 				// user is already fb-connected
 				callbackSuccess.call(this);
 			} else {
@@ -527,9 +522,9 @@ var FBConnector = (function() {
 									// call callback success
 									callbackSuccess.call(this, e);
 									// set gamefive info
-									sessionData.fbConnected = true;
+									sessionData.user.fbConnected = true;
 									if(!!loginResp.authResponse && !!loginResp.authResponse.userID){
-										sessionData.fbUserId = loginResp.authResponse.userID;
+										sessionData.user.fbUserId = loginResp.authResponse.userID;
 									}
 									// throw event
 									throwEvent('mip_login_success', e);
@@ -569,8 +564,24 @@ var FBConnector = (function() {
 		}
 
 		this.controlFbConnected = function(){
-			if(!!window.localStorage.getItem("_gameoverOpenFbModal_") && !sessionData.fbConnected){
+			if(!!window.localStorage.getItem("_gameoverOpenFbModal_") && !sessionData.user.fbConnected){
 				throwEvent('fb_connect_show');
+			}
+		}
+
+		this.getAvatar = function(){
+			if(!!sessionData.user && !!sessionData.user.avatar){
+				return sessionData.user.avatar;
+			} else {
+				return null;
+			}
+		}
+
+		this.getNickname = function(){
+			if(!!sessionData.user && !!sessionData.user.nickname){
+				return sessionData.user.nickname;
+			} else {
+				return null;
 			}
 		}
 
