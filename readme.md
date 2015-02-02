@@ -67,13 +67,19 @@ You should call it with the score (integer or float) of that session.</li>
 <li>remove your game over screen</li>
 </ol>
 
-You have to remove your game over screen because SDK display a game over screen already. If you don't remove your game over screen, there would be two screens duplicate.
+Warnings:
+<ul>
+<li>You have to remove your game over screen because SDK display a game over screen already. If you don't remove your game over screen, there would be two screens duplicate.</li>
+<li>You must not only pass the value, but you have to pass an object containing the attribute <i>score</i> with value the score of session. This value must be a float or an integer.</li>
+</ul>
 
 
 ```javascript
 // call this method when a user end a game match
-// score must be a float or integer value
-GamefiveSDK.endSession(score);
+var scoreGame = 7888;
+GamefiveSDK.endSession({
+	score: scoreGame
+});
 ```
 
 <h2>Other methods</h2>
