@@ -70,7 +70,7 @@ You should call it with the score (integer or float) of that session.</li>
 Warnings:
 <ul>
 <li>You have to remove your game over screen because SDK display a game over screen already. If you don't remove your game over screen, there would be two screens duplicate.</li>
-<li>You must not only pass the value, but you have to pass an object containing the attribute <i>score</i> with value the score of session. This value must be a float or an integer.</li>
+<li>You must not only pass the value, but you have to pass an object containing the attribute <i>score</i>, this value should be the score of the session. This value must be a float or an integer.</li>
 </ul>
 
 
