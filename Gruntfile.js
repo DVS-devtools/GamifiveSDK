@@ -3,32 +3,33 @@ module.exports = function(grunt) {
 
   // Project configuration.
   grunt.initConfig({
-    // Metadata.
-        // Metadata.
-    meta: {
-      version: '0.3'
-    },
-    filename: 'gfsdk',
-    buildFilename: 'dist/<%= filename %>-<%= meta.version %>.js',
-    minFilename: 'dist/<%= filename %>-<%= meta.version %>.min.js',
+    // version
+    version: '0.3',
+
+    // paths
     docPath: 'jsdoc/',
-    pkg: grunt.file.readJSON('package.json'),
-    banner: '/*! GAMIFIVE SDK - v<%= meta.version %> - ' +
+    srcPath: 'src/',
+    distPath: 'dist/',
+
+    filename: 'gfsdk',
+    maxFilename: '<%= distPath %><%= filename %>-<%= version %>.js',
+    minFilename: '<%= distPath %><%= filename %>-<%= version %>.min.js',
+    
+    // pkg: grunt.file.readJSON('package.json'),
+    banner: '/*! GAMIFIVE SDK - v<%= version %> - ' +
       '<%= grunt.template.today("dd-mm-yyyy") %>\n' +
       '* http://gamifive.com/\n' +
       '* Copyright (c) <%= grunt.template.today("yyyy") %> ' +
       'Gamifive; Licensed MIT */\n',
+    
     shell: {
-      jsdoc: {
-         // command: './node_modules/jsdoc/jsdoc.js ./src/gfsdk.js -d <%= docPath %>'
-      },
       index: {  
           command: 'cp <%= docPath %>GamefiveSDK.html <%= docPath %>index.html'
       }
     },
     jsdoc : {
         dist : {
-            src: ['./src/gfsdk.js'], 
+            src: ['<%= srcPath %>gfsdk.js'], 
             options: {
                 destination: 'jsdoc'
             }
@@ -43,8 +44,8 @@ module.exports = function(grunt) {
     },
     wrap: {
       basic: {
-        src: ['<%= buildFilename %>'],
-        dest: '<%= buildFilename %>',
+        src: ['<%= maxFilename %>'],
+        dest: '<%= maxFilename %>',
         options: {
           wrapper: ['(function(target) {\n', '\n target.GamefiveSDK = new GamefiveSDK(); \n})(window);']
         }
@@ -56,14 +57,14 @@ module.exports = function(grunt) {
         sourceMap: true
       },
       dist: {
-        src: '<%= buildFilename %>',
+        src: '<%= maxFilename %>',
         dest: '<%= minFilename %>'
       }
     },
     concat: {
       dist: {
-        src: ['src/Utils.js','src/FB.js','src/gfsdk.js'],
-        dest: '<%= buildFilename %>'
+        src: ['<%= srcPath %>*'],
+        dest: '<%= maxFilename %>'
       }
     },
     jshint: {
@@ -73,13 +74,10 @@ module.exports = function(grunt) {
       gruntfile: {
         src: 'Gruntfile.js'
       },
-      lib_test: {
-        src: ['lib/**/*.js', 'test/**/*.js']
-      }
     },
     clean: {
       jsdoc: ['<%= docPath %>'],
-      dist: ['dist/']
+      dist: ['<%= distPath %>']
     }
   });
 
