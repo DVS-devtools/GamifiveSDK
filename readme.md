@@ -1,4 +1,4 @@
-<h1>GamefiveSDK 0.4</h1>
+<h1>GamefiveSDK 0.3</h1>
 <p>This is the how-to for Game Developers, you have to follow all steps to install and use GamifiveSDK.</p>
 
 <h2>Instructions</h2>
@@ -7,7 +7,7 @@
 Include the minified sdk within a SCRIPT tag with id <i>'gfsdk'</i>, inside HEAD tag of your HTML code game:
 
 ```html
-<script id="gfsdk" src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.4.js"></script>	
+<script id="gfsdk" src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.3.js"></script>	
 ```
 
 <h3>2) Start a session</h3>
@@ -16,8 +16,8 @@ Ideally a session starts when the player starts playing from the beginning and h
 
 You have to:
 <ol>
-	<li>move the start of the game into <i>GamefiveSDK.onStartSession()</i> method</li>
-	<li>call <i>GamefiveSDK.startSession()</i> method to start the game</li>
+<li>move the start of the game into <i>GamefiveSDK.onStartSession()</i> method</li>
+<li>call <i>GamefiveSDK.startSession()</i> method to start the game</li>
 </ol>
 
 Here's an example:
@@ -48,7 +48,6 @@ function playGame(){
   GamefiveSDK.startSession();
 }
 ```
-
 ```html
 <!-- button to start a game match -->
 <button onclick="playGame()">START MATCH</button>
@@ -63,16 +62,15 @@ Usually endSession corresponds to the 'Game Over' state.
 
 To end a session, you have to:
 <ol>
-	<li>call <i>GamefiveSDK.endSession()</i> method.
-		You should call it with the score (integer or float) of that session.
-	</li>
-	<li>remove your game over screen</li>
+<li>call <i>GamefiveSDK.endSession()</i> method.
+You should call it with the score (integer or float) of that session.</li>
+<li>remove your game over screen</li>
 </ol>
 
 Warnings:
 <ul>
-	<li>You have to remove your game over screen because SDK display a game over screen already. If you don't remove your game over screen, there would be two screens duplicate.</li>
-	<li>You must not only pass the value, but you have to pass an object containing the attribute <i>score</i>, this value should be the score of the session. This value must be a float or an integer.</li>
+<li>You have to remove your game over screen because SDK display a game over screen already. If you don't remove your game over screen, there would be two screens duplicate.</li>
+<li>You must not only pass the value, but you have to pass an object containing the attribute <i>score</i>, this value should be the score of the session. This value must be a float or an integer.</li>
 </ul>
 
 
@@ -93,12 +91,12 @@ You can get avatar of the user calling <i>GamefiveSDK.getAvatar()</i>.
 var avatar = GamefiveSDK.getAvatar();
 ```
 
-It returns two fields:
+It returned two fields:
 <ul>
-	<li><b>src</b>: base64 of avatar</li>
-	<li><b>name</b>: name of avatar file</li>
+<li><b>src</b>: base64 of avatar</li>
+<li><b>name</b>: name of avatar file</li>
 </ul>
-We recommend using a <i>src</i> field.
+We recommended use of <i>src</i> field.
 
 <h3>getNickname</h3>
 You can get nickname of the user calling <i>GamefiveSDK.getNickname()</i>.
@@ -107,24 +105,4 @@ You can get nickname of the user calling <i>GamefiveSDK.getNickname()</i>.
 var avatar = GamefiveSDK.getNickname();
 ```
 
-It returns a string containing the nickname of the user.
-
-
-<h2>Using the SDK for sending the score only</h2>
-
-The developer can just send the score of a session by using a reduced set of functionalities of the SDK. [...] // TODO
-
-
-<h2>Using the SDK without Game Over screen</h2>
-
-The developer can avoid loading the Game Over screen as follows: [...] // TODO
-
-
-<h2>Migrating apps using v0.1 to v0.4 of the SDK</h2>
-
-Apps featuring the 0.1 version of the SDK can be flawlessly migrated to v0.4 as follows [...] // TODO
-
-
-<h2>Migrating apps using v0.3 to v0.4 of the SDK</h2>
-
-Apps featuring the 0.3 version of the SDK can be flawlessly migrated to v0.4 as follows [...] // TODO
+It returned a string contained the nickname of the user.
