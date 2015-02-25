@@ -1,5 +1,3 @@
-(function(target) {
-
 
 var FBConnector = (function() {
 	var friends = [];
@@ -246,6 +244,3 @@ var Utils = function() {
 }
 
 console.log("Hi, I'm gfsdk!");
-
- target.GamefiveSDK = new GamefiveSDK(); 
-})(window);

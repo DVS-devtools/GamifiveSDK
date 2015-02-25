@@ -45,6 +45,14 @@ module.exports = function(grunt) {
 						'.'
 					]
 				}
+			},
+			dist: {
+				options: {
+					open: 'http://localhost:9000/<%= demoPath %>?dist=1',
+					base: [
+						'.'
+					]
+				}
 			}
 		},
 
@@ -129,13 +137,18 @@ module.exports = function(grunt) {
 		'watch'
 	]);
 
+	grunt.registerTask('servebuild', [
+		'connect:dist',
+		'watch'
+	]);
+
 	grunt.registerTask('build', [
 		'clean:dist',
 		'clean:doc',
 		'jsdoc',
 		// 'shell:index',
 		'concat', 
-		'wrap', 
+		// 'wrap', 
 		'uglify'
 	]);
 

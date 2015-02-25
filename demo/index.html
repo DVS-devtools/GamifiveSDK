@@ -7,9 +7,21 @@
 		<meta name="description" content="">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 
-		<script src="../src/gfsdk.js"></script>
-		<script src="../src/FB.js"></script>
-		<script src="../src/Utils.js"></script>
+		<script>
+			var loadScript = function (path){
+				var buildScript = document.createElement('script');
+				buildScript.setAttribute('src', path);
+				document.head.appendChild(buildScript);
+			}
+
+			if (window.location.search.substring(1) == "dist=1"){
+				loadScript('../dist/gfsdk-0.4.js');
+			} else {
+				loadScript('../src/gfsdk.js');
+				loadScript('../src/Utils.js');
+				loadScript('../src/FB.js');
+			}
+		</script>
 	</head>
 	<body>
 
