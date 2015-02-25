@@ -4,9 +4,7 @@
 * @version 0.4
 */
 
-var FBConnector = (function() {
-	var friends = [];
-	
+var FBConnector = new function() {
 	var config = {
 		appId: ''
 	};
@@ -16,7 +14,7 @@ var FBConnector = (function() {
 	* @function start
 	* @memberof FBConnector
 	*/
-	var start = function() {
+	this.start = function() {
 		var d = document, s = 'script', id = 'facebook-jssdk'; 
 		var js, fjs = d.getElementsByTagName(s)[0];
 		if (d.getElementById(id)) return;
@@ -31,7 +29,7 @@ var FBConnector = (function() {
 	* @memberof FBConnector
 	* @param {function} callback - callback function after FB.login
 	*/
-	var login = function(callback) {
+	this.login = function(callback) {
 		var chosenDisplay = document.body.clientWidth > 600 ? 'popup' : 'touch';
 		FB.login(function(response) {
 			if (response.authResponse) {
@@ -50,7 +48,7 @@ var FBConnector = (function() {
 	* @param {object} [options.message] - text passed as message param to FB.ui
 	* @param {function} callback - callback function after FB.ui
 	*/
-	var invite = function(options, callback) {
+	this.invite = function(options, callback) {
 		FB.ui({method: 'apprequests',
 			message: options.message,
 			data: JSON.stringify(options)
@@ -64,7 +62,7 @@ var FBConnector = (function() {
 	* @param {string} key
 	* @param {string} value
 	*/
-	var setConfig = function(key, value) { 
+	this.setConfig = function(key, value) { 
 		if(config[key] != undefined) {
 			config[key] = value;
 		}
@@ -78,39 +76,64 @@ var FBConnector = (function() {
 			version    : 'v2.1' // use version 2.1
 		});
 	};
+}; 
 
-	return {
-		start: start,
-		login: login,
-		invite: invite,
-		setConfig: setConfig
+/**
+* Utils Module
+* @class Utils
+* @version 0.4
+*/
+
+var Utils = new function() {
+
+	/**
+	* Get date now (cross-browser compatibility)
+	* @function dateNow
+	* @memberof Utils
+	*/
+	this.dateNow = function(){
+		if (!Date.now) {
+			return new Date().getTime();
+		} else {
+			return Date.now();
+		}
 	}
-})(); 
 
-
-var Utils = function() {
-	this.xhrDisabled = false;
-
-	if (!Date.now) {
-		Date.now = function() { return new Date().getTime() };
-	}
-
+	/**
+	* Copy properties from one object to another object
+	* @function copyProperties
+	* @memberof Utils
+	* @param {object} source
+	* @param {object} dest
+	*/
 	this.copyProperties = function(source, dest) {
 	    for (var attr in source) {
-	        //if (source.hasOwnProperty(attr)) // always true?
 	        dest[attr] = source[attr];
 	    }
 	    return dest;
 	}
 
-	this.getScriptParams = function() {
-		var stag = document.querySelector('#gfsdk');
-		if (!stag) return {};
-		var queryString = stag.src.replace(/^[^\?]+\??/,'');
-		var obj = this.dequerify(queryString);
+	/**
+	* Get query string of an element's "src" attribute
+	* @function getScriptParams
+	* @memberof Utils
+	* @param {object} selector - selector of element (i.e. #gfsdk)
+	*/
+	this.getScriptParams = function(selector) {
+		var stag = document.querySelector(selector);
+		var obj = {}, queryString;
+		if (stag) {
+			queryString = stag.src.replace(/^[^\?]+\??/,'');
+			obj = this.dequerify(queryString);
+		}
 		return obj;
 	}
 
+	/**
+	* Cookie management
+	* @function cookie
+	* @memberof Utils
+	*/
 	this.cookie = {
 		get: function (sKey) {
 			var regex = new RegExp(
@@ -159,26 +182,33 @@ var Utils = function() {
 		}
 	};
 
+	/**
+	* Get only domain name (window.location.origin)
+	* @function getAbsoluteUrl
+	* @memberof Utils
+	*/
 	this.getAbsoluteUrl = function() {
-		var parts = window.location.href.split('/');
-		parts.splice(parts.length-1);
-		return parts.join('/');
+		return window.location.origin;
 	}
 
+	/**
+	* Make XMLHttpRequest
+	* @function xhr
+	* @param {string} method - method of request (GET, POST...)
+	* @param {string} url - url of request
+	* @param {function} callback - callback called when request finished and response is ready 
+	* @memberof Utils
+	*/
 	this.xhr = function(method, url, callback) {
-		if (this.xhrDisabled) return true;
-    	var xhr = new XMLHttpRequest();
+		var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function() {
             if ( xhr.readyState === 4 ) {
             	var resp;
             	try { 
-            		resp = xhr.response.replace(/(\r\n|\n|\r)/gm,"");
+            		resp = xhr.response.replace(/(\n|\r)/gm,"");
             		resp = JSON.parse(resp);
-            	}
-            	catch(e) {
-            		//console.warn('xhr failed to json.parse', url, xhr);
-            	}
-            	resp.success = (xhr.status <= 399 || xhr.status >= 200);
+            	} catch(e) {}
+            	resp.success = (xhr.status >= 200 && xhr.status <= 399);
                 if (callback) callback(resp , xhr);
             }
         };
@@ -187,6 +217,12 @@ var Utils = function() {
         return xhr;
     };
 
+    /**
+	* Convert an object to a query string
+	* @function querify
+	* @param {object} obj - object to be converted
+	* @memberof Utils
+	*/
 	this.querify = function(obj) {
 		if (!obj) return '';
 		var str = new Array(Object.keys(obj).length),
@@ -197,6 +233,12 @@ var Utils = function() {
 		return '?' + str.join("&");
 	}
 
+	/**
+	* Convert a query string to an object
+	* @function dequerify
+	* @param {string} query - string to be converted
+	* @memberof Utils
+	*/
 	this.dequerify = function(query) {
 		var params = new Object();
 		if (!query) return params; // return empty object
@@ -214,12 +256,6 @@ var Utils = function() {
 		}
 		return params;
 	}
-
-	// Singleton pattern
-	if (!arguments.callee._instance){
-		arguments.callee._instance = this;
-	}
-	return arguments.callee._instance;
   	
 }
 

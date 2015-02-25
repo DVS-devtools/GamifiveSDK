@@ -53,7 +53,7 @@
 		}
 
 		var API = function(name, paramsObject) {
-			var query = Utils().querify(paramsObject);
+			var query = Utils.querify(paramsObject);
 			var callurl = {
 				canDownload: currentConf.debugMode ? 'user.candownload' : 'user.candownload/'+sessionData.contentId,
 				gameover: currentConf.debugMode ? 'gameover' : 'gameover/'+sessionData.contentId,
@@ -64,7 +64,7 @@
 				newChallenge: currentConf.debugMode ? 'challenge.post' : 'challenge.post',
 				mipConnect: currentConf.debugMode ? 'mipuser.fbconnect' : 'mipuser.fbconnect'
 			}
-			return currentConf.debugMode ? Utils().getAbsoluteUrl()+'/mock01/'+callurl[name] : '/v01/'+callurl[name]+query;
+			return currentConf.debugMode ? Utils.getAbsoluteUrl()+'/mock01/'+callurl[name] : '/v01/'+callurl[name]+query;
 		}
 
 		/**
@@ -72,9 +72,9 @@
 		*/
 		var init = function() {
 			var gfInfo = window.GamifiveInfo;
-			currentConf.debugMode = Utils().getScriptParams().debug;
+			currentConf.debugMode = Utils.getScriptParams('#gfsdk').debug;
 			if (typeof gfInfo == 'undefined' && currentConf.debugMode) {
-				Utils().xhr('GET', API('gamifiveInfo'), function(resp, req) {
+				Utils.xhr('GET', API('gamifiveInfo'), function(resp, req) {
 					if (req.response) window.GamifiveInfo = resp;
 					init();
 				});	
@@ -84,7 +84,7 @@
 			}
 
 			if (typeof gfInfo == 'object') {
-				Utils().copyProperties(gfInfo, sessionData);
+				Utils.copyProperties(gfInfo, sessionData);
 				FBConnector.setConfig('appId', sessionData.fbAppId);
 				FBConnector.start();
 				if (currentConf.logEnabled) console.log('GamefiveSDK->init', sessionData);
@@ -106,8 +106,7 @@
 				startCallback: null,
 				eventCallback: {}
 			};
-			Utils().copyProperties(confObj, currentConf);
-			Utils().xhrDisabled = !currentConf.httpEnabled;
+			Utils.copyProperties(confObj, currentConf);
 			if (currentConf.logEnabled) console.log('GamefiveSDK', 'updateConfig', currentConf);
 			return currentConf;
 		}
@@ -122,7 +121,7 @@
 		*/
 		this.startSession = function() {
 			if (currentConf.logEnabled) console.log('GamefiveSDK.startSession', arguments);
-			sessionData.timestart = Date.now();
+			sessionData.timestart = Utils.dateNow();
 
 			function call_start_callback() {
 				if (currentConf.logEnabled) console.log('startSession callback now');
@@ -133,13 +132,13 @@
 
 			if (currentConf.debugMode && !currentConf.httpEnabled) call_start_callback();
 			
-			Utils().xhr('GET', API('canDownload'), function(resp, req) {
+			Utils.xhr('GET', API('canDownload'), function(resp, req) {
 				if (currentConf.logEnabled) console.log('API::canDownload', resp.canDownload, req);
 				if (resp.canDownload) {
 					call_start_callback();
 				}
 				else {
-					Utils().xhr('GET', API('gameover'), function (resp, req) {
+					Utils.xhr('GET', API('gameover'), function (resp, req) {
 						renderPage(resp);
 						throwEvent('user_no_credits');
 					});
@@ -211,7 +210,7 @@
 		*/	
 		this.endSession = function(endingParams) {
 			if (currentConf.logEnabled) console.log('GamefiveSDK.endSession', endingParams);
-			sessionData.timeend = Date.now();
+			sessionData.timeend = Utils.dateNow();
 			sessionData.score = parseFloat(endingParams.score) || 0;
 			var challenge_id = sessionData.challenge ? sessionData.challenge.id : null;
 			var qobj = { 
@@ -222,7 +221,7 @@
           		'challenge_id': challenge_id
 			};
 			
-			Utils().xhr('GET', API('gameover', qobj), renderPage);		
+			Utils.xhr('GET', API('gameover', qobj), renderPage);		
 		}
 
 		var renderPage = function(html) {
@@ -260,7 +259,7 @@
 						'fbusers_id': inviteResp.to || null,
 						'userId': sessionData.user.userId || null
 					};
-					Utils().xhr('GET', API('updateCredits', qobj), function(e) {
+					Utils.xhr('GET', API('updateCredits', qobj), function(e) {
 						throwEvent('user_credits_updated', e);
 					});
 				}
@@ -275,7 +274,7 @@
 				'challenger_score': sessionData.score
 			};
 			throwEvent('challenge_request', vsid);
-			Utils().xhr('GET', API('newChallenge', qobj), function(e) {
+			Utils.xhr('GET', API('newChallenge', qobj), function(e) {
 				throwEvent('challenge_completed', e);
 			});
 		}
@@ -291,7 +290,7 @@
 				} else {
 					FBConnector.login(function(loginResp){
 						if (loginResp.status === 'connected') {
-							Utils().xhr('GET', API('mipConnect', {access_token: loginResp.authResponse.accessToken}), function(e, xhr) {
+							Utils.xhr('GET', API('mipConnect', {access_token: loginResp.authResponse.accessToken}), function(e, xhr) {
 								if (parseInt(xhr.status) == 200) {
 									// call callback success
 									callbackSuccess.call(this, e);
