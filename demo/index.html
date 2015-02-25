@@ -7,6 +7,9 @@
 		<meta name="description" content="">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 
+		<!-- DEBUG: remove it and use debug=true to Gamifive.init() -->
+		<script src="gamifiveinfo.js"></script>
+
 		<script>
 			var loadScript = function (path){
 				var buildScript = document.createElement('script');
@@ -25,7 +28,11 @@
 	</head>
 	<body>
 
-		<p>Hello world 6!</p>
+		<h2>GamefiveSDK</h2>
+
+		<button onClick="GamefiveSDK.init({ log: true });">
+			init
+		</button>
 
 		<h2>Facebook</h2>
 

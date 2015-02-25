@@ -176,5 +176,32 @@ var Utils = new function() {
 		}
 		return params;
 	}
+
+	/**
+	* Enable log
+	* @function enableLog
+	* @memberof Utils
+	* @param {boolean} enable
+	*/
+	var flagLog = false;
+	this.enableLog = function(enable) {
+		flagLog = !!enable;
+	}
+
+	/**
+	* Log
+	* @function log
+	* @memberof Utils
+	* @param content
+	*/
+	this.log = function() {
+		if(flagLog){
+			var printable = new Array(arguments.length);
+			for(var k=0; k < arguments.length; k++){
+				printable[k] = arguments[k];
+			}
+			console.log(printable);
+		}
+	}
   	
 }
