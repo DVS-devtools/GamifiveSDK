@@ -8,6 +8,12 @@ var GamefiveSDK = new function() {
 
 	var config = new Object();
 
+
+
+	/********************************************
+	*****  EXTERNAL METHODS FOR DEVELOPERS  *****
+	********************************************/ 
+
 	/**
 	* Init GamefiveSDK
 	* @function init
@@ -27,6 +33,9 @@ var GamefiveSDK = new function() {
 		// get window.GamifiveInfo
 		// DEBUG: call mock api
 		Utils.copyProperties(window.GamifiveInfo, config);
+
+		// init events array
+		config.events = [];
 
 		// set facebook appId and init facebook
 		FBConnector.setConfig('appId', config.fbAppId);
@@ -74,16 +83,139 @@ var GamefiveSDK = new function() {
 					// TODO: render page with resp
 					// renderPage(resp);
 
-					// TODO: throw event 'user_no_credits'
-					// throwEvent('user_no_credits');
+					// throw event 'user_no_credits'
+					throwEvent('user_no_credits');
 				});
 			}
 		});
 	}
 
-	// this.onEvent
+	/**
+	* End session
+	* @function endSession
+	* @memberof Gfsdk
+	* @param {object} param - parameters for game over api
+	* @param {float} [param.score] - final score of player
+	*/
+	this.endSession = function(param){
+		Utils.log("GamifiveSDK", "endSession");
 
-	// throwEvent
+		// set time end
+		config.timeend = Utils.dateNow();
+
+		// set score
+		if(param.score){
+			config.score = parseFloat(param.score);
+		} else {
+			config.score = 0;
+		}
+
+		// get challenge id
+		var challengedId;
+		if(!!config.challenge && !!config.challenge.id){
+			challengedId = config.challenge.id;
+		} else {
+			challengedId = null;
+		}
+
+		// call gameover API
+		Utils.xhr('GET', API('gameover', {
+			'start': config.timestart,
+			'duration': config.timeend - config.timestart,
+			'score': config.score,
+      		'challenge_id': challengedId
+		}), function (resp, req) {
+			// TODO: render page with resp
+			// renderPage(resp);
+		});
+		
+	}
+
+	/**
+	* Get player avatar
+	* @function getAvatar
+	* @memberof Gfsdk
+	*/
+	this.getAvatar = function(){
+		var avatar;
+		if(!!config.user && !!config.user.avatar){
+			avatar = config.user.avatar;
+		} else {
+			avatar = null;
+		}
+
+		Utils.log("GamifiveSDK", "getAvatar", avatar);
+
+		return avatar;
+	}
+
+	/**
+	* Get player nickname
+	* @function getNickname
+	* @memberof Gfsdk
+	*/
+	this.getNickname = function(){
+		var nickname;
+		if(!!config.user && !!config.user.nickname){
+			nickname = config.user.nickname;
+		} else {
+			nickname = null;
+		}
+
+		Utils.log("GamifiveSDK", "getNickname", nickname);
+
+		return nickname;
+	}
+
+
+
+	/********************************************
+	*****      EXTERNAL METHODS FOR US      *****
+	********************************************/ 
+
+	// TODO: this.challenge
+
+	// TODO: this.login
+
+	// TODO: this.invite
+
+	// TODO: this.connect
+
+	// TODO: this.controlFbConnected
+
+	/**
+	* Bind callback to an event
+	* @function onEvent
+	* @memberof Gfsdk
+	* @param {string} event - name of event
+	* @param {function} callback - callback method
+	*/
+	this.onEvent = function(event, callback){
+		Utils.log("GamifiveSDK", "onEvent", event, callback);
+
+		config.events[event] = callback;
+	}
+
+
+
+	/********************************************
+	*****          INTERNAL METHODS         *****
+	********************************************/ 
+
+	/**
+	* Throw an event
+	* @function throwEvent
+	* @memberof Gfsdk
+	* @param {string} event - name of event
+	* @param {object} param - parameters passed to function
+	*/
+	var throwEvent = function(event, param){
+		Utils.log("GamifiveSDK", "throwEvent", event, param);
+
+		if(config.events[event]){
+			config.events[event](param);
+		}
+	}
 
 	/**
 	* Return APIs complete URL
