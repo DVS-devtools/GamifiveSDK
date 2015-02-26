@@ -109,6 +109,33 @@ var avatar = GamefiveSDK.getNickname();
 
 It returns a string containing the nickname of the user.
 
+<h2>Initializing the SDK</h2>
+
+The SDK can be initialized calling its <i>init</i> method with a <i>param</i> object as a configuration parameter. Here's a brief description of the accepted configuration variables:
+
+<ul>
+    <li>
+        <i><b>debug</b></i> (boolean): toggles debug mode, if <i>true</i> a mock API is used instead of the original;
+    </li>
+    <li>
+        <i><b>log</b></i> (boolean): enables or disables console logging;
+    </li>
+    <li>
+        <i><b>lite</b></i> (boolean): toggles lite mode, if <i>true</i> a reduced set of functionalities is used, in particular the GameOver screen is not loaded;
+    </li>
+</ul>
+<h3> Example </h3>
+
+```javascript
+GamefiveSDK.init({ 
+	log: true,
+	lite: false,
+	debug: true
+});
+```
+The <i>init</i> method will store the configuration parameters into an internal variable (<i>GamefiveSDK.config</i>) and perform the operations needed for properly initializing the SDK, i.e. connecting to Facebook (if you are not using the lite version). 
+
+Please note that the <i>init</i> method will not create a new instance of <i>GamifiveSDK</i>, but it will just reset its configuration; in fact you can have only one instance of <i>GamifiveSDK</i> because it's implemented as a singleton. 
 
 <h2>Using the SDK for sending the score only</h2>
 
