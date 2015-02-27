@@ -10,7 +10,34 @@ Include the minified sdk within a SCRIPT tag with id <i>'gfsdk'</i>, inside HEAD
 <script id="gfsdk" src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk-0.4.js"></script>	
 ```
 
-<h3>2) Start a session</h3>
+<h3>2) Initializing the SDK</h3>
+
+The SDK can be initialized calling its <i>init</i> method with a <i>param</i> object as a configuration parameter. Here's a brief description of the accepted configuration variables:
+
+<ul>
+    <li>
+        <i><b>debug</b></i> (boolean): toggles debug mode, if <i>true</i> a mock API is used instead of the original;
+    </li>
+    <li>
+        <i><b>log</b></i> (boolean): enables or disables console logging;
+    </li>
+    <li>
+        <i><b>lite</b></i> (boolean): toggles lite mode, if <i>true</i> a reduced set of functionalities is used, in particular the GameOver screen is not loaded;
+    </li>
+</ul>
+<h4> Example </h4>
+
+```javascript
+GamefiveSDK.init({ 
+	log: true,
+	lite: false,
+	debug: true
+});
+```
+The <i>init</i> method will store the configuration parameters into an internal variable (<i>GamefiveSDK.config</i>) and perform the operations needed for properly initializing the SDK, i.e. connecting to Facebook (if you are not using the lite version). 
+
+Please note that the <i>init</i> method will not create a new instance of <i>GamifiveSDK</i>, but it will just reset its configuration; in fact you can have only one instance of <i>GamifiveSDK</i> because it's implemented as a singleton.  
+<h3>3) Start a session</h3>
 A session is a continued user activity like a game match. 
 Ideally a session starts when the player starts playing from the beginning and his score is set to zero.
 
@@ -57,27 +84,26 @@ function playGame(){
 Here's a simple schema:
 <img src="http://s2.motime.com/js/wl/webstore_html5game/gfsdk/manual/start_flow.png" width="100%" />
 
-<h3>3) End a session</h3>
+<h3>4) End a session</h3>
 Ideally a session ends when the player cannot continue his match and must play again from the beginning. 
-Usually endSession corresponds to the 'Game Over' state. 
+Usually - but not necessarily - endSession occurs in the 'Game Over' state. 
 
 To end a session, you have to:
 <ol>
 	<li>call <i>GamefiveSDK.endSession()</i> method.
-		You should call it with the score (integer or float) of that session.
+		You should call it with an object parameter including the following fields:
+		 <ul>
+		  <li><b>score</b>: the score realized by the player during the game session</li>
+		 </ul>
 	</li>
-	<li>remove your game over screen</li>
+	<li>remove your game over screen - you have to remove your game over screen because the SDK also displays a game over screen. If you don't remove your game over screen, there will be two duplicate screens
+	</li>
 </ol>
 
-Warnings:
-<ul>
-	<li>You have to remove your game over screen because SDK display a game over screen already. If you don't remove your game over screen, there would be two screens duplicate.</li>
-	<li>You must not only pass the value, but you have to pass an object containing the attribute <i>score</i>, this value should be the score of the session. This value must be a float or an integer.</li>
-</ul>
 
 
 ```javascript
-// call this method when a user end a game match
+// call this method when a user ends a game session
 var scoreGame = 7888;
 GamefiveSDK.endSession({
 	score: scoreGame
@@ -93,12 +119,12 @@ You can get avatar of the user calling <i>GamefiveSDK.getAvatar()</i>.
 var avatar = GamefiveSDK.getAvatar();
 ```
 
-It returns two fields:
+It returns an object containing two fields:
 <ul>
 	<li><b>src</b>: base64 of avatar</li>
 	<li><b>name</b>: name of avatar file</li>
 </ul>
-We recommend using a <i>src</i> field.
+We recommend using a <i>src</i> field for showing the avatar in the game.
 
 <h3>getNickname</h3>
 You can get nickname of the user calling <i>GamefiveSDK.getNickname()</i>.
@@ -107,35 +133,8 @@ You can get nickname of the user calling <i>GamefiveSDK.getNickname()</i>.
 var avatar = GamefiveSDK.getNickname();
 ```
 
-It returns a string containing the nickname of the user.
+It returns a string equal to the nickname of the user.
 
-<h2>Initializing the SDK</h2>
-
-The SDK can be initialized calling its <i>init</i> method with a <i>param</i> object as a configuration parameter. Here's a brief description of the accepted configuration variables:
-
-<ul>
-    <li>
-        <i><b>debug</b></i> (boolean): toggles debug mode, if <i>true</i> a mock API is used instead of the original;
-    </li>
-    <li>
-        <i><b>log</b></i> (boolean): enables or disables console logging;
-    </li>
-    <li>
-        <i><b>lite</b></i> (boolean): toggles lite mode, if <i>true</i> a reduced set of functionalities is used, in particular the GameOver screen is not loaded;
-    </li>
-</ul>
-<h3> Example </h3>
-
-```javascript
-GamefiveSDK.init({ 
-	log: true,
-	lite: false,
-	debug: true
-});
-```
-The <i>init</i> method will store the configuration parameters into an internal variable (<i>GamefiveSDK.config</i>) and perform the operations needed for properly initializing the SDK, i.e. connecting to Facebook (if you are not using the lite version). 
-
-Please note that the <i>init</i> method will not create a new instance of <i>GamifiveSDK</i>, but it will just reset its configuration; in fact you can have only one instance of <i>GamifiveSDK</i> because it's implemented as a singleton. 
 
 <h2>Using the SDK for sending the score only</h2>
 
