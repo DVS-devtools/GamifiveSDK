@@ -34,6 +34,56 @@
 			init
 		</button>
 
+		<button onClick="GamefiveSDK.init({ log: true, lite: true });">
+			init lite
+		</button>
+
+		<button onClick="GamefiveSDK.startSession();">
+			startSession
+		</button>
+
+		<button onClick="GamefiveSDK.endSession({ score: 100 });">
+			endSession(100)
+		</button>
+
+		<button onClick="GamefiveSDK.getAvatar();">
+			getAvatar()
+		</button>
+
+		<button onClick="GamefiveSDK.getNickname();">
+			getNickname()
+		</button>
+
+		<br/><br/>
+
+		<button onClick="GamefiveSDK.controlFbConnected();">
+			controlFbConnected
+		</button>
+
+		<button onClick="GamefiveSDK.login();">
+			login
+		</button>
+
+		<button onClick="GamefiveSDK.connect();">
+			connect()
+		</button>
+
+		<button onClick="GamefiveSDK.invite();">
+			invite()
+		</button>
+
+		<button onClick="GamefiveSDK.onEvent('challenge_request', function(id){ window.alert(id)});">
+			onEvent (before challenge)
+		</button>
+
+		<button onClick="GamefiveSDK.challenge(555);">
+			challenge(555)
+		</button>
+
+		<button onClick="console.log(GamefiveSDK.getConfig());">
+			getConfig()
+		</button>
+
 		<h2>Facebook</h2>
 
 		<button onClick="FBConnector.start();">

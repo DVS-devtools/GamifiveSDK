@@ -98,8 +98,6 @@ var GamefiveSDK = new function() {
 	* @param {float} [param.score] - final score of player
 	*/
 	this.endSession = function(param){
-		Utils.log("GamifiveSDK", "endSession");
-
 		// set time end
 		config.timeend = Utils.dateNow();
 
@@ -117,6 +115,8 @@ var GamefiveSDK = new function() {
 		} else {
 			challengedId = null;
 		}
+
+		Utils.log("GamifiveSDK", "endSession", param, config, challengedId);
 
 		// call gameover API
 		Utils.xhr('GET', API('gameover', {
@@ -231,27 +231,15 @@ var GamefiveSDK = new function() {
 							if(!!loginResp.authResponse && !!loginResp.authResponse.userID){
 								config.user.fbUserId = loginResp.authResponse.userID;
 							}
-
-							// throw event
-							throwEvent('mip_login_success', mipResp);
 						} else {
 							// call callback error
 							if(!!callbackError){
 								callbackError(mipResp);
 							}
-
-							// throw event
-							throwEvent('mip_login_error', mipResp);
 						}
 					}
 				);
 
-			} else if(loginResp.status == "not_authorized"){
-				// throw event
-				throwEvent('fb_login_noauth', loginResp);
-			} else {
-				// throw event
-				throwEvent('fb_login_fail', loginResp);
 			}
 		});
 		
@@ -298,13 +286,7 @@ var GamefiveSDK = new function() {
 			FBConnector.invite(param, function(invResp){
 				Utils.log("GamifiveSDK", "invite", "FBConnector.invite", invResp);
 
-				if(!invResp) {
-					throwEvent('fb_invite_error', invResp);
-				} else if(!!invResp.to && !invResp.to.length){
-					throwEvent('fb_invite_empty', invResp);
-				} else {
-					throwEvent('fb_invite_success', invResp);
-
+				if(!!invResp && invResp.to.length > 0) {
 					// call updateCredits API
 					Utils.xhr('GET', API('updateCredits', {
 							fbusers_id: invResp.to || null,
@@ -328,9 +310,7 @@ var GamefiveSDK = new function() {
 	* @param {string} challengedId - id of challenged user
 	*/
 	this.challenge = function(challengedId){
-		throwEvent('challenge_request', challengedId);
-
-		// Utils.log("GamifiveSDK", "invite");
+		Utils.log("GamifiveSDK", "challenge", challengedId);
 
 		Utils.xhr('GET', API('newChallenge', {
 				content_id: config.contentId,
