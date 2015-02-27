@@ -41,6 +41,12 @@ var GamefiveSDK = new function() {
 		FBConnector.setConfig('appId', config.fbAppId);
 		FBConnector.start();
 
+		// add listeners of gameover
+		GameOverCore.addListeners();
+
+		// control if user is fb connected
+		GamefiveSDK.controlFbConnected();
+
 		Utils.log("GamifiveSDK", "init", config);
 	}
 
@@ -405,24 +411,25 @@ var GamefiveSDK = new function() {
 		* @param {string} html - html code to fill dom element
 		*/
 		create: function(html){
-			// create element
-			var element = document.createElement('div');
-			element.id = "gfsdk_root";
-			// add to DOM
-			document.body.appendChild(element);
-			// stop propagation events
-			var stopPropagation = function(e) {e.stopPropagation();}
-			element.addEventListener('touchmove', stopPropagation);
-			element.addEventListener('touchstart', stopPropagation);
-			element.addEventListener('touchend', stopPropagation);
-			// add script tag to gameover.js and append it
-			var script = document.createElement('script');
-			script.src = "http://s2.motime.com/js/wl/webstore_html5game/gameover.js";
-			element.appendChild(script);
-			// fill html of element
-			element.innerHTML = html;
+			// create gfsdk_root element if not present
+			if(!document.getElementById('gfsdk_root')){
+				var element = document.createElement('div');
+				element.id = "gfsdk_root";
+				// add to DOM
+				document.body.appendChild(element);
+				// stop propagation events
+				var stopPropagation = function(e) {e.stopPropagation();}
+				element.addEventListener('touchmove', stopPropagation);
+				element.addEventListener('touchstart', stopPropagation);
+				element.addEventListener('touchend', stopPropagation);
+				// fill html of element
+				element.innerHTML = html;
 
-			Utils.log("GamifiveSDK", "create", html, element);
+				// track game over event on analytics
+				GameOverCore.trackGameOver();
+
+				Utils.log("GamifiveSDK", "create", "element", html, element);
+			}
 		},
 
 		/**

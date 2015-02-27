@@ -203,5 +203,43 @@ var Utils = new function() {
 			console.log(printable);
 		}
 	}
-  	
+
+	/**
+	* Verify if an element has class
+	* @function hasClass
+	* @memberof Utils
+	* @param {string} id - id of element
+	* @param {string} className - class name
+	*/
+  	this.hasClass = function(id, className) {
+		return (' ' + document.getElementById(id).className + ' ').indexOf(' ' + className + ' ') > -1;
+	}
+
+	/**
+	* Show element
+	* @function show
+	* @memberof Utils
+	* @param {string} id - id of element
+	*/
+	this.show = function(id){
+		if(!!document.getElementById(id)){
+			if(GameOverUtils.hasClass(id, "hide")){
+				document.getElementById(id).className = document.getElementById(id).className.replace(/\bhide\b/,'');
+			}
+		}
+	}
+
+	/**
+	* Hide element
+	* @function hide
+	* @memberof Utils
+	* @param {string} id - id of element
+	*/
+	this.hide = function(id){
+		if(!!document.getElementById(id)){
+			if(!GameOverUtils.hasClass(id, "hide")){
+				document.getElementById(id).className += " hide";
+			}
+		}
+	}
 }
