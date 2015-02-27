@@ -440,3 +440,6 @@ var GamefiveSDK = new function() {
 	};	
 
 };
+
+// GamefiveSDK alias GamifiveSDK
+var GamifiveSDK = GamefiveSDK;
