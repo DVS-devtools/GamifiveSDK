@@ -35,6 +35,12 @@ var GamefiveSDK = new function() {
 
 	var config = new Object();
 
+
+
+	/********************************************
+	*****  EXTERNAL METHODS FOR DEVELOPERS  *****
+	********************************************/ 
+
 	/**
 	* Init GamefiveSDK
 	* @function init
@@ -55,9 +61,20 @@ var GamefiveSDK = new function() {
 		// DEBUG: call mock api
 		Utils.copyProperties(window.GamifiveInfo, config);
 
-		// set facebook appId and init facebook
-		FBConnector.setConfig('appId', config.fbAppId);
-		FBConnector.start();
+		if(!config.lite){
+			// init events array
+			config.events = [];
+
+			// set facebook appId and init facebook
+			FBConnector.setConfig('appId', config.fbAppId);
+			FBConnector.start();
+
+			// add listeners of gameover
+			GameOverCore.addListeners();
+
+			// control if user is fb connected
+			GamefiveSDK.controlFbConnected();
+		}
 
 		Utils.log("GamifiveSDK", "init", config);
 	}
@@ -86,31 +103,324 @@ var GamefiveSDK = new function() {
 		// set time start
 		config.timestart = Utils.dateNow();
 
-		Utils.xhr('GET', API('canDownload'), function(resp, req){
-			Utils.log("GamifiveSDK", "startSession", "canDownload", resp, req);
+		if(!config.lite){
 
-			if(resp.canDownload){
-				// TODO: clear dom
-				// sessionData.dom = null;
+			Utils.xhr('GET', API('canDownload'), function(resp, req){
+				Utils.log("GamifiveSDK", "startSession", "canDownload", resp, req);
 
-				// call onStartSession callback
-				config.startCallback.call();
+				if(resp.canDownload){
+					// clear dom
+					sdkElement.delete();
+
+					// call onStartSession callback
+					config.startCallback.call();
+				} else {
+					// call gameover API
+					Utils.xhr('GET', API('gameover'), function (resp, req) {
+						// render page with resp
+						sdkElement.create(resp);
+
+						// throw event 'user_no_credits'
+						throwEvent('user_no_credits');
+					});
+				}
+			});
+
+		}
+	}
+
+	/**
+	* End session
+	* @function endSession
+	* @memberof Gfsdk
+	* @param {object} param - parameters for game over api
+	* @param {float} [param.score] - final score of player
+	*/
+	this.endSession = function(param){
+		// set time end
+		config.timeend = Utils.dateNow();
+
+		// set score
+		if(param.score){
+			config.score = parseFloat(param.score);
+		} else {
+			config.score = 0;
+		}
+
+		if(!config.lite){
+
+			// get challenge id
+			var challengedId;
+			if(!!config.challenge && !!config.challenge.id){
+				challengedId = config.challenge.id;
 			} else {
-				// call gameover API
-				Utils.xhr('GET', API('gameover'), function (resp, req) {
-					// TODO: render page with resp
-					// renderPage(resp);
-
-					// TODO: throw event 'user_no_credits'
-					// throwEvent('user_no_credits');
-				});
+				challengedId = null;
 			}
+
+			// call gameover API
+			Utils.xhr('GET', API('gameover', {
+				'start': config.timestart,
+				'duration': config.timeend - config.timestart,
+				'score': config.score,
+	      		'challenge_id': challengedId
+			}), function (resp, req) {
+				// render page with resp
+				sdkElement.create(resp);
+			});
+
+		} else {
+
+			// call gameover API
+			Utils.xhr('GET', API('leaderboard', {
+				'start': config.timestart,
+				'duration': config.timeend - config.timestart,
+				'score': config.score,
+	      		'newapps': 1,
+	      		'appId': config.contentId,
+	      		'label': config.label,
+	      		'userId': config.userId
+			}));
+
+		}
+
+		Utils.log("GamifiveSDK", "endSession", param, config, challengedId);
+		
+	}
+
+	/**
+	* Get player avatar
+	* @function getAvatar
+	* @memberof Gfsdk
+	*/
+	this.getAvatar = function(){
+		var avatar;
+		if(!!config.user && !!config.user.avatar){
+			avatar = config.user.avatar;
+		} else {
+			avatar = null;
+		}
+
+		Utils.log("GamifiveSDK", "getAvatar", avatar);
+
+		return avatar;
+	}
+
+	/**
+	* Get player nickname
+	* @function getNickname
+	* @memberof Gfsdk
+	*/
+	this.getNickname = function(){
+		var nickname;
+		if(!!config.user && !!config.user.nickname){
+			nickname = config.user.nickname;
+		} else {
+			nickname = null;
+		}
+
+		Utils.log("GamifiveSDK", "getNickname", nickname);
+
+		return nickname;
+	}
+
+
+
+	/********************************************
+	*****      EXTERNAL METHODS FOR US      *****
+	********************************************/ 
+
+	/**
+	* Control if user is fb connected
+	* @function controlFbConnected
+	* @memberof Gfsdk
+	*/
+	this.controlFbConnected = function(){
+		Utils.log("GamifiveSDK", "controlFbConnected", !!window.localStorage.getItem("_gameoverOpenFbModal_"), !config.user.fbConnected);
+
+		if(!!window.localStorage.getItem("_gameoverOpenFbModal_") && !config.user.fbConnected){
+			throwEvent('fb_connect_show');
+		}
+	}
+
+	/**
+	* Login to facebook
+	* @function login
+	* @memberof Gfsdk
+	* @param {function} callbackSuccess - callback for success case
+	* @param {function} callbackError - callback for error case
+	*/
+	this.login = function(callbackSuccess, callbackError){
+		Utils.log("GamifiveSDK", "login", config.user.fbConnected);
+
+		// user is already fb-connected
+		if(config.user.fbConnected){
+			callbackSuccess();
+			return;
+		}
+
+		// fbExternal case
+		if(config.fbExternal){
+			document.location.href = config.fbExternal;
+			return;
+		}
+
+		// user is not fb-connected
+		FBConnector.login(function(loginResp){
+			Utils.log("GamifiveSDK", "login", "FBConnector.login", loginResp);
+
+			if(loginResp.status == "connected"){
+
+				// call mipConnect API
+				Utils.xhr('GET', API('mipConnect', {
+						access_token: loginResp.authResponse.accessToken
+					}), function(mipResp, mipReq){
+						Utils.log("GamifiveSDK", "login", "mipConnect", mipResp, mipReq);
+
+						if (parseInt(mipReq.status) == 200) {
+							// call callback success
+							callbackSuccess(mipResp);
+
+							// set fbConnected
+							config.user.fbConnected = true;
+
+							// set fbUserId
+							if(!!loginResp.authResponse && !!loginResp.authResponse.userID){
+								config.user.fbUserId = loginResp.authResponse.userID;
+							}
+						} else {
+							// call callback error
+							if(!!callbackError){
+								callbackError(mipResp);
+							}
+						}
+					}
+				);
+
+			}
+		});
+		
+	}
+
+	/**
+	* Connect to facebook
+	* @function connect
+	* @memberof Gfsdk
+	*/
+	this.connect = function(){
+		Utils.log("GamifiveSDK", "connect");
+
+		this.login(function(resp){
+			// success case
+			throwEvent('mip_connect_success', resp);
+		}, function(resp){
+			// error case
+			throwEvent('mip_connect_error', resp);
 		});
 	}
 
-	// this.onEvent
+	/**
+	* Invite facebook friends
+	* @function invite
+	* @memberof Gfsdk
+	*/
+	this.invite = function() {
+		Utils.log("GamifiveSDK", "invite");
 
-	// throwEvent
+		this.login(function(loginResp){
+
+			// success case
+			var message = config.dictionary.messageOfFbChallenge;
+			var param = {
+				score: config.score,
+				contentId: config.contentId,
+				userId: config.user.userId,
+				message: message.replace("%s", config.score)
+			};
+			// log
+			Utils.log("GamifiveSDK", "invite", "login", param);
+			// invite fb friends
+			FBConnector.invite(param, function(invResp){
+				Utils.log("GamifiveSDK", "invite", "FBConnector.invite", invResp);
+
+				if(!!invResp && invResp.to.length > 0) {
+					// call updateCredits API
+					Utils.xhr('GET', API('updateCredits', {
+							fbusers_id: invResp.to || null,
+							userId: config.user.userId || null
+						}), function(updResp){
+							throwEvent('user_credits_updated', updResp);
+					});
+				}
+			});
+
+		}, function(loginResp){
+			// error case
+			throwEvent('mip_connect_error', loginResp);
+		});
+	}
+
+	/**
+	* Challenge facebook friends
+	* @function challenge
+	* @memberof Gfsdk
+	* @param {string} challengedId - id of challenged user
+	*/
+	this.challenge = function(challengedId){
+		Utils.log("GamifiveSDK", "challenge", challengedId);
+
+		Utils.xhr('GET', API('newChallenge', {
+				content_id: config.contentId,
+				challenger_id: config.user.userId,
+				challenged_id: challengedId,
+				challenger_score: config.score
+			}), function(resp){
+				throwEvent('challenge_completed', resp);
+		});
+
+	}
+
+	/**
+	* Bind callback to an event
+	* @function onEvent
+	* @memberof Gfsdk
+	* @param {string} event - name of event
+	* @param {function} callback - callback method
+	*/
+	this.onEvent = function(event, callback){
+		Utils.log("GamifiveSDK", "onEvent", event, callback);
+
+		config.events[event] = callback;
+	}
+
+	/**
+	* Get config
+	* @function getConfig
+	* @memberof Gfsdk
+	*/
+	this.getConfig = function(){
+		return config;
+	}
+
+
+
+	/********************************************
+	*****          INTERNAL METHODS         *****
+	********************************************/ 
+
+	/**
+	* Throw an event
+	* @function throwEvent
+	* @memberof Gfsdk
+	* @param {string} event - name of event
+	* @param {object} param - parameters passed to function
+	*/
+	var throwEvent = function(event, param){
+		Utils.log("GamifiveSDK", "throwEvent", event, param);
+
+		if(config.events[event]){
+			config.events[event](param);
+		}
+	}
 
 	/**
 	* Return APIs complete URL
@@ -132,7 +442,8 @@ var GamefiveSDK = new function() {
 			userInfo: 'user.lightinfo',
 			updateCredits: 'mipuser.updatecredits',
 			newChallenge: 'challenge.post',
-			mipConnect: 'mipuser.fbconnect'
+			mipConnect: 'mipuser.fbconnect',
+			leaderboard: 'leaderboard'
 		};
 
 		// convert param to queryString
@@ -142,15 +453,54 @@ var GamefiveSDK = new function() {
 		return Utils.getAbsoluteUrl() + door + urlCore[name] + queryString;
 	}
 
-	// TODO: clear, set dom
+	var sdkElement = {
 
-	// TODO: renderPage
+		/**
+		* Create and fill sdk dom element
+		* @function sdkElement.create
+		* @memberof Gfsdk
+		* @param {string} html - html code to fill dom element
+		*/
+		create: function(html){
+			// create gfsdk_root element if not present
+			if(!document.getElementById('gfsdk_root')){
+				var element = document.createElement('div');
+				element.id = "gfsdk_root";
+				// add to DOM
+				document.body.appendChild(element);
+				// stop propagation events
+				var stopPropagation = function(e) {e.stopPropagation();}
+				element.addEventListener('touchmove', stopPropagation);
+				element.addEventListener('touchstart', stopPropagation);
+				element.addEventListener('touchend', stopPropagation);
+				// fill html of element
+				element.innerHTML = html;
 
-	
+				// track game over event on analytics
+				GameOverCore.trackGameOver();
 
-	
+				Utils.log("GamifiveSDK", "create", "element", html, element);
+			}
+		},
 
-};</code></pre>
+		/**
+		* Delete sdk dom element
+		* @function sdkElement.delete
+		* @memberof Gfsdk
+		*/
+		delete: function(){
+			// remove element from DOM
+			var element = document.getElementById('gfsdk_root');
+			document.body.removeChild(element);
+
+			Utils.log("GamifiveSDK", "delete", element);
+		}
+	};	
+
+};
+
+// GamefiveSDK alias GamifiveSDK
+var GamifiveSDK = GamefiveSDK;</code></pre>
         </article>
     </section>
 
@@ -160,13 +510,13 @@ var GamefiveSDK = new function() {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="FBConnector.html">FBConnector</a></li><li><a href="Gfsdk.html">Gfsdk</a></li><li><a href="Utils.html">Utils</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="FBConnector.html">FBConnector</a></li><li><a href="Gameover.html">Gameover</a></li><li><a href="Gfsdk.html">Gfsdk</a></li><li><a href="Utils.html">Utils</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.2</a> on Wed Feb 25 2015 17:13:20 GMT+0100 (CET)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.2</a> on Mon Mar 02 2015 11:45:11 GMT+0100 (CET)
 </footer>
 
 <script> prettyPrint(); </script>

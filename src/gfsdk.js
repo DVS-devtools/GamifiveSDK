@@ -47,9 +47,9 @@ var GamefiveSDK = new function() {
 
 			// control if user is fb connected
 			GamefiveSDK.controlFbConnected();
-
-			Utils.log("GamifiveSDK", "init", config);
 		}
+
+		Utils.log("GamifiveSDK", "init", config);
 	}
 
 	/**
