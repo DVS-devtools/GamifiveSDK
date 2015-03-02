@@ -9,6 +9,7 @@
 
 		<!-- DEBUG: remove it and use debug=true to Gamifive.init() -->
 		<script src="gamifiveinfo.js"></script>
+		<script src="gameanalytics.js"></script>
 
 		<script>
 			var loadScript = function (path){
@@ -30,76 +31,81 @@
 	<body>
 
 		<h2>GamefiveSDK</h2>
+		<h3>(called by game developers)</h3>
 
-		<button onClick="GamefiveSDK.init({ log: true });">
-			init
-		</button>
+		<div>
+			INIT GAME<br/>
+			<button onClick="GamefiveSDK.init({ log: true });">
+				init
+			</button>
 
-		<button onClick="GamefiveSDK.init({ log: true, lite: true });">
-			init lite
-		</button>
+			<button onClick="GamefiveSDK.init({ log: true, lite: true });">
+				init lite
+			</button>
+			<br/><br/>
+		</div>
 
-		<button onClick="GamefiveSDK.startSession();">
-			startSession
-		</button>
+		<div>
+			START AND END MATCH<br/>
+			<button onClick="GamefiveSDK.startSession();">
+				startSession
+			</button>
 
-		<button onClick="GamefiveSDK.endSession({ score: 100 });">
-			endSession(100)
-		</button>
+			<button onClick="GamefiveSDK.endSession({ score: 100 });">
+				endSession(100)
+			</button>
+			<br/><br/>
+		</div>
 
-		<button onClick="GamefiveSDK.getAvatar();">
-			getAvatar()
-		</button>
+		<div>
+			OTHERS<br/>
+			<button onClick="GamefiveSDK.getAvatar();">
+				getAvatar()
+			</button>
 
-		<button onClick="GamefiveSDK.getNickname();">
-			getNickname()
-		</button>
+			<button onClick="GamefiveSDK.getNickname();">
+				getNickname()
+			</button>
+			<br/><br/>
+		</div>
 
-		<br/><br/>
 
-		<button onClick="GamefiveSDK.controlFbConnected();">
-			controlFbConnected
-		</button>
 
-		<button onClick="GamefiveSDK.login();">
-			login
-		</button>
 
-		<button onClick="GamefiveSDK.connect();">
-			connect()
-		</button>
+		<h2>Gameover.js</h2>
+		<h3>(called by gameover view)</h3>
 
-		<button onClick="GamefiveSDK.invite();">
-			invite()
-		</button>
+		<div>
+			REPLAY<br/>
+			<button onClick="GameOverCore.playAgain();">
+				playAgain()
+			</button>
+			<br/><br/>
+		</div>
 
-		<button onClick="GamefiveSDK.onEvent('challenge_request', function(id){ window.alert(id)});">
-			onEvent (before challenge)
-		</button>
+		<div>
+			INVITE<br/>
+			<button onClick="GameOverCore.invite();">
+				invite()
+			</button>
+			<br/><br/>
+		</div>
 
-		<button onClick="GamefiveSDK.challenge(555);">
-			challenge(555)
-		</button>
+		<div>
+			INTERNAL CHALLENGE<br/>
+			<button onClick="GameOverCore.g5challenge(555);">
+				g5challenge(555)
+			</button>
+			<br/><br/>
+		</div>
 
-		<button onClick="console.log(GamefiveSDK.getConfig());">
-			getConfig()
-		</button>
-
-		<h2>Facebook</h2>
-
-		<button onClick="FBConnector.start();">
-			fb start
-		</button>
-
-		<h2>Utils</h2>
-
-		<button onClick="window.alert(Utils.dateNow());">
-			dateNow
-		</button>
-
-		<button onClick="window.alert(Utils.getAbsoluteUrl());">
-			getAbsoluteUrl()
-		</button>
+		<div>
+			OTHER GAMES<br/>
+			<button onClick="GameOverCore.otherGames();">
+				otherGames()
+			</button>
+			<br/><br/>
+		</div>
 
 	</body>
 </html>

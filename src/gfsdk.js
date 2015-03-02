@@ -34,20 +34,22 @@ var GamefiveSDK = new function() {
 		// DEBUG: call mock api
 		Utils.copyProperties(window.GamifiveInfo, config);
 
-		// init events array
-		config.events = [];
+		if(!config.lite){
+			// init events array
+			config.events = [];
 
-		// set facebook appId and init facebook
-		FBConnector.setConfig('appId', config.fbAppId);
-		FBConnector.start();
+			// set facebook appId and init facebook
+			FBConnector.setConfig('appId', config.fbAppId);
+			FBConnector.start();
 
-		// add listeners of gameover
-		GameOverCore.addListeners();
+			// add listeners of gameover
+			GameOverCore.addListeners();
 
-		// control if user is fb connected
-		GamefiveSDK.controlFbConnected();
+			// control if user is fb connected
+			GamefiveSDK.controlFbConnected();
 
-		Utils.log("GamifiveSDK", "init", config);
+			Utils.log("GamifiveSDK", "init", config);
+		}
 	}
 
 	/**
@@ -74,26 +76,30 @@ var GamefiveSDK = new function() {
 		// set time start
 		config.timestart = Utils.dateNow();
 
-		Utils.xhr('GET', API('canDownload'), function(resp, req){
-			Utils.log("GamifiveSDK", "startSession", "canDownload", resp, req);
+		if(!config.lite){
 
-			if(resp.canDownload){
-				// clear dom
-				sdkElement.delete();
+			Utils.xhr('GET', API('canDownload'), function(resp, req){
+				Utils.log("GamifiveSDK", "startSession", "canDownload", resp, req);
 
-				// call onStartSession callback
-				config.startCallback.call();
-			} else {
-				// call gameover API
-				Utils.xhr('GET', API('gameover'), function (resp, req) {
-					// render page with resp
-					sdkElement.create(resp);
+				if(resp.canDownload){
+					// clear dom
+					sdkElement.delete();
 
-					// throw event 'user_no_credits'
-					throwEvent('user_no_credits');
-				});
-			}
-		});
+					// call onStartSession callback
+					config.startCallback.call();
+				} else {
+					// call gameover API
+					Utils.xhr('GET', API('gameover'), function (resp, req) {
+						// render page with resp
+						sdkElement.create(resp);
+
+						// throw event 'user_no_credits'
+						throwEvent('user_no_credits');
+					});
+				}
+			});
+
+		}
 	}
 
 	/**
@@ -114,26 +120,43 @@ var GamefiveSDK = new function() {
 			config.score = 0;
 		}
 
-		// get challenge id
-		var challengedId;
-		if(!!config.challenge && !!config.challenge.id){
-			challengedId = config.challenge.id;
+		if(!config.lite){
+
+			// get challenge id
+			var challengedId;
+			if(!!config.challenge && !!config.challenge.id){
+				challengedId = config.challenge.id;
+			} else {
+				challengedId = null;
+			}
+
+			// call gameover API
+			Utils.xhr('GET', API('gameover', {
+				'start': config.timestart,
+				'duration': config.timeend - config.timestart,
+				'score': config.score,
+	      		'challenge_id': challengedId
+			}), function (resp, req) {
+				// render page with resp
+				sdkElement.create(resp);
+			});
+
 		} else {
-			challengedId = null;
+
+			// call gameover API
+			Utils.xhr('GET', API('leaderboard', {
+				'start': config.timestart,
+				'duration': config.timeend - config.timestart,
+				'score': config.score,
+	      		'newapps': 1,
+	      		'appId': config.contentId,
+	      		'label': config.label,
+	      		'userId': config.userId
+			}));
+
 		}
 
 		Utils.log("GamifiveSDK", "endSession", param, config, challengedId);
-
-		// call gameover API
-		Utils.xhr('GET', API('gameover', {
-			'start': config.timestart,
-			'duration': config.timeend - config.timestart,
-			'score': config.score,
-      		'challenge_id': challengedId
-		}), function (resp, req) {
-			// render page with resp
-			sdkElement.create(resp);
-		});
 		
 	}
 
@@ -392,7 +415,8 @@ var GamefiveSDK = new function() {
 			userInfo: 'user.lightinfo',
 			updateCredits: 'mipuser.updatecredits',
 			newChallenge: 'challenge.post',
-			mipConnect: 'mipuser.fbconnect'
+			mipConnect: 'mipuser.fbconnect',
+			leaderboard: 'leaderboard'
 		};
 
 		// convert param to queryString
