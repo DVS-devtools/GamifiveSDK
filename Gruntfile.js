@@ -15,8 +15,8 @@ module.exports = function(grunt) {
 
 		// filenames
 		filename: 'gfsdk',
-		maxFilename: '<%= distPath %><%= filename %>-<%= version %>.js',
-		minFilename: '<%= distPath %><%= filename %>-<%= version %>.min.js',
+		maxFilename: '<%= distPath %><%= filename %>.js',
+		minFilename: '<%= distPath %><%= filename %>.min.js',
 		
 		// banner
 		banner: '/*! GAMIFIVE SDK - v<%= version %> - ' +
