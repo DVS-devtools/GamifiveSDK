@@ -5,7 +5,7 @@
 
 <h2>Instructions</h2>
 
-<h3>1) Include GamefiveSDK</h3>
+<h3>1) Including GamefiveSDK</h3>
 Include the minified sdk within a SCRIPT tag with id <i>'gfsdk'</i>, inside HEAD tag of your HTML code game:
 
 ```html
@@ -38,8 +38,10 @@ GamefiveSDK.init({
 ```
 The <i>init</i> method will store the configuration parameters into an internal variable (<i>GamefiveSDK.config</i>) and perform the operations needed for properly initializing the SDK, i.e. connecting to Facebook (if you are not using the lite version). 
 
-Please note that the <i>init</i> method will not create a new instance of <i>GamifiveSDK</i>, but it will just reset its configuration; in fact you can have only one instance of <i>GamifiveSDK</i> because it's implemented as a singleton.  
-<h3>3) Start a session</h3>
+Please note that the <i>init</i> method will not create a new instance of <i>GamifiveSDK</i>, but it will just reset its configuration; in fact you can have only one instance of <i>GamifiveSDK</i> because it's implemented as a singleton. 
+
+ 
+<h3>3) Starting a session</h3>
 A session is a continued user activity like a game match. 
 Ideally a session begins when the player starts playing a new game and his score is set to zero.
 
@@ -86,7 +88,7 @@ function playGame(){
 Here's a simple schema:
 <img src="http://s2.motime.com/js/wl/webstore_html5game/gfsdk/manual/start_flow.png" width="100%" />
 
-<h3>4) End a session</h3>
+<h3>4) Ending a session</h3>
 Ideally a session ends when the player cannot go on with his match and must play again from the beginning. 
 Usually - but not necessarily - endSession occurs in the 'Game Over' state. 
 
@@ -139,17 +141,20 @@ It returns a string equal to the nickname of the user.
 
 <h2>Migrating apps featuring older versions of the SDK to v0.4</h2>
 
-Apps featuring older versions of the SDK can be migrated to v0.4 by explicitly adding a call to the <i>Gamefive.init</i> method.
+
+<h3>Migrating app using v0.3 to v0.4 of the SDK</h3>
+
+Apps featuring v0.3 of the SDK can be migrated to v0.4 by explicitly adding a call to the <i>Gamefive.init</i> method before using any of the module's features.
 
 Previously, the <i>init</i> method was called implicitly, now it must be called by the game developer for correctly configuring the SDK by passing a config object with the desired parameters.
 
-See step (2) of section <b>"Instructions"</b> for further information about <i>Gamefive.init</i>.
-
-This is enough for migrating apps featuring v0.3 to v0.4; instead, for migrating apps featuring v0.1 to v0.4 two additional steps are necessary, they are described in the following section.
-
 <h3>Migrating app using v0.1 to v0.4 of the SDK</h3>
 
-1) The functionalities implemented in v0.1 correspond to the "lite" version of v0.4, so you must declare <i>lite: true</i> in the configuration parameters passed to the <i>init</i> method. 
+Apps featuring v0.1 of the SDK can be migrated to v0.4 by explicitly adding a call to the <i>Gamefive.init</i> method before using any of the module's features.
+
+Previously, the <i>init</i> method was called implicitly, now it must be called by the game developer for correctly configuring the SDK by passing a config object with the desired parameters.
+
+Moreover, since the functionalities implemented in v0.1 correspond to the "lite" version of v0.4, you must declare <i>lite: true</i> in the configuration parameters passed to the <i>init</i> method. 
 
 <h4> Example </h4>
 
@@ -159,6 +164,6 @@ GamefiveSDK.init({
 });
 ```
 
-2) You don't have to use <i>onStartSession</i> for starting your game, it is sufficient to call <i>startSession</i> for tracking the session's time and score.
+Note: you don't have to use <i>onStartSession</i> for starting your game, it is sufficient to call <i>startSession</i> for tracking the session's time and score.
 
 
