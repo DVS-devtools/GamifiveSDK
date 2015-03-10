@@ -542,25 +542,36 @@ var GamefiveSDK = new function() {
 		Utils.enableLog(!!config.log);
 
 		// get window.GamifiveInfo
-		// DEBUG: call mock api
-		Utils.copyProperties(window.GamifiveInfo, config);
-
-		if(!config.lite){
-			// init events array
-			config.events = [];
-
-			// set facebook appId and init facebook
-			FBConnector.setConfig('appId', config.fbAppId);
-			FBConnector.start();
-
-			// add listeners of gameover
-			GameOverCore.addListeners();
-
-			// control if user is fb connected
-			GamefiveSDK.controlFbConnected();
+		if(!config.debug){
+			Utils.copyProperties(window.GamifiveInfo, config);
+			initPost();
+		} else {
+			Utils.xhr('GET', API('gamifiveinfo'), function(resp, req){
+				Utils.copyProperties(resp, config);
+				initPost();
+			});
 		}
 
-		Utils.log("GamifiveSDK", "init", config);
+		var initPost = function(){
+			// TODO: DEBUG: verificare che le variabili di config
+			// arrivino prima che le seguenti istruzioni vengano eseguite
+			if(!config.lite){
+				// init events array
+				config.events = [];
+
+				// set facebook appId and init facebook
+				FBConnector.setConfig('appId', config.fbAppId);
+				FBConnector.start();
+
+				// add listeners of gameover
+				GameOverCore.addListeners();
+
+				// control if user is fb connected
+				GamefiveSDK.controlFbConnected();
+			}
+
+			Utils.log("GamifiveSDK", "init", config);
+		}
 	}
 
 	/**
@@ -914,9 +925,12 @@ var GamefiveSDK = new function() {
 	* @param {object} param - parameters used as query string
 	*/
 	var API = function(name, param){
+		// set host
+		// var host = Utils.getAbsoluteUrl();
+		var host = 'http://s2.motime.com';
+
 		// set door (/v01/ or /mock/)
-		// DEBUG: call mock api
-		var door = '/v01/';
+		var door = (!config.debug) ? '/v01/' : '/mock/';
 
 		// set url core
 		var urlCore = {
@@ -927,14 +941,15 @@ var GamefiveSDK = new function() {
 			updateCredits: 'mipuser.updatecredits',
 			newChallenge: 'challenge.post',
 			mipConnect: 'mipuser.fbconnect',
-			leaderboard: 'leaderboard'
+			leaderboard: 'leaderboard',
+			gamifiveinfo: 'gamifiveinfo'
 		};
 
 		// convert param to queryString
 		var queryString = Utils.querify(param);
 
 		// return complete URl
-		return Utils.getAbsoluteUrl() + door + urlCore[name] + queryString;
+		return host + door + urlCore[name] + queryString;
 	}
 
 	var sdkElement = {
