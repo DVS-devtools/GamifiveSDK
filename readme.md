@@ -167,3 +167,135 @@ GamifiveSDK.init({
 <b>Note:</b> when using the SDK in <i>lite</i> version you don't have to use <i>onStartSession</i> for starting your game, it is sufficient to call <i>startSession</i> for tracking the session's time and score.
 
 
+<h2>Debug mode</h2>
+
+Here is a brief description of the error and debug messages that are meant to be displayed in the JavaScript console of your browser when using GamifiveSDK in debug mode. 
+
+We remind you that in order to use GamifiveSDK in debug mode, you have to call <i>Gamifive.init</i> with <i>debug: true</i> in the configuration argument.
+
+<h3>Normal (non-lite) mode</h3>
+
+<h4>GamifiveSDK.init</h4>
+
+No messages marked as "DEBUG" are going to be displayed when calling <i>GamifiveSDK.init()</i>.
+
+<h4>GamifiveSDK.onStartSession</h4>
+
+If the variable passed to <i>onStartSession</i> as an argument is a function, then the following debug message is displayed:
+```javascript
+    ["GamifiveSDK", "DEBUG", "1/5", "onStartSession", "OK"]
+```
+
+If such argument is not passed or it is not a function, then the following error message is displayed:
+```javascript
+    ["GamifiveSDK", "DEBUG", "1/5", "onStartSession", "KO"]
+```
+
+<h4>GamifiveSDK.startSession</h4>
+
+1) If the <i>init</i> function has been called before calling <i>GamifiveSDK.startSession</i>, then the following debug message is displayed: 
+
+```javascript
+["GamifiveSDK", "DEBUG", "2/5", "startSession", "OK"]
+```
+
+Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>init</i>.
+
+```javascript
+["GamifiveSDK", "DEBUG", "2/5", "startSession", "KO", "init has not been called"]
+```
+
+2) If the <i>onStartSession</i> function has been called before calling <i>GamifiveSDK.startSession</i>, then the following debug message is displayed: 
+
+```javascript
+["GamifiveSDK", "DEBUG", "3/5", "startSession", "OK"]
+```
+
+Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>onStartSession</i>.
+
+```javascript
+["GamifiveSDK", "DEBUG", "3/5", "startSession", "KO", "onStartSession has not been called"]
+```
+
+<h4>GamifiveSDK.endSession</h4>
+
+1) If the <i>startSession</i> function has been called before calling <i>GamifiveSDK.endSession</i>, then the following debug message is displayed: 
+
+```javascript
+["GamifiveSDK", "DEBUG", "4/5", "endSession", "OK"]
+```
+
+Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>init</i>.
+
+```javascript
+["GamifiveSDK", "DEBUG", "4/5", "endSession", "KO", "startSession has not been called"]
+```
+
+2) If the <i>score</i> value has been correctly stored, then the following debug message is displayed: 
+
+```javascript
+["GamifiveSDK", "DEBUG", "5/5", "endSession", "OK"]
+```
+
+Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>startSession</i>.
+
+```javascript
+["GamifiveSDK", "DEBUG", "5/5", "endSession", "KO", "missing score value"]
+
+```
+
+<h3>Lite Mode</h3>
+
+We remind you that in order to use GamifiveSDK in lite mode, you have to call <i>Gamifive.init</i> with <i>lite: true</i> in the configuration argument.
+
+
+<h4>GamifiveSDK.init</h4>
+
+No messages marked as "DEBUG" are going to be displayed when calling <i>GamifiveSDK.init()</i>.
+
+<h4>GamifiveSDK.onStartSession</h4>
+
+We remind you that you don't have to call <i>GamifiveSDK.onStartSession()</i> when using the lite mode of GamifiveSDK.
+
+However, no messages marked as "DEBUG" are going to be displayed when calling <i>GamifiveSDK.init()</i> in lite mode.
+
+<h4>GamifiveSDK.startSession</h4>
+
+If the <i>init</i> function has been called before calling <i>GamifiveSDK.startSession</i>, then the following debug message is displayed: 
+
+```javascript
+["GamifiveSDK", "DEBUG", "1/3", "startSession", "OK"]
+```
+
+Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>init</i>.
+
+```javascript
+["GamifiveSDK", "DEBUG", "1/3", "startSession", "KO", "init has not been called"]
+```
+
+<h4>GamifiveSDK.endSession</h4>
+
+1) If the <i>startSession</i> function has been called before calling <i>GamifiveSDK.endSession</i>, then the following debug message is displayed: 
+
+```javascript
+["GamifiveSDK", "DEBUG", "2/3", "endSession", "OK"]
+```
+
+Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>init</i>.
+
+```javascript
+["GamifiveSDK", "DEBUG", "2/3", "endSession", "KO", "startSession has not been called"]
+```
+
+2) If the <i>score</i> value has been correctly stored, then the following debug message is displayed: 
+
+```javascript
+["GamifiveSDK", "DEBUG", "3/3", "endSession", "OK"]
+```
+
+Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>startSession</i>.
+
+```javascript
+["GamifiveSDK", "DEBUG", "3/3", "endSession", "KO", "missing score value"]
+
+```
