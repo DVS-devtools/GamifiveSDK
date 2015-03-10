@@ -1,11 +1,11 @@
-<h1>GamefiveSDK 0.4</h1>
-<p>This is the how-to for game developers for integrating GamefiveSDK into their games.</p>
+<h1>GamifiveSDK 0.4</h1>
+<p>This is the how-to for game developers for integrating GamifiveSDK into their games.</p>
 
 <b>Note:</b> the SDK was previously called GamefiveSDK, now it has been aliased as GamifiveSDK so both names can be used.
 
 <h2>Instructions</h2>
 
-<h3>1) Including GamefiveSDK</h3>
+<h3>1) Including GamifiveSDK</h3>
 Include the minified sdk within a SCRIPT tag with id <i>'gfsdk'</i>, inside HEAD tag of your HTML code game:
 
 ```html
@@ -30,13 +30,13 @@ The SDK can be initialized calling its <i>init</i> method with a <i>param</i> ob
 <h4> Example </h4>
 
 ```javascript
-GamefiveSDK.init({ 
+GamifiveSDK.init({ 
 	log: true,
 	lite: false,
 	debug: true
 });
 ```
-The <i>init</i> method will store the configuration parameters into an internal variable (<i>GamefiveSDK.config</i>) and perform the operations needed for properly initializing the SDK, i.e. connecting to Facebook (if you are not using the lite version). 
+The <i>init</i> method will store the configuration parameters into an internal variable (<i>GamifiveSDK.config</i>) and perform the operations needed for properly initializing the SDK, i.e. connecting to Facebook (if you are not using the lite version). 
 
 Please note that the <i>init</i> method will not create a new instance of <i>GamifiveSDK</i>, but it will just reset its configuration; in fact you can have only one instance of <i>GamifiveSDK</i> because it's implemented as a singleton. 
 
@@ -47,8 +47,8 @@ Ideally a session begins when the player starts playing a new game and his score
 
 You have to:
 <ol>
-	<li>move the start of the game into <i>GamefiveSDK.onStartSession()</i> method</li>
-	<li>call <i>GamefiveSDK.startSession()</i> method to start the game</li>
+	<li>move the start of the game into <i>GamifiveSDK.onStartSession()</i> method</li>
+	<li>call <i>GamifiveSDK.startSession()</i> method to start the game</li>
 </ol>
 
 Here's an example:
@@ -70,13 +70,13 @@ function startMatch(){ /* ... */ }
 function startMatch(){ /* ... */ }
 
 // onStartSession include startMatch() method
-GamefiveSDK.onStartSession(function() {  
+GamifiveSDK.onStartSession(function() {  
   startMatch();
 });
 
-// new method to call GamefiveSDK.startSession()
+// new method to call GamifiveSDK.startSession()
 function playGame(){
-  GamefiveSDK.startSession();
+  GamifiveSDK.startSession();
 }
 ```
 
@@ -94,7 +94,7 @@ Usually - but not necessarily - endSession occurs in the 'Game Over' state.
 
 To end a session, you have to:
 <ol>
-	<li>call <i>GamefiveSDK.endSession()</i> method.
+	<li>call <i>GamifiveSDK.endSession()</i> method.
 		You should call it with an object parameter including the following fields:
 		 <ul>
 		  <li><b>score</b>: the score realized by the player during the game session</li>
@@ -108,7 +108,7 @@ To end a session, you have to:
 ```javascript
 // call this method when a user ends a game session
 var scoreGame = 7888;
-GamefiveSDK.endSession({
+GamifiveSDK.endSession({
 	score: scoreGame
 });
 ```
@@ -116,10 +116,10 @@ GamefiveSDK.endSession({
 <h2>Other methods</h2>
 
 <h3>getAvatar</h3>
-You can get the user's avatar by calling <i>GamefiveSDK.getAvatar()</i>.
+You can get the user's avatar by calling <i>GamifiveSDK.getAvatar()</i>.
 
 ```javascript
-var avatar = GamefiveSDK.getAvatar();
+var avatar = GamifiveSDK.getAvatar();
 ```
 
 It returns an object containing two fields:
@@ -130,10 +130,10 @@ It returns an object containing two fields:
 We recommend using a <i>src</i> field for showing the avatar in the game.
 
 <h3>getNickname</h3>
-You can get the user's nickname by calling <i>GamefiveSDK.getNickname()</i>.
+You can get the user's nickname by calling <i>GamifiveSDK.getNickname()</i>.
 
 ```javascript
-var avatar = GamefiveSDK.getNickname();
+var avatar = GamifiveSDK.getNickname();
 ```
 
 It returns a string equal to the nickname of the user.
@@ -144,13 +144,13 @@ It returns a string equal to the nickname of the user.
 
 <h3>Migrating app using v0.3 to v0.4 of the SDK</h3>
 
-Apps featuring v0.3 of the SDK can be migrated to v0.4 by explicitly adding a call to the <i>Gamefive.init</i> method before using any of the module's features.
+Apps featuring v0.3 of the SDK can be migrated to v0.4 by explicitly adding a call to the <i>Gamifive.init</i> method before using any of the module's features.
 
 Previously, the <i>init</i> method was called implicitly, now it must be called by the game developer for correctly configuring the SDK by passing a config object with the desired parameters.
 
 <h3>Migrating app using v0.1 to v0.4 of the SDK</h3>
 
-Apps featuring v0.1 of the SDK can be migrated to v0.4 by explicitly adding a call to the <i>Gamefive.init</i> method before using any of the module's features.
+Apps featuring v0.1 of the SDK can be migrated to v0.4 by explicitly adding a call to the <i>Gamifive.init</i> method before using any of the module's features.
 
 Previously, the <i>init</i> method was called implicitly, now it must be called by the game developer for correctly configuring the SDK by passing a config object with the desired parameters.
 
@@ -159,7 +159,7 @@ Moreover, since the functionalities implemented in v0.1 correspond to the "lite"
 <h4> Example </h4>
 
 ```javascript
-GamefiveSDK.init({ 
+GamifiveSDK.init({ 
 	lite: true
 });
 ```
