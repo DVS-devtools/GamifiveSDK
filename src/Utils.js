@@ -205,6 +205,22 @@ var Utils = new function() {
 	}
 
 	/**
+	* Error
+	* @function error
+	* @memberof Utils
+	* @param content
+	*/
+	this.error = function() {
+		if(flagLog){
+			var printable = new Array(arguments.length);
+			for(var k=0; k < arguments.length; k++){
+				printable[k] = arguments[k];
+			}
+			console.error(printable);
+		}
+	}
+
+	/**
 	* Verify if an element has class
 	* @function hasClass
 	* @memberof Utils

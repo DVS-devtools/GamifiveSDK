@@ -164,6 +164,6 @@ GamefiveSDK.init({
 });
 ```
 
-Note: you don't have to use <i>onStartSession</i> for starting your game, it is sufficient to call <i>startSession</i> for tracking the session's time and score.
+<b>Note:</b> when using the SDK in <i>lite</i> version you don't have to use <i>onStartSession</i> for starting your game, it is sufficient to call <i>startSession</i> for tracking the session's time and score.
 
 
