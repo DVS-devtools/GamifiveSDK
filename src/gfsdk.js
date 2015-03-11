@@ -478,8 +478,6 @@ var GamefiveSDK = new function() {
 		var urlCore = {
 			canDownload: 'user.candownload/' + config.contentId,
 			gameover: 'gameover/' + config.contentId,
-			paywall: 'gameoverpaywall' + config.contentId,
-			userInfo: 'user.lightinfo',
 			updateCredits: 'mipuser.updatecredits',
 			newChallenge: 'challenge.post',
 			mipConnect: 'mipuser.fbconnect',

@@ -285,6 +285,22 @@ var Utils = new function() {
 	}
 
 	/**
+	* Error
+	* @function error
+	* @memberof Utils
+	* @param content
+	*/
+	this.error = function() {
+		if(flagLog){
+			var printable = new Array(arguments.length);
+			for(var k=0; k < arguments.length; k++){
+				printable[k] = arguments[k];
+			}
+			console.error(printable);
+		}
+	}
+
+	/**
 	* Verify if an element has class
 	* @function hasClass
 	* @memberof Utils
@@ -553,8 +569,6 @@ var GamefiveSDK = new function() {
 		}
 
 		var initPost = function(){
-			// TODO: DEBUG: verificare che le variabili di config
-			// arrivino prima che le seguenti istruzioni vengano eseguite
 			if(!config.lite){
 				// init events array
 				config.events = [];
@@ -585,6 +599,16 @@ var GamefiveSDK = new function() {
 
 		// set callback in config
 		config.startCallback = callback;
+
+		// DEBUG
+		if (!!config.debug && !config.lite){
+			if (callback && typeof(callback) == 'function'){
+				Utils.log("GamifiveSDK", "DEBUG", "1/5", "onStartSession", "OK");
+			}
+			else {
+				Utils.error("GamifiveSDK", "DEBUG", "1/5", "onStartSession", "KO", "missing or illegal value for callback function");
+			}
+		}	
 	}
 
 	/**
@@ -621,6 +645,31 @@ var GamefiveSDK = new function() {
 				}
 			});
 
+		}
+
+		// DEBUG
+		if (!!config.debug && !config.lite){
+			if (!!config.contentId){
+				Utils.log("GamifiveSDK", "DEBUG", "2/5", "startSession", "OK");
+			}
+			else {
+				Utils.error("GamifiveSDK", "DEBUG", "2/5", "startSession", "KO", "init has not been called");
+			}
+
+			if (config.startCallback && typeof(config.startCallback) == 'function'){
+				Utils.log("GamifiveSDK", "DEBUG", "3/5", "startSession", "OK");
+			}
+			else {
+				Utils.error("GamifiveSDK", "DEBUG", "3/5", "startSession", "KO", "onStartSession has not been called");
+			}
+		}	
+		if (!!config.debug && !!config.lite){
+			if (!!config.contentId){
+				Utils.log("GamifiveSDK", "DEBUG", "1/3", "startSession", "OK");
+			}
+			else {
+				Utils.error("GamifiveSDK", "DEBUG", "1/3", "startSession", "KO", "init has not been called");
+			}
 		}
 	}
 
@@ -676,6 +725,26 @@ var GamefiveSDK = new function() {
 	      		'userId': config.userId
 			}));
 
+		}
+
+		// DEBUG
+		if (!!config.debug){
+			var step1 = !!config.lite ? "2/3" : "4/5";
+			var step2 = !!config.lite ? "3/3" : "5/5";
+
+			if (config.timestart && typeof(config.timestart) == 'number'){
+				Utils.log("GamifiveSDK", "DEBUG", step1, "endSession", "OK");
+			}
+			else {
+				Utils.error("GamifiveSDK", "DEBUG", step1, "endSession", "KO", "startSession has not been called");
+			}
+
+			if (config.score && typeof(config.score) == 'number'){
+				Utils.log("GamifiveSDK", "DEBUG", step2, "endSession", "OK");
+			}
+			else {
+				Utils.error("GamifiveSDK", "DEBUG", step2, "endSession", "KO", "missing score value");
+			}
 		}
 
 		Utils.log("GamifiveSDK", "endSession", param, config, challengedId);
@@ -936,8 +1005,6 @@ var GamefiveSDK = new function() {
 		var urlCore = {
 			canDownload: 'user.candownload/' + config.contentId,
 			gameover: 'gameover/' + config.contentId,
-			paywall: 'gameoverpaywall' + config.contentId,
-			userInfo: 'user.lightinfo',
 			updateCredits: 'mipuser.updatecredits',
 			newChallenge: 'challenge.post',
 			mipConnect: 'mipuser.fbconnect',
