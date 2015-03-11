@@ -183,38 +183,26 @@ No messages marked as "DEBUG" are going to be displayed when calling <i>Gamifive
 
 If the variable passed to <i>onStartSession</i> as an argument is a function, then the following debug message is displayed:
 ```javascript
-    ["GamifiveSDK", "DEBUG", "1/5", "onStartSession", "OK"]
+    ["GamifiveSDK", "DEBUG", "1/4", "onStartSession", "OK"]
 ```
 
 If such argument is not passed or it is not a function, then the following error message is displayed:
 ```javascript
-    ["GamifiveSDK", "DEBUG", "1/5", "onStartSession", "KO", "missing or illegal value for callback function"]
+    ["GamifiveSDK", "DEBUG", "1/4", "onStartSession", "KO", "missing or illegal value for callback function"]
 ```
 
 <h4>GamifiveSDK.startSession</h4>
 
-1) If the <i>init</i> function has been called before calling <i>GamifiveSDK.startSession</i>, then the following debug message is displayed: 
+If the <i>onStartSession</i> function has been called before calling <i>GamifiveSDK.startSession</i>, then the following debug message is displayed: 
 
 ```javascript
-["GamifiveSDK", "DEBUG", "2/5", "startSession", "OK"]
-```
-
-Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>init</i>.
-
-```javascript
-["GamifiveSDK", "DEBUG", "2/5", "startSession", "KO", "init has not been called"]
-```
-
-2) If the <i>onStartSession</i> function has been called before calling <i>GamifiveSDK.startSession</i>, then the following debug message is displayed: 
-
-```javascript
-["GamifiveSDK", "DEBUG", "3/5", "startSession", "OK"]
+["GamifiveSDK", "DEBUG", "2/4", "startSession", "OK"]
 ```
 
 Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>onStartSession</i>.
 
 ```javascript
-["GamifiveSDK", "DEBUG", "3/5", "startSession", "KO", "onStartSession has not been called"]
+["GamifiveSDK", "DEBUG", "2/4", "startSession", "KO", "onStartSession has not been called"]
 ```
 
 <h4>GamifiveSDK.endSession</h4>
@@ -222,25 +210,25 @@ Otherwise, the following error message is displayed, specifying that the error w
 1) If the <i>startSession</i> function has been called before calling <i>GamifiveSDK.endSession</i>, then the following debug message is displayed: 
 
 ```javascript
-["GamifiveSDK", "DEBUG", "4/5", "endSession", "OK"]
+["GamifiveSDK", "DEBUG", "3/4", "endSession", "OK"]
 ```
 
 Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>init</i>.
 
 ```javascript
-["GamifiveSDK", "DEBUG", "4/5", "endSession", "KO", "startSession has not been called"]
+["GamifiveSDK", "DEBUG", "3/4", "endSession", "KO", "startSession has not been called"]
 ```
 
 2) If the <i>score</i> value has been correctly stored, then the following debug message is displayed: 
 
 ```javascript
-["GamifiveSDK", "DEBUG", "5/5", "endSession", "OK"]
+["GamifiveSDK", "DEBUG", "4/4", "endSession", "OK"]
 ```
 
 Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>startSession</i>.
 
 ```javascript
-["GamifiveSDK", "DEBUG", "5/5", "endSession", "KO", "missing score value"]
+["GamifiveSDK", "DEBUG", "4/4", "endSession", "KO", "missing score value"]
 
 ```
 
@@ -261,41 +249,31 @@ However, no messages marked as "DEBUG" are going to be displayed when calling <i
 
 <h4>GamifiveSDK.startSession</h4>
 
-If the <i>init</i> function has been called before calling <i>GamifiveSDK.startSession</i>, then the following debug message is displayed: 
-
-```javascript
-["GamifiveSDK", "DEBUG", "1/3", "startSession", "OK"]
-```
-
-Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>init</i>.
-
-```javascript
-["GamifiveSDK", "DEBUG", "1/3", "startSession", "KO", "init has not been called"]
-```
+No messages marked as "DEBUG" are going to be displayed when calling <i>GamifiveSDK.startSession()</i>.
 
 <h4>GamifiveSDK.endSession</h4>
 
 1) If the <i>startSession</i> function has been called before calling <i>GamifiveSDK.endSession</i>, then the following debug message is displayed: 
 
 ```javascript
-["GamifiveSDK", "DEBUG", "2/3", "endSession", "OK"]
+["GamifiveSDK", "DEBUG", "1/2", "endSession", "OK"]
 ```
 
 Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>init</i>.
 
 ```javascript
-["GamifiveSDK", "DEBUG", "2/3", "endSession", "KO", "startSession has not been called"]
+["GamifiveSDK", "DEBUG", "1/2", "endSession", "KO", "startSession has not been called"]
 ```
 
 2) If the <i>score</i> value has been correctly stored, then the following debug message is displayed: 
 
 ```javascript
-["GamifiveSDK", "DEBUG", "3/3", "endSession", "OK"]
+["GamifiveSDK", "DEBUG", "2/2", "endSession", "OK"]
 ```
 
 Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>startSession</i>.
 
 ```javascript
-["GamifiveSDK", "DEBUG", "3/3", "endSession", "KO", "missing score value"]
+["GamifiveSDK", "DEBUG", "2/2", "endSession", "KO", "missing score value"]
 
 ```
