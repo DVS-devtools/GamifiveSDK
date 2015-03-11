@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: gameover.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: gameover.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source"><code>/**
+* Gameover.js
+* @class Gameover
+* @version 0.4
+*/
+
+var GameOverCore = new function() {
+
+	/********************************************
+	***** EXTERNAL METHODS FOR GAMEOVER TMPL ****
+	********************************************/
+
+	this.playAgain = function(){
+		// call to sdk
+		GamefiveSDK.startSession();
+
+		// analytics
+		var config = GamefiveSDK.getConfig();
+		if(config.challenge.id){
+			trackEvent("GamifiveSDK", "Retry", config.contentId);
+		} else {
+			trackEvent("GamifiveSDK", "Replay", config.contentId);
+		}
+	} 
+
+	this.invite = function(){
+		// call to sdk
+		GamefiveSDK.invite();
+
+		// analytics
+		var config = GamefiveSDK.getConfig();
+		trackEvent("GamifiveSDK", "InviteFB", config.contentId);
+	}
+
+	this.g5challenge = function(userId){
+		// call to sdk
+		GamefiveSDK.challenge(userId);
+
+		// analytics
+		var config = GamefiveSDK.getConfig();
+		trackEvent("GamifiveSDK", "ChallengeG5", config.contentId);
+	}
+
+	this.otherGames = function(){
+		// analytics
+		var config = GamefiveSDK.getConfig();
+		trackEvent("GamifiveSDK", "MoreGames", config.contentId);
+
+		// return true for link
+		return true;
+	}
+
+	this.connect = function(){
+		// call to sdk
+		GamefiveSDK.connect();
+	}
+
+	this.trackGameOver = function(){
+		var config = GamefiveSDK.getConfig();
+		trackEvent("GamifiveSDK", "GameOverScreenView", config.contentId);
+	}
+
+	this.addListeners = function(){
+		Utils.log("Gameover", "addListeners");
+
+		GamefiveSDK.onEvent('user_no_credits', function(e) {
+			// show paywall
+			Utils.show("paywall");
+		});
+
+		GamefiveSDK.onEvent('user_credits_updated', function(e) {
+			// hide paywall, if present
+			Utils.hide("paywall");
+
+			// show message
+			showMessage(e.title, e.message, e.success);
+			
+			// show updated credits feedback
+			if(typeof(e.credits) != 'undefined'){
+				var newCredits = parseInt(e.credits);
+				var newMessage = "";
+				var config = GamefiveSDK.getConfig();
+
+				// zero credits
+				if(newCredits == 0 && typeof(config.dictionary.matchLeftNone) != 'undefined'){
+					newMessage = (config.dictionary.matchLeftNone).replace("%s", newCredits);	
+					document.getElementById("credits-count").innerHTML = newMessage;	
+				// one credit
+				} else if(newCredits == 1 && typeof(config.dictionary.matchLeftSingular) != 'undefined'){
+					newMessage = (config.dictionary.matchLeftSingular).replace("%s", newCredits);
+					document.getElementById("credits-count").innerHTML = newMessage;
+				// more credits
+				} else if(newCredits > 1 && typeof(config.dictionary.matchLeftPlural) != 'undefined'){
+					newMessage = (config.dictionary.matchLeftPlural).replace("%s", newCredits);
+					document.getElementById("credits-count").innerHTML = newMessage;
+				}
+			}
+		});
+
+		GamefiveSDK.onEvent('challenge_completed', function(e) {
+			if(e.success){
+				// hide challenge button and show challenge feedback
+				Utils.hide("challenge-ready-" + e.challenged_user_id);
+				Utils.show("challenge-completed-" + e.challenged_user_id);
+				// hide challenged name and show challenge feedback
+				Utils.hide("name-ready-" + e.challenged_user_id);
+				Utils.show("name-completed-" + e.challenged_user_id);
+			} else {
+				// show message
+				showMessage(e.title, e.message, false);
+			}
+		});
+
+		GamefiveSDK.onEvent('mip_connect_success', function(e) {
+			// hide modal, if present
+			Utils.hide("fbconnect-calltoaction");
+			// show message
+			if(!!e && typeof(e.title)!="undefined" && typeof(e.success_message)!="undefined"){
+				showMessage(e.title, e.success_message, true);
+			}
+			// remove key from localstorage
+			if(!!window.localStorage.getItem("_gameoverOpenFbModal_")){
+				localStorage.removeItem("_gameoverOpenFbModal_");
+			}
+		});
+
+		GamefiveSDK.onEvent('mip_connect_error', function(e) {
+			// hide modal, if present
+			Utils.hide("fbconnect-calltoaction");
+			// show message
+			if(!!e && typeof(e.title)!="undefined" && typeof(e.error_message)!="undefined"){
+				showMessage(e.title, e.error_message, false);
+			}
+		});
+
+		GamefiveSDK.onEvent('fb_connect_show', function(e){
+			// show modal, if present
+			Utils.show("fbconnect-calltoaction");
+		});
+	}
+
+
+
+	/********************************************
+	*****         INTERNAL METHODS           ****
+	********************************************/
+
+	var showMessage = function(title, message, success){
+		Utils.log("Gameover", "showMessage", title, message, success);
+
+		// fill message
+		document.getElementById("message-title").innerHTML = title;
+		document.getElementById("message-text").innerHTML = message;
+		// show message
+		Utils.show("messages");
+		// add right class
+		if(success) {
+			// add success class
+			document.getElementById("messages").className += " success";
+		} else {
+			// add error class
+			document.getElementById("messages").className += " error";
+		}
+	} 
+
+	var closeMessage = function(){
+		Utils.log("Gameover", "closeMessage");
+
+		// hide message
+		Utils.hide("messages");
+		// remove error and success classes
+		document.getElementById("messages").className = document.getElementById("messages").className.replace(/\berror\b/,'');
+		document.getElementById("messages").className = document.getElementById("messages").className.replace(/\bsuccess\b/,'');
+	}
+
+	var trackEvent = function(category, action, label){
+		var config = GamefiveSDK.getConfig();
+		if(!config.debug){
+			GameAnalytics.trackEvent(category, action, label);
+		} else {
+			Utils.log("GameAnalytics", "trackEvent", category, action, label);
+		}
+	}
+
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="FBConnector.html">FBConnector</a></li><li><a href="Gameover.html">Gameover</a></li><li><a href="Gfsdk.html">Gfsdk</a></li><li><a href="Utils.html">Utils</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.2</a> on Fri Mar 06 2015 12:27:30 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

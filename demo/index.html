@@ -1,33 +1,111 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>GamefiveSDK demo</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-  </head>
-  <body>
-    <h1>GamefiveSDK demo</h1>
-    <p>See the <a href="./../manual/GamefiveSDK.html">project documentation</a>.
-    <p>Check out the <a href="https://github.com/bolza/GamefiveSDK">project repo</a>.
-    <p>Copyright 2014 Buongiorno.com</p>
-    
-    <script src="./../src/Utils.js"></script>
-    <script src="./../src/FB.js"></script>
-    <script id="gfsdk" src="./../src/gfsdk.js?debug=true"></script>
-    <!--script id="gfsdk" src="./../dist/gfsdk-0.1.min.js?debug=true"></script-->
+<html class="no-js">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<title></title>
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <button onclick="GamefiveSDK.invite()">Request to FB Friends</button>
-    <button onclick="GamefiveSDK.startSession()">Start Session</button>
-    <button onclick="GamefiveSDK.endSession({score: 11})">End Session</button>
+		<!-- DEBUG: remove it and use debug=true to Gamifive.init() -->
+		<script src="gamifiveinfo.js"></script>
+		<script src="gameanalytics.js"></script>
 
-    <script>
-      /* begin demo script */ 
-      window.GamefiveSDK = new GamefiveSDK();
-      GamefiveSDK.onStartSession(function(e) {
-        console.log('onStartSession', e);
-      });
-      
-      //console.log( 'GamefiveSDK:', window.GamefiveSDK );
-      /* end demo script */
-    </script>
-  </body>
+		<script>
+			var loadScript = function (path){
+				var buildScript = document.createElement('script');
+				buildScript.setAttribute('src', path);
+				document.head.appendChild(buildScript);
+			}
+
+			if (window.location.search.substring(1) == "dist=1"){
+				loadScript('../dist/gfsdk.js');
+			} else {
+				loadScript('../src/FB.js');
+				loadScript('../src/gameover.js');
+				loadScript('../src/gfsdk.js');
+				loadScript('../src/Utils.js');
+			}
+		</script>
+	</head>
+	<body>
+
+		<h2>GamefiveSDK</h2>
+		<h3>(called by game developers)</h3>
+
+		<div>
+			INIT GAME (log:true, debug:true)<br/>
+			<button onClick="GamefiveSDK.init({ log: true, debug: true });">
+				init
+			</button>
+
+			<button onClick="GamefiveSDK.init({ log: true, debug: true, lite: true });">
+				init lite
+			</button>
+			<br/><br/>
+		</div>
+
+		<div>
+			START AND END MATCH<br/>
+			<button onClick="GamefiveSDK.startSession();">
+				startSession
+			</button>
+
+			<button onClick="GamefiveSDK.endSession({ score: 100 });">
+				endSession(100)
+			</button>
+			<br/><br/>
+		</div>
+
+		<div>
+			OTHERS<br/>
+			<button onClick="GamefiveSDK.getAvatar();">
+				getAvatar()
+			</button>
+
+			<button onClick="GamefiveSDK.getNickname();">
+				getNickname()
+			</button>
+			<br/><br/>
+		</div>
+
+
+
+
+		<h2>Gameover.js</h2>
+		<h3>(called by gameover view)</h3>
+
+		<div>
+			REPLAY<br/>
+			<button onClick="GameOverCore.playAgain();">
+				playAgain()
+			</button>
+			<br/><br/>
+		</div>
+
+		<div>
+			INVITE<br/>
+			<button onClick="GameOverCore.invite();">
+				invite()
+			</button>
+			<br/><br/>
+		</div>
+
+		<div>
+			INTERNAL CHALLENGE<br/>
+			<button onClick="GameOverCore.g5challenge(555);">
+				g5challenge(555)
+			</button>
+			<br/><br/>
+		</div>
+
+		<div>
+			OTHER GAMES<br/>
+			<button onClick="GameOverCore.otherGames();">
+				otherGames()
+			</button>
+			<br/><br/>
+		</div>
+
+	</body>
 </html>
