@@ -188,7 +188,7 @@ If the variable passed to <i>onStartSession</i> as an argument is a function, th
 
 If such argument is not passed or it is not a function, then the following error message is displayed:
 ```javascript
-    ["GamifiveSDK", "DEBUG", "1/5", "onStartSession", "KO"]
+    ["GamifiveSDK", "DEBUG", "1/5", "onStartSession", "KO", "missing or illegal value for callback function"]
 ```
 
 <h4>GamifiveSDK.startSession</h4>
