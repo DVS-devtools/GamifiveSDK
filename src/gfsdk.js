@@ -135,14 +135,6 @@ var GamefiveSDK = new function() {
 			else {
 				Utils.error("GamifiveSDK", "DEBUG", "3/5", "startSession", "KO", "onStartSession has not been called");
 			}
-		}	
-		if (!!config.debug && !!config.lite){
-			if (!!config.contentId){
-				Utils.log("GamifiveSDK", "DEBUG", "1/3", "startSession", "OK");
-			}
-			else {
-				Utils.error("GamifiveSDK", "DEBUG", "1/3", "startSession", "KO", "init has not been called");
-			}
 		}
 	}
 
@@ -202,8 +194,8 @@ var GamefiveSDK = new function() {
 
 		// DEBUG
 		if (!!config.debug){
-			var step1 = !!config.lite ? "2/3" : "4/5";
-			var step2 = !!config.lite ? "3/3" : "5/5";
+			var step1 = !!config.lite ? "1/2" : "4/5";
+			var step2 = !!config.lite ? "2/2" : "5/5";
 
 			if (config.timestart && typeof(config.timestart) == 'number'){
 				Utils.log("GamifiveSDK", "DEBUG", step1, "endSession", "OK");
@@ -468,11 +460,10 @@ var GamefiveSDK = new function() {
 	*/
 	var API = function(name, param){
 		// set host
-		// var host = Utils.getAbsoluteUrl();
-		var host = 'http://s2.motime.com';
+		var host = (!config.debug) ? 'http://s2.motime.com' : 'http://www2.giochissimo.it';
 
 		// set door (/v01/ or /mock/)
-		var door = (!config.debug) ? '/v01/' : '/mock/';
+		var door = (!config.debug) ? '/v01/' : '/mock01/';
 
 		// set url core
 		var urlCore = {
@@ -482,7 +473,7 @@ var GamefiveSDK = new function() {
 			newChallenge: 'challenge.post',
 			mipConnect: 'mipuser.fbconnect',
 			leaderboard: 'leaderboard',
-			gamifiveinfo: 'gamifiveinfo'
+			gamifiveinfo: 'user.gamifiveinfo/' + '1234567890'
 		};
 
 		// convert param to queryString
