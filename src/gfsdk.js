@@ -76,7 +76,7 @@ var GamefiveSDK = new function() {
 		// DEBUG
 		if (!!config.debug && !config.lite){
 			if (callback && typeof(callback) == 'function'){
-				Utils.log("GamifiveSDK", "DEBUG", "1/4", "onStartSession", "OK");
+				Utils.log("GamifiveSDK", "DEBUG", "1/4", "onStartSession", "OK", "callback function has been set correctly");
 			}
 			else {
 				Utils.error("GamifiveSDK", "DEBUG", "1/4", "onStartSession", "KO", "missing or illegal value for callback function");
@@ -123,7 +123,7 @@ var GamefiveSDK = new function() {
 		// DEBUG
 		if (!!config.debug && !config.lite){
 			if (config.startCallback && typeof(config.startCallback) == 'function'){
-				Utils.log("GamifiveSDK", "DEBUG", "2/4", "startSession", "OK");
+				Utils.log("GamifiveSDK", "DEBUG", "2/4", "startSession", "OK", "onStartSession has been called correctly");
 			}
 			else {
 				Utils.error("GamifiveSDK", "DEBUG", "2/4", "startSession", "KO", "onStartSession has not been called");
@@ -191,14 +191,14 @@ var GamefiveSDK = new function() {
 			var step2 = !!config.lite ? "2/2" : "4/4";
 
 			if (config.timestart && typeof(config.timestart) == 'number'){
-				Utils.log("GamifiveSDK", "DEBUG", step1, "endSession", "OK");
+				Utils.log("GamifiveSDK", "DEBUG", step1, "endSession", "OK", "startSession has been called correctly");
 			}
 			else {
 				Utils.error("GamifiveSDK", "DEBUG", step1, "endSession", "KO", "startSession has not been called");
 			}
 
 			if (config.score && typeof(config.score) == 'number'){
-				Utils.log("GamifiveSDK", "DEBUG", step2, "endSession", "OK");
+				Utils.log("GamifiveSDK", "DEBUG", step2, "endSession", "OK", "score has been set correctly");
 			}
 			else {
 				Utils.error("GamifiveSDK", "DEBUG", step2, "endSession", "KO", "missing score value");
@@ -466,7 +466,7 @@ var GamefiveSDK = new function() {
 			newChallenge: 'challenge.post',
 			mipConnect: 'mipuser.fbconnect',
 			leaderboard: 'leaderboard',
-			gamifiveinfo: 'user.gamifiveinfo/' + '1234567890'
+			gamifiveinfo: 'gamifiveinfo'
 		};
 
 		// convert param to queryString
@@ -512,11 +512,13 @@ var GamefiveSDK = new function() {
 		* @memberof Gfsdk
 		*/
 		delete: function(){
-			// remove element from DOM
-			var element = document.getElementById('gfsdk_root');
-			document.body.removeChild(element);
+			// remove element from DOM if present
+			if(!!document.getElementById('gfsdk_root')){
+				var element = document.getElementById('gfsdk_root');
+				document.body.removeChild(element);
 
-			Utils.log("GamifiveSDK", "delete", element);
+				Utils.log("GamifiveSDK", "delete", element);
+			}
 		}
 	};	
 

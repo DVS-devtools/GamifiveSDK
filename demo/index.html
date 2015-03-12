@@ -51,12 +51,20 @@
 				onStartSession
 			</button>
 
+			<button onClick="GamefiveSDK.onStartSession();">
+				onStartSession wrong
+			</button><br/><br/>
+
 			<button onClick="GamefiveSDK.startSession();">
 				startSession
-			</button>
+			</button><br/><br/>
 
 			<button onClick="GamefiveSDK.endSession({ score: 100 });">
-				endSession(100)
+				endSession ok
+			</button>
+
+			<button onClick="GamefiveSDK.endSession(100);">
+				endSession wrong
 			</button>
 			<br/><br/>
 		</div>

@@ -603,10 +603,10 @@ var GamefiveSDK = new function() {
 		// DEBUG
 		if (!!config.debug && !config.lite){
 			if (callback && typeof(callback) == 'function'){
-				Utils.log("GamifiveSDK", "DEBUG", "1/5", "onStartSession", "OK");
+				Utils.log("GamifiveSDK", "DEBUG", "1/4", "onStartSession", "OK", "callback function has been set correctly");
 			}
 			else {
-				Utils.error("GamifiveSDK", "DEBUG", "1/5", "onStartSession", "KO", "missing or illegal value for callback function");
+				Utils.error("GamifiveSDK", "DEBUG", "1/4", "onStartSession", "KO", "missing or illegal value for callback function");
 			}
 		}	
 	}
@@ -649,26 +649,11 @@ var GamefiveSDK = new function() {
 
 		// DEBUG
 		if (!!config.debug && !config.lite){
-			if (!!config.contentId){
-				Utils.log("GamifiveSDK", "DEBUG", "2/5", "startSession", "OK");
-			}
-			else {
-				Utils.error("GamifiveSDK", "DEBUG", "2/5", "startSession", "KO", "init has not been called");
-			}
-
 			if (config.startCallback && typeof(config.startCallback) == 'function'){
-				Utils.log("GamifiveSDK", "DEBUG", "3/5", "startSession", "OK");
+				Utils.log("GamifiveSDK", "DEBUG", "2/4", "startSession", "OK", "onStartSession has been called correctly");
 			}
 			else {
-				Utils.error("GamifiveSDK", "DEBUG", "3/5", "startSession", "KO", "onStartSession has not been called");
-			}
-		}	
-		if (!!config.debug && !!config.lite){
-			if (!!config.contentId){
-				Utils.log("GamifiveSDK", "DEBUG", "1/3", "startSession", "OK");
-			}
-			else {
-				Utils.error("GamifiveSDK", "DEBUG", "1/3", "startSession", "KO", "init has not been called");
+				Utils.error("GamifiveSDK", "DEBUG", "2/4", "startSession", "KO", "onStartSession has not been called");
 			}
 		}
 	}
@@ -729,18 +714,18 @@ var GamefiveSDK = new function() {
 
 		// DEBUG
 		if (!!config.debug){
-			var step1 = !!config.lite ? "2/3" : "4/5";
-			var step2 = !!config.lite ? "3/3" : "5/5";
+			var step1 = !!config.lite ? "1/2" : "3/4";
+			var step2 = !!config.lite ? "2/2" : "4/4";
 
 			if (config.timestart && typeof(config.timestart) == 'number'){
-				Utils.log("GamifiveSDK", "DEBUG", step1, "endSession", "OK");
+				Utils.log("GamifiveSDK", "DEBUG", step1, "endSession", "OK", "startSession has been called correctly");
 			}
 			else {
 				Utils.error("GamifiveSDK", "DEBUG", step1, "endSession", "KO", "startSession has not been called");
 			}
 
 			if (config.score && typeof(config.score) == 'number'){
-				Utils.log("GamifiveSDK", "DEBUG", step2, "endSession", "OK");
+				Utils.log("GamifiveSDK", "DEBUG", step2, "endSession", "OK", "score has been set correctly");
 			}
 			else {
 				Utils.error("GamifiveSDK", "DEBUG", step2, "endSession", "KO", "missing score value");
@@ -995,11 +980,10 @@ var GamefiveSDK = new function() {
 	*/
 	var API = function(name, param){
 		// set host
-		// var host = Utils.getAbsoluteUrl();
-		var host = 'http://s2.motime.com';
+		var host = (!config.debug) ? 'http://s2.motime.com' : 'http://www2.giochissimo.it';
 
 		// set door (/v01/ or /mock/)
-		var door = (!config.debug) ? '/v01/' : '/mock/';
+		var door = (!config.debug) ? '/v01/' : '/mock01/';
 
 		// set url core
 		var urlCore = {
@@ -1055,11 +1039,13 @@ var GamefiveSDK = new function() {
 		* @memberof Gfsdk
 		*/
 		delete: function(){
-			// remove element from DOM
-			var element = document.getElementById('gfsdk_root');
-			document.body.removeChild(element);
+			// remove element from DOM if present
+			if(!!document.getElementById('gfsdk_root')){
+				var element = document.getElementById('gfsdk_root');
+				document.body.removeChild(element);
 
-			Utils.log("GamifiveSDK", "delete", element);
+				Utils.log("GamifiveSDK", "delete", element);
+			}
 		}
 	};	
 
