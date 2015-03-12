@@ -35,11 +35,11 @@
 
 		<div>
 			INIT GAME (log:true, debug:true)<br/>
-			<button onClick="GamefiveSDK.init({ log: true, debug: true });">
+			<button onClick="GamefiveSDK.init({ debug: true });">
 				init
 			</button>
 
-			<button onClick="GamefiveSDK.init({ log: true, debug: true, lite: true });">
+			<button onClick="GamefiveSDK.init({ debug: true, lite: true });">
 				init lite
 			</button>
 			<br/><br/>
@@ -47,7 +47,7 @@
 
 		<div>
 			START AND END MATCH<br/>
-			<button onClick="GamefiveSDK.onStartSession(function(){ window.alert('PLAYYYYYYYYY'); });">
+			<button onClick="GamefiveSDK.onStartSession(function(){ console.log('STO GIOCANDOOOOOOOOOOOOOO!'); });">
 				onStartSession
 			</button>
 
@@ -59,7 +59,7 @@
 				startSession
 			</button><br/><br/>
 
-			<button onClick="GamefiveSDK.endSession({ score: 100 });">
+			<button onClick="GamefiveSDK.endSession({ score: 10 });">
 				endSession ok
 			</button>
 
