@@ -291,13 +291,11 @@ var Utils = new function() {
 	* @param content
 	*/
 	this.error = function() {
-		if(flagLog){
-			var printable = new Array(arguments.length);
-			for(var k=0; k < arguments.length; k++){
-				printable[k] = arguments[k];
-			}
-			console.error(printable);
+		var printable = new Array(arguments.length);
+		for(var k=0; k < arguments.length; k++){
+			printable[k] = arguments[k];
 		}
+		console.error(printable);
 	}
 
 	/**
@@ -673,6 +671,8 @@ var GamefiveSDK = new function() {
 	* @param {float} [param.score] - final score of player
 	*/
 	this.endSession = function(param){
+		Utils.log("GamifiveSDK", "endSession", param);
+
 		// set time end
 		config.timeend = Utils.dateNow();
 
