@@ -91,17 +91,24 @@ function playGame(){
 Here's a simple schema:
 <img src="http://s2.motime.com/js/wl/webstore_html5game/gfsdk/manual/start_flow.png" width="100%" />
 
-<h3>4) Ending a session</h3>
+<h2>4) Ending a session</h2>
 Ideally a session ends when the player cannot go on with his match and must play again from the beginning. 
 Usually - but not necessarily - endSession occurs in the 'Game Over' state. 
 
-To end a session, you have to:
+<h3>Lite Mode</h3>
+
+To end a session in lite mode, you just have to call <i>GamifiveSDK.endSession()</i> method.
+		
+You should call it passing an object as parameter, containing the field <b>score</b>, which is the score realized by the player during the game session. This value must be a number (not string).
+
+		 
+<h3>Normal (non-lite) Mode</h3>
+
+To end a session in non-lite mode, you have to:
+
 <ol>
 	<li>call <i>GamifiveSDK.endSession()</i> method.
-		You should call it passing an object as parameter, containing:
-		 <ul>
-		  <li><b>score</b>: the score realized by the player during the game session. This value must be a number (not string).</li>
-		 </ul>
+		You should call it passing an object as parameter, containing the field <b>score</b>, which is the score realized by the player during the game session. This value must be a number (not string).
 	</li>
 	<li>remove your game over screen - you have to remove your game over screen because the SDK also displays a game over screen. If you don't remove your game over screen, there will be two duplicate screens
 	</li>
