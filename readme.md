@@ -174,7 +174,10 @@ We remind you that in order to use GamifiveSDK in debug mode, you have to call <
 <h4>GamifiveSDK.init</h4>
 
 You should check if the following message is displayed in the console, in order to be sure that <i>GamifiveSDK.init</i> ran fine:
+
+```javascript
     ["GamifiveSDK", "init", Object { debug=true, label="...", contentId="...", more...}]
+```
 
 <h4>GamifiveSDK.onStartSession</h4>
 
@@ -193,8 +196,8 @@ If such argument is not passed or it is not a function, then the following error
 If <i>init</i> and <i>onStartSession</i> were called before calling <i>GamifiveSDK.startSession</i>, then the SDK is now correctly configured to start a session and following debug messages are displayed: 
 
 ```javascript
-["GamifiveSDK", "OK", "init has been called correctly"]
-["GamifiveSDK", "OK", "onStartSession has been called correctly"]
+    ["GamifiveSDK", "OK", "init has been called correctly"]
+    ["GamifiveSDK", "OK", "onStartSession has been called correctly"]
 ```
 
 Otherwise: 
@@ -202,39 +205,39 @@ Otherwise:
 if <i>init</i> was not called, the following error message is displayed:
 
 ```javascript
-GamifiveSDK,ERROR,init has not been called
+    GamifiveSDK,ERROR,init has not been called
 ```
 if <i>onStartSession</i> was not called, the following error message is displayed:
 ```javascript
-GamifiveSDK,ERROR,onStartSession has not been called
+    GamifiveSDK,ERROR,onStartSession has not been called
 ```
 
 <h4>GamifiveSDK.endSession</h4>
 
-1) If the <i>startSession</i> function has been called before calling <i>GamifiveSDK.endSession</i>, then the following debug message is displayed: 
+If the <i>startSession</i> function has been called before calling <i>GamifiveSDK.endSession</i>, then the following debug message is displayed: 
 
 ```javascript
-["GamifiveSDK", "DEBUG", "endSession", "OK"]
-```
-
-Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>init</i>.
-
-```javascript
-["GamifiveSDK", "DEBUG", "endSession", "KO", "startSession has not been called"]
-```
-
-2) If the <i>score</i> value has been correctly stored, then the following debug message is displayed: 
-
-```javascript
-["GamifiveSDK", "DEBUG", "endSession", "OK"]
+    ["GamifiveSDK", "OK", "startSession has been called correctly"]
 ```
 
 Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>startSession</i>.
 
 ```javascript
-["GamifiveSDK", "DEBUG", "endSession", "KO", "missing score value"]
-
+    GamifiveSDK,ERROR,startSession has not been called
 ```
+
+If the <i>score</i> was passed in the proper way, then the following debug message is displayed: 
+
+```javascript
+    ["GamifiveSDK", "OK", "score has been set correctly"]
+```
+
+Otherwise, the following error message is displayed:
+```javascript
+    GamifiveSDK,ERROR,missing score value
+```
+
+
 
 <h3>Lite Mode</h3>
 
@@ -243,41 +246,68 @@ We remind you that in order to use GamifiveSDK in lite mode, you have to call <i
 
 <h4>GamifiveSDK.init</h4>
 
-No messages marked as "DEBUG" are going to be displayed when calling <i>GamifiveSDK.init()</i>.
+You should check if the following message is displayed in the console, in order to be sure that <i>GamifiveSDK.init</i> ran fine:
+
+```javascript
+    ["GamifiveSDK", "init", Object { debug=true, lite=true, label="...", more...}]
+```
 
 <h4>GamifiveSDK.onStartSession</h4>
 
 We remind you that you don't have to call <i>GamifiveSDK.onStartSession()</i> when using the lite mode of GamifiveSDK.
 
-However, no messages marked as "DEBUG" are going to be displayed when calling <i>GamifiveSDK.init()</i> in lite mode.
+When calling <i>GamifiveSDK.onStartSession()</i> in lite mode, the following error message is displayed:
+
+```javascript
+    GamifiveSDK,ERROR,in lite mode, onStartSession must not be used
+```
 
 <h4>GamifiveSDK.startSession</h4>
 
-No messages marked as "DEBUG" are going to be displayed when calling <i>GamifiveSDK.startSession()</i>.
-
-<h4>GamifiveSDK.endSession</h4>
-
-1) If the <i>startSession</i> function has been called before calling <i>GamifiveSDK.endSession</i>, then the following debug message is displayed: 
+When <i>GamifiveSDK.startSession</i> is called, the following debug message is displayed: 
 
 ```javascript
-["GamifiveSDK", "DEBUG", "endSession", "OK"]
+    ["GamifiveSDK", "startSession"]
+```
+
+If <i>GamifiveSDK.init</i> function was called before calling <i>GamifiveSDK.endSession</i>, then the following debug message is displayed: 
+
+```javascript
+    ["GamifiveSDK", "OK", "init has been called correctly"]
 ```
 
 Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>init</i>.
 
 ```javascript
-["GamifiveSDK", "DEBUG", "endSession", "KO", "startSession has not been called"]
+    GamifiveSDK,ERROR,init has not been called
 ```
 
-2) If the <i>score</i> value has been correctly stored, then the following debug message is displayed: 
+<h4>GamifiveSDK.endSession</h4>
+
+When <i>GamifiveSDK.endSession</i> is called, the following message is displayed:
+```javascript
+    ["GamifiveSDK", "endSession", Object { score=10 }]
+```
+
+If the <i>startSession</i> function has been called before calling <i>GamifiveSDK.endSession</i>, then the following debug message is displayed: 
 
 ```javascript
-["GamifiveSDK", "DEBUG", "endSession", "OK"]
+    ["GamifiveSDK", "OK", "startSession has been called correctly"]
 ```
 
 Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>startSession</i>.
 
 ```javascript
-["GamifiveSDK", "DEBUG", "endSession", "KO", "missing score value"]
+    GamifiveSDK,ERROR,startSession has not been called
+```
 
+If the <i>score</i> was passed in the proper way, then the following debug message is displayed: 
+
+```javascript
+    ["GamifiveSDK", "OK", "score has been set correctly"]
+```
+
+Otherwise, the following error message is displayed:
+```javascript
+    GamifiveSDK,ERROR,missing score value
 ```

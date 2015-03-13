@@ -146,6 +146,8 @@ var GamefiveSDK = new function() {
 	* @param {float} [param.score] - final score of player
 	*/
 	this.endSession = function(param){
+		Utils.log("GamifiveSDK", "endSession", param);
+
 		// set time end
 		config.timeend = Utils.dateNow();
 
