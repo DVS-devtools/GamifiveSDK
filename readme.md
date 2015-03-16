@@ -191,11 +191,7 @@ We remind you that in order to use GamifiveSDK in lite mode, you have to call <i
 
 <h3>GamifiveSDK.init</h3>
 
-You should check if the following message is displayed in the console, in order to be sure that <i>GamifiveSDK.init</i> ran fine:
-
-```javascript
-    ["GamifiveSDK", "init", Object { debug=true, lite=true, label="...", more...}]
-```
+No debug messages are displayed when calling <i>GamifiveSDK.init</i>.
 
 <h3>GamifiveSDK.onStartSession</h3>
 
@@ -208,12 +204,6 @@ When calling <i>GamifiveSDK.onStartSession()</i> in lite mode, the following err
 ```
 
 <h3>GamifiveSDK.startSession</h3>
-
-When <i>GamifiveSDK.startSession</i> is called, the following debug message is displayed: 
-
-```javascript
-    ["GamifiveSDK", "startSession"]
-```
 
 If <i>GamifiveSDK.init</i> function was called before calling <i>GamifiveSDK.endSession</i>, then the following debug message is displayed: 
 
@@ -229,18 +219,13 @@ Otherwise, the following error message is displayed, specifying that the error w
 
 <h3>GamifiveSDK.endSession</h3>
 
-When <i>GamifiveSDK.endSession</i> is called, the following message is displayed:
-```javascript
-    ["GamifiveSDK", "endSession", Object { score=10 }]
-```
-
-If the <i>startSession</i> function has been called before calling <i>GamifiveSDK.endSession</i>, then the following debug message is displayed: 
+If <i>GamifiveSDK.startSession</i> function has been called before calling <i>GamifiveSDK.endSession</i>, then the following debug message is displayed: 
 
 ```javascript
     ["GamifiveSDK", "OK", "startSession has been called correctly"]
 ```
 
-Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>startSession</i>.
+Otherwise, the following error message is displayed, specifying that the error was due to a missing or unsuccessful call to <i>GamifiveSDK.startSession</i>.
 
 ```javascript
     GamifiveSDK,ERROR,startSession has not been called
@@ -262,11 +247,7 @@ Otherwise, the following error message is displayed:
 
 <h3>GamifiveSDK.init</h3>
 
-You should check if the following message is displayed in the console, in order to be sure that <i>GamifiveSDK.init</i> ran fine:
-
-```javascript
-    ["GamifiveSDK", "init", Object { debug=true, label="...", contentId="...", more...}]
-```
+No debug messages are displayed when calling <i>GamifiveSDK.init</i>.
 
 <h3>GamifiveSDK.onStartSession</h3>
 
