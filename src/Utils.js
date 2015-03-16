@@ -205,6 +205,20 @@ var Utils = new function() {
 	}
 
 	/**
+	* Debug
+	* @function error
+	* @memberof Utils
+	* @param content
+	*/
+	this.debug = function() {
+		var printable = new Array(arguments.length);
+		for(var k=0; k < arguments.length; k++){
+			printable[k] = arguments[k];
+		}
+		console.debug(printable);
+	}
+
+	/**
 	* Error
 	* @function error
 	* @memberof Utils

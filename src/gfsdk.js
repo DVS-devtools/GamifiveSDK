@@ -27,13 +27,14 @@ var GamefiveSDK = new function() {
 		// get param
 		Utils.copyProperties(param, config);
 
+		// enable/disable debug
+		Utils.enableLog(!!config.log);
+
 		// get window.GamifiveInfo
 		if(!config.debug){
-			Utils.enableLog(!!config.log);
 			Utils.copyProperties(window.GamifiveInfo, config);
 			initPost();
 		} else {
-			Utils.enableLog(true);
 			Utils.xhr('GET', API('gamifiveinfo'), function(resp, req){
 				Utils.copyProperties(resp, config);
 				initPost();
@@ -75,7 +76,7 @@ var GamefiveSDK = new function() {
 		// ERROR HANDLING
 		if(!config.lite){
 			if (callback && typeof(callback) == 'function'){
-				Utils.log("GamifiveSDK", "OK", "callback function has been set correctly");
+				Utils.debug("GamifiveSDK", "OK", "callback function has been set correctly");
 			} else {
 				Utils.error("GamifiveSDK", "ERROR", "missing or illegal value for callback function");
 			}
@@ -124,14 +125,14 @@ var GamefiveSDK = new function() {
 
 		// ERROR HANDLING
 		if (!!config.contentId){
-			Utils.log("GamifiveSDK", "OK", "init has been called correctly");
+			Utils.debug("GamifiveSDK", "OK", "init has been called correctly");
 		} else {
 			Utils.error("GamifiveSDK", "ERROR", "init has not been called");
 		}
 
 		if(!config.lite){
 			if (config.startCallback && typeof(config.startCallback) == 'function'){
-				Utils.log("GamifiveSDK", "OK", "onStartSession has been called correctly");
+				Utils.debug("GamifiveSDK", "OK", "onStartSession has been called correctly");
 			} else {
 				Utils.error("GamifiveSDK", "ERROR", "onStartSession has not been called");
 			}
@@ -194,13 +195,13 @@ var GamefiveSDK = new function() {
 
 		// ERROR HANDLING
 		if (config.timestart && typeof(config.timestart) == 'number'){
-			Utils.log("GamifiveSDK", "OK", "startSession has been called correctly");
+			Utils.debug("GamifiveSDK", "OK", "startSession has been called correctly");
 		} else {
 			Utils.error("GamifiveSDK", "ERROR", "startSession has not been called");
 		}
 
 		if (typeof(config.score) == 'number'){
-			Utils.log("GamifiveSDK", "OK", "score has been set correctly");
+			Utils.debug("GamifiveSDK", "OK", "score has been set correctly");
 		} else {
 			Utils.error("GamifiveSDK", "ERROR", "missing score value");
 		}		
