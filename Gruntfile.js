@@ -12,6 +12,7 @@ module.exports = function(grunt) {
 		distPath: 'dist/',
 		tmpPath: '.tmp/',
 		demoPath: 'demo/',
+		testPath: 'test/karma/',
 
 		// filenames
 		filename: 'gfsdk',
@@ -34,13 +35,14 @@ module.exports = function(grunt) {
 
 		connect: {
 			options: {
-				port: 9000,
 				hostname: 'localhost',
 				livereload: 35729
 			},
 			server: {
 				options: {
-					open: 'http://localhost:9000/<%= demoPath %>',
+					port: 9001,
+					livereload: 35729,
+					open: 'http://localhost:9001/<%= demoPath %>',
 					base: [
 						'.'
 					]
@@ -48,7 +50,19 @@ module.exports = function(grunt) {
 			},
 			dist: {
 				options: {
-					open: 'http://localhost:9000/<%= demoPath %>?dist=1',
+					port: 9002,
+					livereload: 35729,
+					open: 'http://localhost:9002/<%= demoPath %>?dist=1',
+					base: [
+						'.'
+					]
+				}
+			},
+			test: {
+				options: {
+					port: 9003,
+					livereload: 35729,
+					open: 'http://localhost:9003/<%= testPath %>',
 					base: [
 						'.'
 					]
@@ -57,9 +71,18 @@ module.exports = function(grunt) {
 		},
 
 		watch: {
-			livereload: {
+			server: {
 				files: [
 					'<%= srcPath %>/**/*',
+					'<%= demoPath %>/**/*',
+					'<%= testPath %>/**/*'
+				],
+				options: {
+					livereload: '<%= connect.options.livereload %>'
+				}				
+			},
+			dist: {
+				files: [
 					'<%= demoPath %>/**/*'
 				],
 				options: {
@@ -134,28 +157,25 @@ module.exports = function(grunt) {
 	// Tasks
 	grunt.registerTask('serve', [
 		'connect:server',
-		'watch'
+		'connect:test',
+		'watch:server'		
 	]);
 
 	grunt.registerTask('servebuild', [
 		'connect:dist',
-		'watch'
+		'watch:dist'
 	]);
 
 	grunt.registerTask('build', [
 		'clean:dist',
 		'clean:doc',
 		'jsdoc',
-		// 'shell:index',
 		'concat', 
-		// 'wrap', 
 		'uglify'
 	]);
 
 	grunt.registerTask('test', [
-		'concat', 
-		'wrap', 
-		'qunit'
+		'connect:test'
 	]);
 
 
