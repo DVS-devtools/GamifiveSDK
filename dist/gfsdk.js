@@ -553,6 +553,16 @@ var GamefiveSDK = new function() {
 	*****  EXTERNAL METHODS FOR DEVELOPERS  *****
 	********************************************/ 
 
+
+	/**
+	* Reset GamefiveSDK
+	* @function reset
+	* @memberof Gfsdk
+	*/
+	this.reset = function(){
+		config = {};
+	}
+
 	/**
 	* Init GamefiveSDK
 	* @function init
@@ -568,17 +578,6 @@ var GamefiveSDK = new function() {
 
 		// enable/disable debug
 		Utils.enableLog(!!config.log);
-
-		// get window.GamifiveInfo
-		if(!config.debug){
-			Utils.copyProperties(window.GamifiveInfo, config);
-			initPost();
-		} else {
-			Utils.xhr('GET', API('gamifiveinfo'), function(resp, req){
-				Utils.copyProperties(resp, config);
-				initPost();
-			});
-		}
 
 		var initPost = function(){
 			if(!config.lite){
@@ -597,6 +596,17 @@ var GamefiveSDK = new function() {
 			}
 
 			Utils.log("GamifiveSDK", "init", config);
+		}
+
+		// get window.GamifiveInfo
+		if(!config.debug){
+			Utils.copyProperties(window.GamifiveInfo, config);
+			initPost();
+		} else {
+			Utils.xhr('GET', API('gamifiveinfo'), function(resp, req){
+				Utils.copyProperties(resp, config);
+				initPost();
+			});
 		}
 	}
 
