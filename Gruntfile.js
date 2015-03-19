@@ -1,10 +1,13 @@
 /*global module:false*/
 module.exports = function(grunt) {
 
+	require('phantomjs');
+
 	// Project configuration.
 	grunt.initConfig({
-		// version
+		// version & ports
 		version: '0.4',
+		livereloadPort: 35729,
 
 		// paths
 		docPath: 'jsdoc/',
@@ -36,12 +39,12 @@ module.exports = function(grunt) {
 		connect: {
 			options: {
 				hostname: 'localhost',
-				livereload: 35729
+				livereload: '<%= livereloadPort %>'
 			},
 			server: {
 				options: {
 					port: 9001,
-					livereload: 35729,
+					livereload: '<%= livereloadPort %>',
 					open: 'http://localhost:9001/<%= demoPath %>',
 					base: [
 						'.'
@@ -51,7 +54,7 @@ module.exports = function(grunt) {
 			dist: {
 				options: {
 					port: 9002,
-					livereload: 35729,
+					livereload: '<%= livereloadPort %>',
 					open: 'http://localhost:9002/<%= demoPath %>?dist=1',
 					base: [
 						'.'
@@ -61,7 +64,7 @@ module.exports = function(grunt) {
 			test: {
 				options: {
 					port: 9003,
-					livereload: 35729,
+					livereload: '<%= livereloadPort %>',
 					open: 'http://localhost:9003/<%= testPath %>',
 					base: [
 						'.'
@@ -75,7 +78,7 @@ module.exports = function(grunt) {
 				files: [
 					'<%= srcPath %>/**/*',
 					'<%= demoPath %>/**/*',
-					'<%= testPath %>/**/*'
+					// '<%= testPath %>/**/*'
 				],
 				options: {
 					livereload: '<%= connect.options.livereload %>'
@@ -86,7 +89,7 @@ module.exports = function(grunt) {
 					'<%= demoPath %>/**/*'
 				],
 				options: {
-					livereload: '<%= connect.options.livereload %>'
+					livereload: '<%= livereloadPort %>'
 				}				
 			}
 		},
@@ -140,6 +143,30 @@ module.exports = function(grunt) {
 					urls: ['http://localhost:8000/test/all.html']
 				}
 			}
+		},
+
+		karma: {
+			unit: {
+				options: {
+					singleRun: true,
+    				browsers: ['PhantomJS'],
+    				frameworks: ['jasmine'],
+					files: [
+						'<%= srcPath %>/*.js',
+						// '<%= testPath %>/bower_components/jasmine/lib/jasmine-core/jasmine.js',
+						'<%= testPath %>/spec/*.js',
+						'<%= testPath %>/mock/*.js' 
+					],
+					reporters: ['progress', 'coverage'],
+					preprocessors: {
+						'<%= srcPath %>/*.js': ['coverage']
+					},
+					coverageReporter: {
+						type : 'html',
+						dir : '<%= testPath %>/coverage/'
+					}
+				}
+			}
 		}
 	});
 
@@ -153,11 +180,12 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-jsdoc');
 	grunt.loadNpmTasks('grunt-shell');	
 	grunt.loadNpmTasks('grunt-wrap');	
+	grunt.loadNpmTasks('grunt-karma');
 
 	// Tasks
 	grunt.registerTask('serve', [
 		'connect:server',
-		'connect:test',
+		// 'connect:test',
 		'watch:server'		
 	]);
 
@@ -175,8 +203,9 @@ module.exports = function(grunt) {
 	]);
 
 	grunt.registerTask('test', [
-		'connect:test'
+		'karma'		
 	]);
+
 
 
 };

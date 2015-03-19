@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for src/gameover.js</title>
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" href="../prettify.css">
+
+    <link rel="stylesheet" href="../base.css">
+    <style type='text/css'>
+        div.coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class="header low">
+    <h1>Code coverage report for <span class="entity">src/gameover.js</span></h1>
+    <h2>
+        
+        Statements: <span class="metric">22.22% <small>(18 / 81)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        
+        Branches: <span class="metric">0% <small>(0 / 34)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        
+        Functions: <span class="metric">11.76% <small>(2 / 17)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        
+        Lines: <span class="metric">22.22% <small>(18 / 81)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        Ignored: <span class="metric"><span class="ignore-none">none</span></span> &nbsp;&nbsp;&nbsp;&nbsp;
+    </h2>
+    <div class="path"><a href="../index.html">All files</a> &#187; <a href="index.html">src/</a> &#187; gameover.js</div>
+</div>
+<div class="body">
+<pre><table class="coverage">
+<tr><td class="line-count">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185</td><td class="line-coverage"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
+* Gameover.js
+* @class Gameover
+* @version 0.4
+*/
+&nbsp;
+var GameOverCore = new function() {
+&nbsp;
+	/********************************************
+	***** EXTERNAL METHODS FOR GAMEOVER TMPL ****
+	********************************************/
+&nbsp;
+	this.playAgain = <span class="fstat-no" title="function not covered" >function(){</span>
+		// call to sdk
+<span class="cstat-no" title="statement not covered" >		GamefiveSDK.startSession();</span>
+&nbsp;
+		// analytics
+<span class="cstat-no" title="statement not covered" >		var config = GamefiveSDK.getConfig();</span>
+<span class="cstat-no" title="statement not covered" >		if(config.challenge.id){</span>
+<span class="cstat-no" title="statement not covered" >			trackEvent("GamifiveSDK", "Retry", config.contentId);</span>
+		} else {
+<span class="cstat-no" title="statement not covered" >			trackEvent("GamifiveSDK", "Replay", config.contentId);</span>
+		}
+	} 
+&nbsp;
+	this.invite = <span class="fstat-no" title="function not covered" >function(){</span>
+		// call to sdk
+<span class="cstat-no" title="statement not covered" >		GamefiveSDK.invite();</span>
+&nbsp;
+		// analytics
+<span class="cstat-no" title="statement not covered" >		var config = GamefiveSDK.getConfig();</span>
+<span class="cstat-no" title="statement not covered" >		trackEvent("GamifiveSDK", "InviteFB", config.contentId);</span>
+	}
+&nbsp;
+	this.g5challenge = <span class="fstat-no" title="function not covered" >function(userId){</span>
+		// call to sdk
+<span class="cstat-no" title="statement not covered" >		GamefiveSDK.challenge(userId);</span>
+&nbsp;
+		// analytics
+<span class="cstat-no" title="statement not covered" >		var config = GamefiveSDK.getConfig();</span>
+<span class="cstat-no" title="statement not covered" >		trackEvent("GamifiveSDK", "ChallengeG5", config.contentId);</span>
+	}
+&nbsp;
+	this.otherGames = <span class="fstat-no" title="function not covered" >function(){</span>
+		// analytics
+<span class="cstat-no" title="statement not covered" >		var config = GamefiveSDK.getConfig();</span>
+<span class="cstat-no" title="statement not covered" >		trackEvent("GamifiveSDK", "MoreGames", config.contentId);</span>
+&nbsp;
+		// return true for link
+<span class="cstat-no" title="statement not covered" >		return true;</span>
+	}
+&nbsp;
+	this.connect = <span class="fstat-no" title="function not covered" >function(){</span>
+		// call to sdk
+<span class="cstat-no" title="statement not covered" >		GamefiveSDK.connect();</span>
+	}
+&nbsp;
+	this.trackGameOver = <span class="fstat-no" title="function not covered" >function(){</span>
+<span class="cstat-no" title="statement not covered" >		var config = GamefiveSDK.getConfig();</span>
+<span class="cstat-no" title="statement not covered" >		trackEvent("GamifiveSDK", "GameOverScreenView", config.contentId);</span>
+	}
+&nbsp;
+	this.addListeners = function(){
+		Utils.log("Gameover", "addListeners");
+&nbsp;
+		GamefiveSDK.onEvent('user_no_credits', <span class="fstat-no" title="function not covered" >function(e) {</span>
+			// show paywall
+<span class="cstat-no" title="statement not covered" >			Utils.show("paywall");</span>
+		});
+&nbsp;
+		GamefiveSDK.onEvent('user_credits_updated', <span class="fstat-no" title="function not covered" >function(e) {</span>
+			// hide paywall, if present
+<span class="cstat-no" title="statement not covered" >			Utils.hide("paywall");</span>
+&nbsp;
+			// show message
+<span class="cstat-no" title="statement not covered" >			showMessage(e.title, e.message, e.success);</span>
+			
+			// show updated credits feedback
+<span class="cstat-no" title="statement not covered" >			if(typeof(e.credits) != 'undefined'){</span>
+<span class="cstat-no" title="statement not covered" >				var newCredits = parseInt(e.credits);</span>
+<span class="cstat-no" title="statement not covered" >				var newMessage = "";</span>
+<span class="cstat-no" title="statement not covered" >				var config = GamefiveSDK.getConfig();</span>
+&nbsp;
+				// zero credits
+<span class="cstat-no" title="statement not covered" >				if(newCredits == 0 &amp;&amp; typeof(config.dictionary.matchLeftNone) != 'undefined'){</span>
+<span class="cstat-no" title="statement not covered" >					newMessage = (config.dictionary.matchLeftNone).replace("%s", newCredits);	</span>
+<span class="cstat-no" title="statement not covered" >					document.getElementById("credits-count").innerHTML = newMessage;	</span>
+				// one credit
+				} else <span class="cstat-no" title="statement not covered" >if(newCredits == 1 &amp;&amp; typeof(config.dictionary.matchLeftSingular) != 'undefined'){</span>
+<span class="cstat-no" title="statement not covered" >					newMessage = (config.dictionary.matchLeftSingular).replace("%s", newCredits);</span>
+<span class="cstat-no" title="statement not covered" >					document.getElementById("credits-count").innerHTML = newMessage;</span>
+				// more credits
+				} else <span class="cstat-no" title="statement not covered" >if(newCredits &gt; 1 &amp;&amp; typeof(config.dictionary.matchLeftPlural) != 'undefined'){</span>
+<span class="cstat-no" title="statement not covered" >					newMessage = (config.dictionary.matchLeftPlural).replace("%s", newCredits);</span>
+<span class="cstat-no" title="statement not covered" >					document.getElementById("credits-count").innerHTML = newMessage;</span>
+				}
+			}
+		});
+&nbsp;
+		GamefiveSDK.onEvent('challenge_completed', <span class="fstat-no" title="function not covered" >function(e) {</span>
+<span class="cstat-no" title="statement not covered" >			if(e.success){</span>
+				// hide challenge button and show challenge feedback
+<span class="cstat-no" title="statement not covered" >				Utils.hide("challenge-ready-" + e.challenged_user_id);</span>
+<span class="cstat-no" title="statement not covered" >				Utils.show("challenge-completed-" + e.challenged_user_id);</span>
+				// hide challenged name and show challenge feedback
+<span class="cstat-no" title="statement not covered" >				Utils.hide("name-ready-" + e.challenged_user_id);</span>
+<span class="cstat-no" title="statement not covered" >				Utils.show("name-completed-" + e.challenged_user_id);</span>
+			} else {
+				// show message
+<span class="cstat-no" title="statement not covered" >				showMessage(e.title, e.message, false);</span>
+			}
+		});
+&nbsp;
+		GamefiveSDK.onEvent('mip_connect_success', <span class="fstat-no" title="function not covered" >function(e) {</span>
+			// hide modal, if present
+<span class="cstat-no" title="statement not covered" >			Utils.hide("fbconnect-calltoaction");</span>
+			// show message
+<span class="cstat-no" title="statement not covered" >			if(!!e &amp;&amp; typeof(e.title)!="undefined" &amp;&amp; typeof(e.success_message)!="undefined"){</span>
+<span class="cstat-no" title="statement not covered" >				showMessage(e.title, e.success_message, true);</span>
+			}
+			// remove key from localstorage
+<span class="cstat-no" title="statement not covered" >			if(!!window.localStorage.getItem("_gameoverOpenFbModal_")){</span>
+<span class="cstat-no" title="statement not covered" >				localStorage.removeItem("_gameoverOpenFbModal_");</span>
+			}
+		});
+&nbsp;
+		GamefiveSDK.onEvent('mip_connect_error', <span class="fstat-no" title="function not covered" >function(e) {</span>
+			// hide modal, if present
+<span class="cstat-no" title="statement not covered" >			Utils.hide("fbconnect-calltoaction");</span>
+			// show message
+<span class="cstat-no" title="statement not covered" >			if(!!e &amp;&amp; typeof(e.title)!="undefined" &amp;&amp; typeof(e.error_message)!="undefined"){</span>
+<span class="cstat-no" title="statement not covered" >				showMessage(e.title, e.error_message, false);</span>
+			}
+		});
+&nbsp;
+		GamefiveSDK.onEvent('fb_connect_show', <span class="fstat-no" title="function not covered" >function(e){</span>
+			// show modal, if present
+<span class="cstat-no" title="statement not covered" >			Utils.show("fbconnect-calltoaction");</span>
+		});
+	}
+&nbsp;
+&nbsp;
+&nbsp;
+	/********************************************
+	*****         INTERNAL METHODS           ****
+	********************************************/
+&nbsp;
+	var showMessage = <span class="fstat-no" title="function not covered" >function(title, message, success){</span>
+<span class="cstat-no" title="statement not covered" >		Utils.log("Gameover", "showMessage", title, message, success);</span>
+&nbsp;
+		// fill message
+<span class="cstat-no" title="statement not covered" >		document.getElementById("message-title").innerHTML = title;</span>
+<span class="cstat-no" title="statement not covered" >		document.getElementById("message-text").innerHTML = message;</span>
+		// show message
+<span class="cstat-no" title="statement not covered" >		Utils.show("messages");</span>
+		// add right class
+<span class="cstat-no" title="statement not covered" >		if(success) {</span>
+			// add success class
+<span class="cstat-no" title="statement not covered" >			document.getElementById("messages").className += " success";</span>
+		} else {
+			// add error class
+<span class="cstat-no" title="statement not covered" >			document.getElementById("messages").className += " error";</span>
+		}
+	} 
+&nbsp;
+	var closeMessage = <span class="fstat-no" title="function not covered" >function(){</span>
+<span class="cstat-no" title="statement not covered" >		Utils.log("Gameover", "closeMessage");</span>
+&nbsp;
+		// hide message
+<span class="cstat-no" title="statement not covered" >		Utils.hide("messages");</span>
+		// remove error and success classes
+<span class="cstat-no" title="statement not covered" >		document.getElementById("messages").className = document.getElementById("messages").className.replace(/\berror\b/,'');</span>
+<span class="cstat-no" title="statement not covered" >		document.getElementById("messages").className = document.getElementById("messages").className.replace(/\bsuccess\b/,'');</span>
+	}
+&nbsp;
+	var trackEvent = <span class="fstat-no" title="function not covered" >function(category, action, label){</span>
+<span class="cstat-no" title="statement not covered" >		var config = GamefiveSDK.getConfig();</span>
+<span class="cstat-no" title="statement not covered" >		if(!config.debug){</span>
+<span class="cstat-no" title="statement not covered" >			GameAnalytics.trackEvent(category, action, label);</span>
+		} else {
+<span class="cstat-no" title="statement not covered" >			Utils.log("GameAnalytics", "trackEvent", category, action, label);</span>
+		}
+	}
+&nbsp;
+}</pre></td></tr>
+</table></pre>
+
+</div>
+<div class="footer">
+    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Thu Mar 19 2015 09:21:23 GMT+0100 (CET)</div>
+</div>
+
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+
+<script src="../sorter.js"></script>
+</body>
+</html>

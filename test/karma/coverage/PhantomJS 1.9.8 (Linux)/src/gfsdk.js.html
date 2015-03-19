@@ -1,0 +1,1662 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for src/gfsdk.js</title>
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" href="../prettify.css">
+
+    <link rel="stylesheet" href="../base.css">
+    <style type='text/css'>
+        div.coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class="header low">
+    <h1>Code coverage report for <span class="entity">src/gfsdk.js</span></h1>
+    <h2>
+        
+        Statements: <span class="metric">24.38% <small>(39 / 160)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        
+        Branches: <span class="metric">4.88% <small>(4 / 82)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        
+        Functions: <span class="metric">20.59% <small>(7 / 34)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        
+        Lines: <span class="metric">24.53% <small>(39 / 159)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        Ignored: <span class="metric"><span class="ignore-none">none</span></span> &nbsp;&nbsp;&nbsp;&nbsp;
+    </h2>
+    <div class="path"><a href="../index.html">All files</a> &#187; <a href="index.html">src/</a> &#187; gfsdk.js</div>
+</div>
+<div class="body">
+<pre><table class="coverage">
+<tr><td class="line-count">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400
+401
+402
+403
+404
+405
+406
+407
+408
+409
+410
+411
+412
+413
+414
+415
+416
+417
+418
+419
+420
+421
+422
+423
+424
+425
+426
+427
+428
+429
+430
+431
+432
+433
+434
+435
+436
+437
+438
+439
+440
+441
+442
+443
+444
+445
+446
+447
+448
+449
+450
+451
+452
+453
+454
+455
+456
+457
+458
+459
+460
+461
+462
+463
+464
+465
+466
+467
+468
+469
+470
+471
+472
+473
+474
+475
+476
+477
+478
+479
+480
+481
+482
+483
+484
+485
+486
+487
+488
+489
+490
+491
+492
+493
+494
+495
+496
+497
+498
+499
+500
+501
+502
+503
+504
+505
+506
+507
+508
+509
+510
+511
+512
+513
+514
+515
+516
+517
+518
+519
+520
+521
+522
+523
+524
+525
+526
+527
+528
+529
+530
+531
+532
+533
+534
+535
+536</td><td class="line-coverage"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">24</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">13</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span></td><td class="text"><pre class="prettyprint lang-js">/**
+* Gamifive Core
+* @class Gfsdk
+* @version 0.4
+*/
+&nbsp;
+var GamefiveSDK = new function() {
+&nbsp;
+	var config = new Object();
+&nbsp;
+&nbsp;
+&nbsp;
+	/********************************************
+	*****  EXTERNAL METHODS FOR DEVELOPERS  *****
+	********************************************/ 
+&nbsp;
+&nbsp;
+	/**
+	* Reset GamefiveSDK
+	* @function reset
+	* @memberof Gfsdk
+	*/
+	this.reset = function(){
+		config = {};
+	}
+&nbsp;
+	/**
+	* Init GamefiveSDK
+	* @function init
+	* @memberof Gfsdk
+	* @param {object} param - configuration
+	* @param {boolean} [param.debug] - Set debug mode
+	* @param {boolean} [param.log] - Enable/disable logging
+	* @param {boolean} [param.lite] - If true SDK doesn't implement GameOver status 
+	*/
+	this.init = function(param){
+		// get param
+		Utils.copyProperties(param, config);
+&nbsp;
+		// enable/disable debug
+		Utils.enableLog(!!config.log);
+&nbsp;
+		var initPost = function(){
+			<span class="missing-if-branch" title="else path not taken" >E</span>if(!config.lite){
+				// init events array
+				config.events = [];
+&nbsp;
+				// set facebook appId and init facebook
+				FBConnector.setConfig('appId', config.fbAppId);
+				FBConnector.start();
+&nbsp;
+				// add listeners of gameover
+				GameOverCore.addListeners();
+&nbsp;
+				// control if user is fb connected
+				GamefiveSDK.controlFbConnected();
+			}
+&nbsp;
+			Utils.log("GamifiveSDK", "init", config);
+		}
+&nbsp;
+		// get window.GamifiveInfo
+		<span class="missing-if-branch" title="else path not taken" >E</span>if(!config.debug){
+			Utils.copyProperties(window.GamifiveInfo, config);
+			initPost();
+		} else {
+<span class="cstat-no" title="statement not covered" >			Utils.xhr('GET', API('gamifiveinfo'), <span class="fstat-no" title="function not covered" >function(resp, req){</span></span>
+<span class="cstat-no" title="statement not covered" >				Utils.copyProperties(resp, config);</span>
+<span class="cstat-no" title="statement not covered" >				initPost();</span>
+			});
+		}
+	}
+&nbsp;
+	/**
+	* Set callback used after startSession
+	* @function onStartSession
+	* @memberof Gfsdk
+	* @param {function} callback
+	*/
+	this.onStartSession = <span class="fstat-no" title="function not covered" >function(callback) {</span>
+<span class="cstat-no" title="statement not covered" >		Utils.log("GamifiveSDK", "onStartSession", callback);</span>
+&nbsp;
+		// set callback in config
+<span class="cstat-no" title="statement not covered" >		config.startCallback = callback;</span>
+&nbsp;
+		// ERROR HANDLING
+<span class="cstat-no" title="statement not covered" >		if(!config.lite){</span>
+<span class="cstat-no" title="statement not covered" >			if (callback &amp;&amp; typeof(callback) == 'function'){</span>
+<span class="cstat-no" title="statement not covered" >				Utils.debug("GamifiveSDK", "OK", "callback function has been set correctly");</span>
+			} else {
+<span class="cstat-no" title="statement not covered" >				Utils.error("GamifiveSDK", "ERROR", "missing or illegal value for callback function");</span>
+			}
+		} else {
+<span class="cstat-no" title="statement not covered" >			Utils.error("GamifiveSDK", "ERROR", "in lite mode, onStartSession must not be used");</span>
+		}
+	}
+&nbsp;
+	/**
+	* Call onStartSession callback
+	* @function startSession
+	* @memberof Gfsdk
+	*/
+	this.startSession = <span class="fstat-no" title="function not covered" >function() {</span>
+<span class="cstat-no" title="statement not covered" >		Utils.log("GamifiveSDK", "startSession");</span>
+&nbsp;
+		// set time start
+<span class="cstat-no" title="statement not covered" >		config.timestart = Utils.dateNow();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if(!config.lite){</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >			Utils.xhr('GET', API('canDownload'), <span class="fstat-no" title="function not covered" >function(resp, req){</span></span>
+<span class="cstat-no" title="statement not covered" >				Utils.log("GamifiveSDK", "startSession", "canDownload", resp, req);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >				if(resp.canDownload){</span>
+					// clear dom
+<span class="cstat-no" title="statement not covered" >					sdkElement.delete();</span>
+&nbsp;
+					// call onStartSession callback
+<span class="cstat-no" title="statement not covered" >					if(!!config.startCallback){</span>
+<span class="cstat-no" title="statement not covered" >						config.startCallback.call();</span>
+					}
+				} else {
+					// call gameover API
+<span class="cstat-no" title="statement not covered" >					Utils.xhr('GET', API('gameover'), <span class="fstat-no" title="function not covered" >function (resp, req) {</span></span>
+						// render page with resp
+<span class="cstat-no" title="statement not covered" >						sdkElement.create(resp);</span>
+&nbsp;
+						// throw event 'user_no_credits'
+<span class="cstat-no" title="statement not covered" >						throwEvent('user_no_credits');</span>
+					});
+				}
+			});
+&nbsp;
+		}
+&nbsp;
+		// ERROR HANDLING
+<span class="cstat-no" title="statement not covered" >		if (!!config.contentId){</span>
+<span class="cstat-no" title="statement not covered" >			Utils.debug("GamifiveSDK", "OK", "init has been called correctly");</span>
+		} else {
+<span class="cstat-no" title="statement not covered" >			Utils.error("GamifiveSDK", "ERROR", "init has not been called");</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if(!config.lite){</span>
+<span class="cstat-no" title="statement not covered" >			if (config.startCallback &amp;&amp; typeof(config.startCallback) == 'function'){</span>
+<span class="cstat-no" title="statement not covered" >				Utils.debug("GamifiveSDK", "OK", "onStartSession has been called correctly");</span>
+			} else {
+<span class="cstat-no" title="statement not covered" >				Utils.error("GamifiveSDK", "ERROR", "onStartSession has not been called");</span>
+			}
+		}
+	}
+&nbsp;
+	/**
+	* End session
+	* @function endSession
+	* @memberof Gfsdk
+	* @param {object} param - parameters for game over api
+	* @param {float} [param.score] - final score of player
+	*/
+	this.endSession = <span class="fstat-no" title="function not covered" >function(param){</span>
+<span class="cstat-no" title="statement not covered" >		Utils.log("GamifiveSDK", "endSession", param);</span>
+&nbsp;
+		// set time end
+<span class="cstat-no" title="statement not covered" >		config.timeend = Utils.dateNow();</span>
+&nbsp;
+		// set score
+<span class="cstat-no" title="statement not covered" >		if(typeof(param.score) == 'number'){</span>
+<span class="cstat-no" title="statement not covered" >			config.score = parseFloat(param.score);</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if(!config.lite){</span>
+&nbsp;
+			// get challenge id
+<span class="cstat-no" title="statement not covered" >			var challengedId;</span>
+<span class="cstat-no" title="statement not covered" >			if(!!config.challenge &amp;&amp; !!config.challenge.id){</span>
+<span class="cstat-no" title="statement not covered" >				challengedId = config.challenge.id;</span>
+			} else {
+<span class="cstat-no" title="statement not covered" >				challengedId = null;</span>
+			}
+&nbsp;
+			// call gameover API
+<span class="cstat-no" title="statement not covered" >			Utils.xhr('GET', API('gameover', {</span>
+				'start': config.timestart,
+				'duration': config.timeend - config.timestart,
+				'score': config.score,
+	      		'challenge_id': challengedId
+			}), <span class="fstat-no" title="function not covered" >function (resp, req) {</span>
+				// render page with resp
+<span class="cstat-no" title="statement not covered" >				sdkElement.create(resp);</span>
+			});
+&nbsp;
+		} else {
+&nbsp;
+			// call gameover API
+<span class="cstat-no" title="statement not covered" >			Utils.xhr('GET', API('leaderboard', {</span>
+				'start': config.timestart,
+				'duration': config.timeend - config.timestart,
+				'score': config.score,
+	      		'newapps': 1,
+	      		'appId': config.contentId,
+	      		'label': config.label,
+	      		'userId': config.userId
+			}));
+&nbsp;
+		}
+&nbsp;
+		// ERROR HANDLING
+<span class="cstat-no" title="statement not covered" >		if (config.timestart &amp;&amp; typeof(config.timestart) == 'number'){</span>
+<span class="cstat-no" title="statement not covered" >			Utils.debug("GamifiveSDK", "OK", "startSession has been called correctly");</span>
+		} else {
+<span class="cstat-no" title="statement not covered" >			Utils.error("GamifiveSDK", "ERROR", "startSession has not been called");</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if (typeof(config.score) == 'number'){</span>
+<span class="cstat-no" title="statement not covered" >			Utils.debug("GamifiveSDK", "OK", "score has been set correctly");</span>
+		} else {
+<span class="cstat-no" title="statement not covered" >			Utils.error("GamifiveSDK", "ERROR", "missing score value");</span>
+		}		
+	}
+&nbsp;
+	/**
+	* Get player avatar
+	* @function getAvatar
+	* @memberof Gfsdk
+	*/
+	this.getAvatar = <span class="fstat-no" title="function not covered" >function(){</span>
+<span class="cstat-no" title="statement not covered" >		var avatar;</span>
+<span class="cstat-no" title="statement not covered" >		if(!!config.user &amp;&amp; !!config.user.avatar){</span>
+<span class="cstat-no" title="statement not covered" >			avatar = config.user.avatar;</span>
+		} else {
+<span class="cstat-no" title="statement not covered" >			avatar = null;</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		Utils.log("GamifiveSDK", "getAvatar", avatar);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		return avatar;</span>
+	}
+&nbsp;
+	/**
+	* Get player nickname
+	* @function getNickname
+	* @memberof Gfsdk
+	*/
+	this.getNickname = <span class="fstat-no" title="function not covered" >function(){</span>
+<span class="cstat-no" title="statement not covered" >		var nickname;</span>
+<span class="cstat-no" title="statement not covered" >		if(!!config.user &amp;&amp; !!config.user.nickname){</span>
+<span class="cstat-no" title="statement not covered" >			nickname = config.user.nickname;</span>
+		} else {
+<span class="cstat-no" title="statement not covered" >			nickname = null;</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		Utils.log("GamifiveSDK", "getNickname", nickname);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		return nickname;</span>
+	}
+&nbsp;
+&nbsp;
+&nbsp;
+	/********************************************
+	*****      EXTERNAL METHODS FOR US      *****
+	********************************************/ 
+&nbsp;
+	/**
+	* Control if user is fb connected
+	* @function controlFbConnected
+	* @memberof Gfsdk
+	*/
+	this.controlFbConnected = function(){
+		Utils.log("GamifiveSDK", "controlFbConnected", !!window.localStorage.getItem("_gameoverOpenFbModal_"), !config.user.fbConnected);
+&nbsp;
+		<span class="missing-if-branch" title="if path not taken" >I</span>if(!!window.localStorage.getItem("_gameoverOpenFbModal_") &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >!config.user.fbConnected)</span>{
+<span class="cstat-no" title="statement not covered" >			throwEvent('fb_connect_show');</span>
+		}
+	}
+&nbsp;
+	/**
+	* Login to facebook
+	* @function login
+	* @memberof Gfsdk
+	* @param {function} callbackSuccess - callback for success case
+	* @param {function} callbackError - callback for error case
+	*/
+	this.login = <span class="fstat-no" title="function not covered" >function(callbackSuccess, callbackError){</span>
+<span class="cstat-no" title="statement not covered" >		Utils.log("GamifiveSDK", "login", config.user.fbConnected);</span>
+&nbsp;
+		// user is already fb-connected
+<span class="cstat-no" title="statement not covered" >		if(config.user.fbConnected){</span>
+<span class="cstat-no" title="statement not covered" >			callbackSuccess();</span>
+<span class="cstat-no" title="statement not covered" >			return;</span>
+		}
+&nbsp;
+		// fbExternal case
+<span class="cstat-no" title="statement not covered" >		if(config.fbExternal){</span>
+<span class="cstat-no" title="statement not covered" >			document.location.href = config.fbExternal;</span>
+<span class="cstat-no" title="statement not covered" >			return;</span>
+		}
+&nbsp;
+		// user is not fb-connected
+<span class="cstat-no" title="statement not covered" >		FBConnector.login(<span class="fstat-no" title="function not covered" >function(loginResp){</span></span>
+<span class="cstat-no" title="statement not covered" >			Utils.log("GamifiveSDK", "login", "FBConnector.login", loginResp);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >			if(loginResp.status == "connected"){</span>
+&nbsp;
+				// call mipConnect API
+<span class="cstat-no" title="statement not covered" >				Utils.xhr('GET', API('mipConnect', {</span>
+						access_token: loginResp.authResponse.accessToken
+					}), <span class="fstat-no" title="function not covered" >function(mipResp, mipReq){</span>
+<span class="cstat-no" title="statement not covered" >						Utils.log("GamifiveSDK", "login", "mipConnect", mipResp, mipReq);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >						if (parseInt(mipReq.status) == 200) {</span>
+							// call callback success
+<span class="cstat-no" title="statement not covered" >							callbackSuccess(mipResp);</span>
+&nbsp;
+							// set fbConnected
+<span class="cstat-no" title="statement not covered" >							config.user.fbConnected = true;</span>
+&nbsp;
+							// set fbUserId
+<span class="cstat-no" title="statement not covered" >							if(!!loginResp.authResponse &amp;&amp; !!loginResp.authResponse.userID){</span>
+<span class="cstat-no" title="statement not covered" >								config.user.fbUserId = loginResp.authResponse.userID;</span>
+							}
+						} else {
+							// call callback error
+<span class="cstat-no" title="statement not covered" >							if(!!callbackError){</span>
+<span class="cstat-no" title="statement not covered" >								callbackError(mipResp);</span>
+							}
+						}
+					}
+				);
+&nbsp;
+			}
+		});
+		
+	}
+&nbsp;
+	/**
+	* Connect to facebook
+	* @function connect
+	* @memberof Gfsdk
+	*/
+	this.connect = <span class="fstat-no" title="function not covered" >function(){</span>
+<span class="cstat-no" title="statement not covered" >		Utils.log("GamifiveSDK", "connect");</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		this.login(<span class="fstat-no" title="function not covered" >function(resp){</span></span>
+			// success case
+<span class="cstat-no" title="statement not covered" >			throwEvent('mip_connect_success', resp);</span>
+		}, <span class="fstat-no" title="function not covered" >function(resp){</span>
+			// error case
+<span class="cstat-no" title="statement not covered" >			throwEvent('mip_connect_error', resp);</span>
+		});
+	}
+&nbsp;
+	/**
+	* Invite facebook friends
+	* @function invite
+	* @memberof Gfsdk
+	*/
+	this.invite = <span class="fstat-no" title="function not covered" >function() {</span>
+<span class="cstat-no" title="statement not covered" >		Utils.log("GamifiveSDK", "invite");</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		this.login(<span class="fstat-no" title="function not covered" >function(loginResp){</span></span>
+&nbsp;
+			// success case
+<span class="cstat-no" title="statement not covered" >			var message = config.dictionary.messageOfFbChallenge;</span>
+<span class="cstat-no" title="statement not covered" >			var param = {</span>
+				score: config.score,
+				contentId: config.contentId,
+				userId: config.user.userId,
+				message: message.replace("%s", config.score)
+			};
+			// log
+<span class="cstat-no" title="statement not covered" >			Utils.log("GamifiveSDK", "invite", "login", param);</span>
+			// invite fb friends
+<span class="cstat-no" title="statement not covered" >			FBConnector.invite(param, <span class="fstat-no" title="function not covered" >function(invResp){</span></span>
+<span class="cstat-no" title="statement not covered" >				Utils.log("GamifiveSDK", "invite", "FBConnector.invite", invResp);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >				if(!!invResp &amp;&amp; invResp.to.length &gt; 0) {</span>
+					// call updateCredits API
+<span class="cstat-no" title="statement not covered" >					Utils.xhr('GET', API('updateCredits', {</span>
+							fbusers_id: invResp.to || null,
+							userId: config.user.userId || null
+						}), <span class="fstat-no" title="function not covered" >function(updResp){</span>
+<span class="cstat-no" title="statement not covered" >							throwEvent('user_credits_updated', updResp);</span>
+					});
+				}
+			});
+&nbsp;
+		}, <span class="fstat-no" title="function not covered" >function(loginResp){</span>
+			// error case
+<span class="cstat-no" title="statement not covered" >			throwEvent('mip_connect_error', loginResp);</span>
+		});
+	}
+&nbsp;
+	/**
+	* Challenge facebook friends
+	* @function challenge
+	* @memberof Gfsdk
+	* @param {string} challengedId - id of challenged user
+	*/
+	this.challenge = <span class="fstat-no" title="function not covered" >function(challengedId){</span>
+<span class="cstat-no" title="statement not covered" >		Utils.log("GamifiveSDK", "challenge", challengedId);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		Utils.xhr('GET', API('newChallenge', {</span>
+				content_id: config.contentId,
+				challenger_id: config.user.userId,
+				challenged_id: challengedId,
+				challenger_score: config.score
+			}), <span class="fstat-no" title="function not covered" >function(resp){</span>
+<span class="cstat-no" title="statement not covered" >				throwEvent('challenge_completed', resp);</span>
+		});
+&nbsp;
+	}
+&nbsp;
+	/**
+	* Bind callback to an event
+	* @function onEvent
+	* @memberof Gfsdk
+	* @param {string} event - name of event
+	* @param {function} callback - callback method
+	*/
+	this.onEvent = function(event, callback){
+		Utils.log("GamifiveSDK", "onEvent", event, callback);
+&nbsp;
+		config.events[event] = callback;
+	}
+&nbsp;
+	/**
+	* Get config
+	* @function getConfig
+	* @memberof Gfsdk
+	*/
+	this.getConfig = function(){
+		return config;
+	}
+&nbsp;
+&nbsp;
+&nbsp;
+	/********************************************
+	*****          INTERNAL METHODS         *****
+	********************************************/ 
+&nbsp;
+	/**
+	* Throw an event
+	* @function throwEvent
+	* @memberof Gfsdk
+	* @param {string} event - name of event
+	* @param {object} param - parameters passed to function
+	*/
+	var throwEvent = <span class="fstat-no" title="function not covered" >function(event, param){</span>
+<span class="cstat-no" title="statement not covered" >		Utils.log("GamifiveSDK", "throwEvent", event, param);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if(config.events[event]){</span>
+<span class="cstat-no" title="statement not covered" >			config.events[event](param);</span>
+		}
+	}
+&nbsp;
+	/**
+	* Return APIs complete URL
+	* @function API
+	* @memberof Gfsdk
+	* @param {string} name - name of API
+	* @param {object} param - parameters used as query string
+	*/
+	var API = <span class="fstat-no" title="function not covered" >function(name, param){</span>
+		// set host
+<span class="cstat-no" title="statement not covered" >		var host = (!config.debug) ? 'http://s2.motime.com' : 'http://www2.giochissimo.it';</span>
+&nbsp;
+		// set door (/v01/ or /mock/)
+<span class="cstat-no" title="statement not covered" >		var door = (!config.debug) ? '/v01/' : '/mock01/';</span>
+&nbsp;
+		// set url core
+<span class="cstat-no" title="statement not covered" >		var urlCore = {</span>
+			canDownload: 'user.candownload/' + config.contentId,
+			gameover: 'gameover/' + config.contentId,
+			updateCredits: 'mipuser.updatecredits',
+			newChallenge: 'challenge.post',
+			mipConnect: 'mipuser.fbconnect',
+			leaderboard: 'leaderboard',
+			gamifiveinfo: 'gamifiveinfo'
+		};
+&nbsp;
+		// convert param to queryString
+<span class="cstat-no" title="statement not covered" >		var queryString = Utils.querify(param);</span>
+&nbsp;
+		// return complete URl
+<span class="cstat-no" title="statement not covered" >		return host + door + urlCore[name] + queryString;</span>
+	}
+&nbsp;
+	var sdkElement = {
+&nbsp;
+		/**
+		* Create and fill sdk dom element
+		* @function sdkElement.create
+		* @memberof Gfsdk
+		* @param {string} html - html code to fill dom element
+		*/
+		create: <span class="fstat-no" title="function not covered" >function(html){</span>
+			// create gfsdk_root element if not present
+<span class="cstat-no" title="statement not covered" >			if(!document.getElementById('gfsdk_root')){</span>
+<span class="cstat-no" title="statement not covered" >				var element = document.createElement('div');</span>
+<span class="cstat-no" title="statement not covered" >				element.id = "gfsdk_root";</span>
+				// add to DOM
+<span class="cstat-no" title="statement not covered" >				document.body.appendChild(element);</span>
+				// stop propagation events
+<span class="cstat-no" title="statement not covered" >				var stopPropagation = <span class="fstat-no" title="function not covered" >function(e) {<span class="cstat-no" title="statement not covered" ></span>e.stopPropagation();}</span></span>
+<span class="cstat-no" title="statement not covered" >				element.addEventListener('touchmove', stopPropagation);</span>
+<span class="cstat-no" title="statement not covered" >				element.addEventListener('touchstart', stopPropagation);</span>
+<span class="cstat-no" title="statement not covered" >				element.addEventListener('touchend', stopPropagation);</span>
+				// fill html of element
+<span class="cstat-no" title="statement not covered" >				element.innerHTML = html;</span>
+&nbsp;
+				// track game over event on analytics
+<span class="cstat-no" title="statement not covered" >				GameOverCore.trackGameOver();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >				Utils.log("GamifiveSDK", "create", "element", html, element);</span>
+			}
+		},
+&nbsp;
+		/**
+		* Delete sdk dom element
+		* @function sdkElement.delete
+		* @memberof Gfsdk
+		*/
+		delete: <span class="fstat-no" title="function not covered" >function(){</span>
+			// remove element from DOM if present
+<span class="cstat-no" title="statement not covered" >			if(!!document.getElementById('gfsdk_root')){</span>
+<span class="cstat-no" title="statement not covered" >				var element = document.getElementById('gfsdk_root');</span>
+<span class="cstat-no" title="statement not covered" >				document.body.removeChild(element);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >				Utils.log("GamifiveSDK", "delete", element);</span>
+			}
+		}
+	};	
+&nbsp;
+};
+&nbsp;
+// GamefiveSDK alias GamifiveSDK
+var GamifiveSDK = GamefiveSDK;</pre></td></tr>
+</table></pre>
+
+</div>
+<div class="footer">
+    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Thu Mar 19 2015 09:21:23 GMT+0100 (CET)</div>
+</div>
+
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+
+<script src="../sorter.js"></script>
+</body>
+</html>
