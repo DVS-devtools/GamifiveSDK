@@ -74,15 +74,20 @@ module.exports = function(grunt) {
 		},
 
 		watch: {
+			options: {
+				livereload: '<%= connect.options.livereload %>'
+			},
 			server: {
 				files: [
 					'<%= srcPath %>/**/*',
 					'<%= demoPath %>/**/*',
-					// '<%= testPath %>/**/*'
+					'<%= testPath %>/spec/*.js',
+					'<%= testPath %>/mock/*.js' 
 				],
 				options: {
-					livereload: '<%= connect.options.livereload %>'
-				}				
+					livereload: true
+				},
+				tasks: ['karma:singleRun']			
 			},
 			dist: {
 				files: [
@@ -146,25 +151,33 @@ module.exports = function(grunt) {
 		},
 
 		karma: {
-			unit: {
+			options: {
+				browsers: ['PhantomJS'],
+				frameworks: ['jasmine'],
+				files: [
+					'<%= srcPath %>/*.js',
+					'<%= testPath %>/spec/*.js',
+					'<%= testPath %>/mock/*.js' 
+				],
+				reporters: ['progress', 'coverage'],
+				preprocessors: {
+					'<%= srcPath %>/*.js': ['coverage']
+				},
+				coverageReporter: {
+					type : 'html',
+					dir : '<%= testPath %>/coverage/'
+				}
+			},
+			singleRun: {
 				options: {
 					singleRun: true,
-    				browsers: ['PhantomJS'],
-    				frameworks: ['jasmine'],
-					files: [
-						'<%= srcPath %>/*.js',
-						// '<%= testPath %>/bower_components/jasmine/lib/jasmine-core/jasmine.js',
-						'<%= testPath %>/spec/*.js',
-						'<%= testPath %>/mock/*.js' 
-					],
-					reporters: ['progress', 'coverage'],
-					preprocessors: {
-						'<%= srcPath %>/*.js': ['coverage']
-					},
-					coverageReporter: {
-						type : 'html',
-						dir : '<%= testPath %>/coverage/'
-					}
+					autoWatch: false
+				}
+			},
+			background: {
+				options: {
+					singleRun: false,
+					autoWatch: true
 				}
 			}
 		}
@@ -186,7 +199,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('serve', [
 		'connect:server',
 		// 'connect:test',
-		'watch:server'		
+		'watch:server'
 	]);
 
 	grunt.registerTask('servebuild', [
@@ -203,7 +216,7 @@ module.exports = function(grunt) {
 	]);
 
 	grunt.registerTask('test', [
-		'karma'		
+		'karma:background'		
 	]);
 
 
