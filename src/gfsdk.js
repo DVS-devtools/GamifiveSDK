@@ -80,12 +80,11 @@ var GamefiveSDK = new function() {
 	this.onStartSession = function(callback) {
 		Utils.log("GamifiveSDK", "onStartSession", callback);
 
-		// set callback in config
-		config.startCallback = callback;
-
 		// ERROR HANDLING
 		if(!config.lite){
 			if (callback && typeof(callback) == 'function'){
+				// set callback in config
+				config.startCallback = callback;
 				Utils.debug("GamifiveSDK", "OK", "callback function has been set correctly");
 			} else {
 				Utils.error("GamifiveSDK", "ERROR", "missing or illegal value for callback function");
