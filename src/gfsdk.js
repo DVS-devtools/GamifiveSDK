@@ -460,7 +460,7 @@ var GamefiveSDK = new function() {
 	*/
 	var API = function(name, param){
 		// set host
-		var host = (!config.debug) ? 'http://s2.motime.com' : 'http://www2.giochissimo.it';
+		var host = (!config.debug) ? Utils.getAbsoluteUrl() : 'http://www2.giochissimo.it';
 
 		// set door (/v01/ or /mock/)
 		var door = (!config.debug) ? '/v01/' : '/mock01/';
