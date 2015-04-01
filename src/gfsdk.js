@@ -146,6 +146,9 @@ var GamefiveSDK = new function() {
 				Utils.error("GamifiveSDK", "ERROR", "onStartSession has not been called");
 			}
 		}
+
+		// TRACKING
+		GameOverCore.trackEvent('Play', 'GameStart', config.game.title + " + " + config.contentId, { valuable_cd: 'Yes', action_cd: 'Yes' });
 	}
 
 	/**
@@ -213,7 +216,10 @@ var GamefiveSDK = new function() {
 			Utils.debug("GamifiveSDK", "OK", "score has been set correctly");
 		} else {
 			Utils.error("GamifiveSDK", "ERROR", "missing score value");
-		}		
+		}	
+
+		// TRACKING
+		GameOverCore.trackEvent('Play', 'GameEnd', config.game.title + " + " + config.contentId, { valuable_cd: 'No', action_cd: 'No' });	
 	}
 
 	/**
@@ -505,9 +511,6 @@ var GamefiveSDK = new function() {
 				element.addEventListener('touchend', stopPropagation);
 				// fill html of element
 				element.innerHTML = html;
-
-				// track game over event on analytics
-				GameOverCore.trackGameOver();
 
 				Utils.log("GamifiveSDK", "create", "element", html, element);
 			}

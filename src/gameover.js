@@ -20,7 +20,7 @@ var GameOverCore = new function() {
 		GamefiveSDK.invite();
 
 		var config = GamefiveSDK.getConfig();
-		trackEvent("Challenge", "FbInvite", config.game.title + " + " + config.contentId);
+		this.trackEvent("Challenge", "FbInvite", config.game.title + " + " + config.contentId);
 	}
 
 	this.g5challenge = function(userId){
@@ -118,6 +118,15 @@ var GameOverCore = new function() {
 		});
 	}
 
+	this.trackEvent = function(category, action, label, properties){
+		var config = GamefiveSDK.getConfig();
+		if(!config.debug){
+			GameAnalytics.trackEvent(category, action, label, properties);
+		} else {
+			Utils.log("GameAnalytics", "trackEvent", category, action, label, properties);
+		}
+	}
+
 
 
 	/********************************************
@@ -150,15 +159,6 @@ var GameOverCore = new function() {
 		// remove error and success classes
 		document.getElementById("messages").className = document.getElementById("messages").className.replace(/\berror\b/,'');
 		document.getElementById("messages").className = document.getElementById("messages").className.replace(/\bsuccess\b/,'');
-	}
-
-	var trackEvent = function(category, action, label, properties){
-		var config = GamefiveSDK.getConfig();
-		if(!config.debug){
-			GameAnalytics.trackEvent(category, action, label, properties);
-		} else {
-			Utils.log("GameAnalytics", "trackEvent", category, action, label, properties);
-		}
 	}
 
 }
