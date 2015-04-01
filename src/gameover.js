@@ -9,43 +9,27 @@ var GameOverCore = new function() {
 	/********************************************
 	***** EXTERNAL METHODS FOR GAMEOVER TMPL ****
 	********************************************/
-
+ 
 	this.playAgain = function(){
 		// call to sdk
 		GamefiveSDK.startSession();
-
-		// analytics
-		var config = GamefiveSDK.getConfig();
-		if(config.challenge.id){
-			trackEvent("GamifiveSDK", "Retry", config.contentId);
-		} else {
-			trackEvent("GamifiveSDK", "Replay", config.contentId);
-		}
 	} 
 
 	this.invite = function(){
 		// call to sdk
 		GamefiveSDK.invite();
 
-		// analytics
 		var config = GamefiveSDK.getConfig();
-		trackEvent("GamifiveSDK", "InviteFB", config.contentId);
+		trackEvent("Challenge", "FbInvite", config.game.title + " + " + config.contentId);
 	}
 
 	this.g5challenge = function(userId){
 		// call to sdk
 		GamefiveSDK.challenge(userId);
 
-		// analytics
-		var config = GamefiveSDK.getConfig();
-		trackEvent("GamifiveSDK", "ChallengeG5", config.contentId);
 	}
 
 	this.otherGames = function(){
-		// analytics
-		var config = GamefiveSDK.getConfig();
-		trackEvent("GamifiveSDK", "MoreGames", config.contentId);
-
 		// return true for link
 		return true;
 	}
@@ -53,11 +37,6 @@ var GameOverCore = new function() {
 	this.connect = function(){
 		// call to sdk
 		GamefiveSDK.connect();
-	}
-
-	this.trackGameOver = function(){
-		var config = GamefiveSDK.getConfig();
-		trackEvent("GamifiveSDK", "GameOverScreenView", config.contentId);
 	}
 
 	this.addListeners = function(){
@@ -173,12 +152,12 @@ var GameOverCore = new function() {
 		document.getElementById("messages").className = document.getElementById("messages").className.replace(/\bsuccess\b/,'');
 	}
 
-	var trackEvent = function(category, action, label){
+	var trackEvent = function(category, action, label, properties){
 		var config = GamefiveSDK.getConfig();
 		if(!config.debug){
-			GameAnalytics.trackEvent(category, action, label);
+			GameAnalytics.trackEvent(category, action, label, properties);
 		} else {
-			Utils.log("GameAnalytics", "trackEvent", category, action, label);
+			Utils.log("GameAnalytics", "trackEvent", category, action, label, properties);
 		}
 	}
 
