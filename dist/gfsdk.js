@@ -331,7 +331,7 @@ var Utils = new function() {
 	*/
 	this.show = function(id){
 		if(!!document.getElementById(id)){
-			if(GameOverUtils.hasClass(id, "hide")){
+			if(this.hasClass(id, "hide")){
 				document.getElementById(id).className = document.getElementById(id).className.replace(/\bhide\b/,'');
 			}
 		}
@@ -345,7 +345,7 @@ var Utils = new function() {
 	*/
 	this.hide = function(id){
 		if(!!document.getElementById(id)){
-			if(!GameOverUtils.hasClass(id, "hide")){
+			if(!this.hasClass(id, "hide")){
 				document.getElementById(id).className += " hide";
 			}
 		}
@@ -406,7 +406,7 @@ var GameOverCore = new function() {
 			Utils.hide("paywall");
 
 			// show message
-			showMessage(e.title, e.message, e.success);
+			this.showMessage(e.title, e.message, e.success);
 			
 			// show updated credits feedback
 			if(typeof(e.credits) != 'undefined'){
@@ -440,7 +440,7 @@ var GameOverCore = new function() {
 				Utils.show("name-completed-" + e.challenged_user_id);
 			} else {
 				// show message
-				showMessage(e.title, e.message, false);
+				this.showMessage(e.title, e.message, false);
 			}
 		});
 
@@ -449,7 +449,7 @@ var GameOverCore = new function() {
 			Utils.hide("fbconnect-calltoaction");
 			// show message
 			if(!!e && typeof(e.title)!="undefined" && typeof(e.success_message)!="undefined"){
-				showMessage(e.title, e.success_message, true);
+				this.showMessage(e.title, e.success_message, true);
 			}
 			// remove key from localstorage
 			if(!!window.localStorage.getItem("_gameoverOpenFbModal_")){
@@ -462,7 +462,7 @@ var GameOverCore = new function() {
 			Utils.hide("fbconnect-calltoaction");
 			// show message
 			if(!!e && typeof(e.title)!="undefined" && typeof(e.error_message)!="undefined"){
-				showMessage(e.title, e.error_message, false);
+				this.showMessage(e.title, e.error_message, false);
 			}
 		});
 
@@ -481,13 +481,7 @@ var GameOverCore = new function() {
 		}
 	}
 
-
-
-	/********************************************
-	*****         INTERNAL METHODS           ****
-	********************************************/
-
-	var showMessage = function(title, message, success){
+	this.showMessage = function(title, message, success){
 		Utils.log("Gameover", "showMessage", title, message, success);
 
 		// fill message
@@ -505,7 +499,7 @@ var GameOverCore = new function() {
 		}
 	} 
 
-	var closeMessage = function(){
+	this.closeMessage = function(){
 		Utils.log("Gameover", "closeMessage");
 
 		// hide message
@@ -556,7 +550,11 @@ var GamefiveSDK = new function() {
 		Utils.copyProperties(param, config);
 
 		// enable/disable debug
-		Utils.enableLog(!!config.log);
+		if(localStorage.getItem('log') == 1){
+			Utils.enableLog(true);
+		} else {
+			Utils.enableLog(!!config.log);
+		}
 
 		var initPost = function(){
 			if(!config.lite){

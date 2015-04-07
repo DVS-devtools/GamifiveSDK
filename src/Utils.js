@@ -251,7 +251,7 @@ var Utils = new function() {
 	*/
 	this.show = function(id){
 		if(!!document.getElementById(id)){
-			if(GameOverUtils.hasClass(id, "hide")){
+			if(this.hasClass(id, "hide")){
 				document.getElementById(id).className = document.getElementById(id).className.replace(/\bhide\b/,'');
 			}
 		}
@@ -265,7 +265,7 @@ var Utils = new function() {
 	*/
 	this.hide = function(id){
 		if(!!document.getElementById(id)){
-			if(!GameOverUtils.hasClass(id, "hide")){
+			if(!this.hasClass(id, "hide")){
 				document.getElementById(id).className += " hide";
 			}
 		}

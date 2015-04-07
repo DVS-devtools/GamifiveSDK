@@ -38,7 +38,11 @@ var GamefiveSDK = new function() {
 		Utils.copyProperties(param, config);
 
 		// enable/disable debug
-		Utils.enableLog(!!config.log);
+		if(localStorage.getItem('log') == 1){
+			Utils.enableLog(true);
+		} else {
+			Utils.enableLog(!!config.log);
+		}
 
 		var initPost = function(){
 			if(!config.lite){
