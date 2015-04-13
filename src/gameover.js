@@ -22,100 +22,6 @@ var GameOverCore = new function() {
 	var MOA_API_FAVORITES_SET = "http://www2.giochissimo.it/v01/favorites.set";
 	var MOA_API_FAVORITES_DELETE = "http://www2.giochissimo.it/v01/favorites.delete";
 	var MOA_API_RECOMMEND_EVENT = "http://www2.giochissimo.it/mip-ingestion/v01/recommend/event/:EVENT";
-	
-	var favorites_params = {	
-		"apikey": apiKey,
-		"content_id": content_id
-	}
-
-	var createQuery = function(params){
-		var query = []
-		for (var key in params){
-			query.push(key + '=' + params[key]);
-		}
-		return '?' + query.join('&')
-	}
-
-	this.toggleLike = function (){
-		var icon = document.getElementById(heartIconId);
-		
-		// FIXME
-		var liked = icon.className.indexOf(' ico-red ') > -1;
-
-		if (liked){
-			this.like(window.contentId);
-		}
-		else {
-			this.dislike(window.contentId);
-		}
-	}
-
-	this.like = function(contentId){
-
-		// RecEngine
-
-		/*var recommend_params = {
-			"user_id": "a5b8664ad93611e493bf005056b60712",
-			"customer_id": 'it_igames',
-			"session": '',
-			"content_id": contentId
-		}
-
-		var url = MOA_API_RECOMMEND_EVENT.replace(':EVENT', 'click');
-		url += createQuery(recommend_params); 
-
-		Utils.xhr('GET', url, function(resp, xhr){}); */
-
-
-		// Favorites
-		var favUrl = MOA_API_FAVORITES_SET;
-		favUrl += createQuery(favorites_params);
-
-		Utils.xhr('POST', favUrl, function(resp, xhr){
-			// heart icon becomes red 
-			var btn = document.getElementById(likeBtnId);
-			var icon = document.getElementById(heartIconId);
-			
-			btn.className += ' heart-active ';
-			icon.className += ' ico-red ';
-
-			// track add to favorites
-			Analytics.eventTrack({ 
-				category: 'Favorites', 
-				action: 'Add', 
-				label: '<Page>', 
-				valuable_cd: 'No', 
-				action_cd: 'Yes' 
-			});
-
-		});
-	}
-
-	this.dislike = function(contentId){
-
-		// Favorites
-		var favUrl = MOA_API_FAVORITES_DELETE;
-		favUrl += createQuery(favorites_params);
-
-		Utils.xhr('POST', favUrl, function(resp, xhr){
-			// heart icon switched off
-			var btn = document.getElementById(likeBtnId);
-			var icon = document.getElementById(heartIconId);
-
-			btn.className.replace(' heart-active ', '');
-			icon.className.replace(' ico-red ', '');
-
-			// track remove from favorites
-			Analytics.eventTrack({ 
-				category: 'Favorites', 
-				action: 'Remove', 
-				label: '<Page>', 
-				valuable_cd: 'No', 
-				action_cd: 'Yes' 
-			});
-					
-		});
-	}
 
 	this.invite = function(){
 		// call to sdk
@@ -259,6 +165,110 @@ var GameOverCore = new function() {
 		// remove error and success classes
 		document.getElementById("messages").className = document.getElementById("messages").className.replace(/\berror\b/,'');
 		document.getElementById("messages").className = document.getElementById("messages").className.replace(/\bsuccess\b/,'');
+	}
+
+	var createQuery = function(params){
+		var query = []
+		for (var key in params){
+			query.push(key + '=' + params[key]);
+		}
+		return '?' + query.join('&')
+	}
+
+	this.like = function(contentId){
+
+		// RecEngine
+
+		/*var recommend_params = {
+			"user_id": "a5b8664ad93611e493bf005056b60712",
+			"customer_id": 'it_igames',
+			"session": '',
+			"content_id": contentId
+		}
+
+		var url = MOA_API_RECOMMEND_EVENT.replace(':EVENT', 'click');
+		url += createQuery(recommend_params); 
+
+		Utils.xhr('GET', url, function(resp, xhr){}); */
+
+
+		// Favorites
+
+		var _this = this;
+
+		var favorites_params = {	
+			"apikey": apiKey,
+			"content_id": contentId
+		}
+
+		var favUrl = MOA_API_FAVORITES_SET;
+		favUrl += createQuery(favorites_params);
+
+		Utils.xhr('POST', favUrl, function(resp, xhr){
+			// heart icon becomes red 
+			var btn = document.getElementById(likeBtnId);
+			var ico = document.getElementById(heartIconId);
+			
+			btn.className += ' heart-active ';
+			ico.className += ' ico-red ';
+
+			// track add to favorites
+			_this.trackEvent({ 
+				category: 'Favorites', 
+				action: 'Add', 
+				label: '<Page>', 
+				valuable_cd: 'No', 
+				action_cd: 'Yes' 
+			});
+
+		});
+	}
+
+	this.dislike = function(contentId){
+
+		// Favorites
+		var _this = this;
+
+		var favorites_params = {	
+			"apikey": apiKey,
+			"content_id": contentId
+		}
+
+		var favUrl = MOA_API_FAVORITES_DELETE;
+		favUrl += createQuery(favorites_params);
+
+		Utils.xhr('POST', favUrl, function(resp, xhr){
+			// heart icon switched off
+			var btn = document.getElementById(likeBtnId);
+			var ico = document.getElementById(heartIconId);
+
+			btn.className = btn.className.replace(' heart-active ', '');
+			ico.className = ico.className.replace(' ico-red ', '');
+
+			// track remove from favorites
+			_this.trackEvent({ 
+				category: 'Favorites', 
+				action: 'Remove', 
+				label: '<Page>', 
+				valuable_cd: 'No', 
+				action_cd: 'Yes' 
+			});
+					
+		});
+	}
+
+	this.toggleLike = function (){
+		var icon = document.getElementById(heartIconId);
+		
+		// FIXME
+		var liked = icon.className.indexOf(' ico-red ') > -1;
+
+		if (!liked){
+			this.like(window.contentId);
+		}
+		else {
+			this.dislike(window.contentId);
+		}
 	}
 
 }
