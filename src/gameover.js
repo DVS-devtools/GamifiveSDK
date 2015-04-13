@@ -15,12 +15,118 @@ var GameOverCore = new function() {
 		GamefiveSDK.startSession();
 	} 
 
+	var likeBtnId = "gameOverLikeBtn";
+	var heartIconId = "heartIcon";
+
+	var apiKey = "abcdef1234567890";
+	var MOA_API_FAVORITES_SET = "http://www2.giochissimo.it/v01/favorites.set";
+	var MOA_API_FAVORITES_DELETE = "http://www2.giochissimo.it/v01/favorites.delete";
+	var MOA_API_RECOMMEND_EVENT = "http://www2.giochissimo.it/mip-ingestion/v01/recommend/event/:EVENT";
+	
+	var favorites_params = {	
+		"apikey": apiKey,
+		"content_id": content_id
+	}
+
+	var createQuery = function(params){
+		var query = []
+		for (var key in params){
+			query.push(key + '=' + params[key]);
+		}
+		return '?' + query.join('&')
+	}
+
+	this.toggleLike = function (){
+		var icon = document.getElementById(heartIconId);
+		
+		// FIXME
+		var liked = icon.className.indexOf(' ico-red ') > -1;
+
+		if (liked){
+			this.like(window.contentId);
+		}
+		else {
+			this.dislike(window.contentId);
+		}
+	}
+
+	this.like = function(contentId){
+
+		// RecEngine
+
+		/*var recommend_params = {
+			"user_id": "a5b8664ad93611e493bf005056b60712",
+			"customer_id": 'it_igames',
+			"session": '',
+			"content_id": contentId
+		}
+
+		var url = MOA_API_RECOMMEND_EVENT.replace(':EVENT', 'click');
+		url += createQuery(recommend_params); 
+
+		Utils.xhr('GET', url, function(resp, xhr){}); */
+
+
+		// Favorites
+		var favUrl = MOA_API_FAVORITES_SET;
+		favUrl += createQuery(favorites_params);
+
+		Utils.xhr('POST', favUrl, function(resp, xhr){
+			// heart icon becomes red 
+			var btn = document.getElementById(likeBtnId);
+			var icon = document.getElementById(heartIconId);
+			
+			btn.className += ' heart-active ';
+			icon.className += ' ico-red ';
+
+			// track add to favorites
+			Analytics.eventTrack({ 
+				category: 'Favorites', 
+				action: 'Add', 
+				label: '<Page>', 
+				valuable_cd: 'No', 
+				action_cd: 'Yes' 
+			});
+
+		});
+	}
+
+	this.dislike = function(contentId){
+
+		// Favorites
+		var favUrl = MOA_API_FAVORITES_DELETE;
+		favUrl += createQuery(favorites_params);
+
+		Utils.xhr('POST', favUrl, function(resp, xhr){
+			// heart icon switched off
+			var btn = document.getElementById(likeBtnId);
+			var icon = document.getElementById(heartIconId);
+
+			btn.className.replace(' heart-active ', '');
+			icon.className.replace(' ico-red ', '');
+
+			// track remove from favorites
+			Analytics.eventTrack({ 
+				category: 'Favorites', 
+				action: 'Remove', 
+				label: '<Page>', 
+				valuable_cd: 'No', 
+				action_cd: 'Yes' 
+			});
+					
+		});
+	}
+
 	this.invite = function(){
 		// call to sdk
 		GamefiveSDK.invite();
 
 		var config = GamefiveSDK.getConfig();
-		this.trackEvent("Challenge", "FbInvite", config.game.title + " + " + config.contentId);
+		var properties = {
+			valuable_cd: 'No',
+			action_cd: 'Yes'
+		}
+		this.trackEvent("Challenge", "FbInvite", config.game.title + " + " + config.contentId, properties);
 	}
 
 	this.g5challenge = function(userId){
