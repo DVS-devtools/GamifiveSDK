@@ -40,6 +40,8 @@ var GameOverCore = new function() {
 	}
 
 	this.addListeners = function(){
+		var _this = this;
+
 		Utils.log("Gameover", "addListeners");
 
 		GamefiveSDK.onEvent('user_no_credits', function(e) {
@@ -52,7 +54,7 @@ var GameOverCore = new function() {
 			Utils.hide("paywall");
 
 			// show message
-			this.showMessage(e.title, e.message, e.success);
+			_this.showMessage(e.title, e.message, e.success);
 			
 			// show updated credits feedback
 			if(typeof(e.credits) != 'undefined'){
@@ -86,7 +88,7 @@ var GameOverCore = new function() {
 				Utils.show("name-completed-" + e.challenged_user_id);
 			} else {
 				// show message
-				this.showMessage(e.title, e.message, false);
+				_this.showMessage(e.title, e.message, false);
 			}
 		});
 
@@ -95,7 +97,7 @@ var GameOverCore = new function() {
 			Utils.hide("fbconnect-calltoaction");
 			// show message
 			if(!!e && typeof(e.title)!="undefined" && typeof(e.success_message)!="undefined"){
-				this.showMessage(e.title, e.success_message, true);
+				_this.showMessage(e.title, e.success_message, true);
 			}
 			// remove key from localstorage
 			if(!!window.localStorage.getItem("_gameoverOpenFbModal_")){
@@ -108,7 +110,7 @@ var GameOverCore = new function() {
 			Utils.hide("fbconnect-calltoaction");
 			// show message
 			if(!!e && typeof(e.title)!="undefined" && typeof(e.error_message)!="undefined"){
-				this.showMessage(e.title, e.error_message, false);
+				_this.showMessage(e.title, e.error_message, false);
 			}
 		});
 

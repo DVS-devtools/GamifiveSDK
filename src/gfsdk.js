@@ -153,6 +153,13 @@ var GamefiveSDK = new function() {
 
 		// TRACKING
 		GameOverCore.trackEvent('Play', 'GameStart', config.game.title + " + " + config.contentId, { valuable_cd: 'Yes', action_cd: 'Yes' });
+		newtonTrackEvent({ 
+			category: 'Play', 
+			action: 'GameStart', 
+			label: config.game.title + " + " + config.contentId, 
+			valuable_cd: 'Yes', 
+			action_cd: 'Yes' 
+		});
 	}
 
 	/**
@@ -534,7 +541,7 @@ var GamefiveSDK = new function() {
 				Utils.log("GamifiveSDK", "delete", element);
 			}
 		}
-	};	
+	};
 
 };
 
