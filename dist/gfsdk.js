@@ -375,6 +375,7 @@ var GameOverCore = new function() {
 	var apiKey = "abcdef1234567890";
 	var MOA_API_FAVORITES_SET = "http://www2.giochissimo.it/v01/favorites.set";
 	var MOA_API_FAVORITES_DELETE = "http://www2.giochissimo.it/v01/favorites.delete";
+	var MOA_API_FAVORITES_GET = "http://www2.giochissimo.it/v01/favorites.get";
 	var MOA_API_RECOMMEND_EVENT = "http://www2.giochissimo.it/mip-ingestion/v01/recommend/event/:EVENT";
 
 	this.invite = function(){
@@ -529,23 +530,25 @@ var GameOverCore = new function() {
 		return '?' + query.join('&')
 	}
 
-	this.like = function(contentId){
+	this.switchHeart = function(value){
+		var btn = document.getElementById(likeBtnId);
+		var ico = document.getElementById(heartIconId);
 
-		// RecEngine
-
-		/*var recommend_params = {
-			"user_id": "a5b8664ad93611e493bf005056b60712",
-			"customer_id": 'it_igames',
-			"session": '',
-			"content_id": contentId
+		if (value){
+			if (btn.className.indexOf('heart-active') < 0){				
+				btn.className += ' heart-active ';
+			}
+			if (ico.className.indexOf('ico-red') < 0){				
+				ico.className += ' ico-red ';
+			}
 		}
+		else {
+			btn.className = btn.className.replace('heart-active', '');
+			ico.className = ico.className.replace('ico-red', '');
+		}
+	}
 
-		var url = MOA_API_RECOMMEND_EVENT.replace(':EVENT', 'click');
-		url += createQuery(recommend_params); 
-
-		Utils.xhr('GET', url, function(resp, xhr){}); */
-
-
+	this.like = function(contentId){
 		// Favorites
 
 		var _this = this;
@@ -560,11 +563,10 @@ var GameOverCore = new function() {
 
 		Utils.xhr('POST', favUrl, function(resp, xhr){
 			// heart icon becomes red 
-			var btn = document.getElementById(likeBtnId);
-			var ico = document.getElementById(heartIconId);
-			
-			btn.className += ' heart-active ';
-			ico.className += ' ico-red ';
+			_this.switchHeart(true);
+
+			// add to likesList
+			likesList[contentId] = true;
 
 			// track add to favorites
 			_this.trackEvent({ 
@@ -593,11 +595,10 @@ var GameOverCore = new function() {
 
 		Utils.xhr('POST', favUrl, function(resp, xhr){
 			// heart icon switched off
-			var btn = document.getElementById(likeBtnId);
-			var ico = document.getElementById(heartIconId);
+			_this.switchHeart(false);
 
-			btn.className = btn.className.replace(' heart-active ', '');
-			ico.className = ico.className.replace(' ico-red ', '');
+			// remove from likesList
+			delete likesList[contentId];
 
 			// track remove from favorites
 			_this.trackEvent({ 
@@ -607,21 +608,66 @@ var GameOverCore = new function() {
 				valuable_cd: 'No', 
 				action_cd: 'Yes' 
 			});
-					
 		});
 	}
 
 	this.toggleLike = function (){
 		var icon = document.getElementById(heartIconId);
 		
-		// FIXME
-		var liked = icon.className.indexOf(' ico-red ') > -1;
+		var favorites_params = {	
+			"apikey": apiKey
+		}
 
-		if (!liked){
+		var url = MOA_API_FAVORITES_GET;
+		url += createQuery(favorites_params);
+
+		if (!this.getStatus(window.contentId)){
 			this.like(window.contentId);
 		}
 		else {
 			this.dislike(window.contentId);
+		}
+	}
+
+	var likesList = undefined;
+
+	this.getStatus = function(contentId){
+		return !!likesList[contentId];
+	}
+
+	this.setLikesList = function(callback){
+		Utils.xhr('GET', url, function(resp, xhr){
+			likesList = {}
+			for (var index = 0; index < resp.length; index++){
+				var item = resp[index];
+				likesList[item.contentId] = true;
+			}
+			if (callback && typeof callback == 'function'){
+				callback();
+			}
+		});
+	};
+
+	this.getLikesList = function(){
+		return likesList;
+	};
+
+	this.initializeLike = function(){
+		var _this = this;
+
+		var doInitialize = function (){
+			if (_this.getStatus(window.contentId)){
+				_this.switchHeart(true);
+			}else {
+				_this.switchHeart(false);
+			}
+		}
+
+		if (likesList === undefined){
+			_this.setLikesList(doInitialize);
+		}
+		else {
+			doInitialize();
 		}
 	}
 
@@ -820,6 +866,7 @@ var GamefiveSDK = new function() {
 			}), function (resp, req) {
 				// render page with resp
 				sdkElement.create(resp);
+				GameOverCore.initializeLike();
 			});
 
 		} else {

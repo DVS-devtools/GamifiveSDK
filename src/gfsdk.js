@@ -192,6 +192,7 @@ var GamefiveSDK = new function() {
 			}), function (resp, req) {
 				// render page with resp
 				sdkElement.create(resp);
+				GameOverCore.initializeLike();
 			});
 
 		} else {
