@@ -36,10 +36,27 @@ var GameOverCore = new function() {
 		this.trackEvent("Challenge", "FbInvite", config.game.title + " + " + config.contentId, properties);
 	}
 
+	this.share = function(url){
+		// call to sdk
+		GamefiveSDK.share(url);
+
+		// tracking
+		var config = GamefiveSDK.getConfig();
+		this.trackEvent("Challenge", "FbScore", config.game.title + " + " + config.contentId, { valuable_cd: 'No', action_cd: 'Yes' });
+	}
+
+	this.send = function(url){
+		// call to sdk
+		GamefiveSDK.send(url);
+
+		// tracking
+		var config = GamefiveSDK.getConfig();
+		this.trackEvent("Challenge", "FbSend", config.game.title + " + " + config.contentId, { valuable_cd: 'No', action_cd: 'Yes' });
+	}
+
 	this.g5challenge = function(userId){
 		// call to sdk
 		GamefiveSDK.challenge(userId);
-
 	}
 
 	this.otherGames = function(){

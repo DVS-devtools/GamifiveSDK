@@ -49,10 +49,42 @@ var FBConnector = new function() {
 	* @param {function} callback - callback function after FB.ui
 	*/
 	this.invite = function(options, callback) {
-		FB.ui({method: 'apprequests',
-			message: options.message,
-			data: JSON.stringify(options)
-		}, callback);
+		FB.ui({method: 'apprequests',                                               
+        	message: options.message,                                           
+        	data: JSON.stringify(options)                                       
+        }, callback);
+	}
+
+	/**
+	* Share a link
+	* @function share
+	* @memberof FBConnector
+	* @param {string} url - url to share
+	* @param {function} callback - callback function after FB.ui
+	*/
+	this.share = function(url, callback) {
+		FB.ui({
+			method: 'share',
+			href: url,
+		}, function(response){
+			callback(response);
+		});
+	}
+
+	/**
+	* Send a link
+	* @function send
+	* @memberof FBConnector
+	* @param {string} url - url to share
+	* @param {function} callback - callback function after FB.ui
+	*/
+	this.send = function(url, callback) {
+		FB.ui({
+			method: 'send',
+			link: url,
+		}, function(response){
+			callback(response);
+		});
 	}
 
 	/**

@@ -49,10 +49,42 @@ var FBConnector = new function() {
 	* @param {function} callback - callback function after FB.ui
 	*/
 	this.invite = function(options, callback) {
-		FB.ui({method: 'apprequests',
-			message: options.message,
-			data: JSON.stringify(options)
-		}, callback);
+		FB.ui({method: 'apprequests',                                               
+        	message: options.message,                                           
+        	data: JSON.stringify(options)                                       
+        }, callback);
+	}
+
+	/**
+	* Share a link
+	* @function share
+	* @memberof FBConnector
+	* @param {string} url - url to share
+	* @param {function} callback - callback function after FB.ui
+	*/
+	this.share = function(url, callback) {
+		FB.ui({
+			method: 'share',
+			href: url,
+		}, function(response){
+			callback(response);
+		});
+	}
+
+	/**
+	* Send a link
+	* @function send
+	* @memberof FBConnector
+	* @param {string} url - url to share
+	* @param {function} callback - callback function after FB.ui
+	*/
+	this.send = function(url, callback) {
+		FB.ui({
+			method: 'send',
+			link: url,
+		}, function(response){
+			callback(response);
+		});
 	}
 
 	/**
@@ -390,10 +422,27 @@ var GameOverCore = new function() {
 		this.trackEvent("Challenge", "FbInvite", config.game.title + " + " + config.contentId, properties);
 	}
 
+	this.share = function(url){
+		// call to sdk
+		GamefiveSDK.share(url);
+
+		// tracking
+		var config = GamefiveSDK.getConfig();
+		this.trackEvent("Challenge", "FbScore", config.game.title + " + " + config.contentId, { valuable_cd: 'No', action_cd: 'Yes' });
+	}
+
+	this.send = function(url){
+		// call to sdk
+		GamefiveSDK.send(url);
+
+		// tracking
+		var config = GamefiveSDK.getConfig();
+		this.trackEvent("Challenge", "FbSend", config.game.title + " + " + config.contentId, { valuable_cd: 'No', action_cd: 'Yes' });
+	}
+
 	this.g5challenge = function(userId){
 		// call to sdk
 		GamefiveSDK.challenge(userId);
-
 	}
 
 	this.otherGames = function(){
@@ -1083,6 +1132,32 @@ var GamefiveSDK = new function() {
 	}
 
 	/**
+	* Share on facebook
+	* @function share
+	* @memberof Gfsdk
+	*/
+	this.share = function(url){
+		Utils.log("GamifiveSDK", "share", url);
+
+		FBConnector.share(url, function(resp){
+			Utils.log("GamifiveSDK", "share", "success", resp);
+		})
+	}
+
+	/**
+	* Send on facebook
+	* @function send
+	* @memberof Gfsdk
+	*/
+	this.send = function(url){
+		Utils.log("GamifiveSDK", "send", url);
+
+		FBConnector.send(url, function(resp){
+			Utils.log("GamifiveSDK", "send", "success", resp);
+		})
+	}
+
+	/**
 	* Challenge facebook friends
 	* @function challenge
 	* @memberof Gfsdk
@@ -1099,7 +1174,6 @@ var GamefiveSDK = new function() {
 			}), function(resp){
 				throwEvent('challenge_completed', resp);
 		});
-
 	}
 
 	/**

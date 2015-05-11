@@ -407,6 +407,32 @@ var GamefiveSDK = new function() {
 	}
 
 	/**
+	* Share on facebook
+	* @function share
+	* @memberof Gfsdk
+	*/
+	this.share = function(url){
+		Utils.log("GamifiveSDK", "share", url);
+
+		FBConnector.share(url, function(resp){
+			Utils.log("GamifiveSDK", "share", "success", resp);
+		})
+	}
+
+	/**
+	* Send on facebook
+	* @function send
+	* @memberof Gfsdk
+	*/
+	this.send = function(url){
+		Utils.log("GamifiveSDK", "send", url);
+
+		FBConnector.send(url, function(resp){
+			Utils.log("GamifiveSDK", "send", "success", resp);
+		})
+	}
+
+	/**
 	* Challenge facebook friends
 	* @function challenge
 	* @memberof Gfsdk
@@ -423,7 +449,6 @@ var GamefiveSDK = new function() {
 			}), function(resp){
 				throwEvent('challenge_completed', resp);
 		});
-
 	}
 
 	/**
