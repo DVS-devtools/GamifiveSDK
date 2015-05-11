@@ -331,9 +331,23 @@ var GameOverCore = new function() {
 		if (likesList === undefined){
 			_this.setLikesList(doInitialize);
 		}
-		else {
+		else {	
 			doInitialize();
 		}
 	}
+
+
+	// CLICK RELATED
+	this.clickRelated = function(index, type){
+
+		var properties = {
+			valuable_cd: 'No',
+			action_cd: 'Yes',
+		};
+
+		var label = index;
+
+		this.trackEvent('GameOverRelated', type, label, properties);
+	};
 
 }
