@@ -411,12 +411,10 @@ var GamefiveSDK = new function() {
 	* @function share
 	* @memberof Gfsdk
 	*/
-	this.share = function(url){
+	this.share = function(url, callback){
 		Utils.log("GamifiveSDK", "share", url);
 
-		FBConnector.share(url, function(resp){
-			Utils.log("GamifiveSDK", "share", "success", resp);
-		})
+		FBConnector.share(url, callback || function(){})
 	}
 
 	/**
@@ -424,12 +422,9 @@ var GamefiveSDK = new function() {
 	* @function send
 	* @memberof Gfsdk
 	*/
-	this.send = function(url){
+	this.send = function(url, callback){
 		Utils.log("GamifiveSDK", "send", url);
-
-		FBConnector.send(url, function(resp){
-			Utils.log("GamifiveSDK", "send", "success", resp);
-		})
+		FBConnector.send(url, callback || function(){});
 	}
 
 	/**

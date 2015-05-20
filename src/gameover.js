@@ -23,6 +23,7 @@ var GameOverCore = new function() {
 	var MOA_API_FAVORITES_DELETE = "http://www2.giochissimo.it/v01/favorites.delete";
 	var MOA_API_FAVORITES_GET = "http://www2.giochissimo.it/v01/favorites.get";
 	var MOA_API_RECOMMEND_EVENT = "http://www2.giochissimo.it/mip-ingestion/v01/recommend/event/:EVENT";
+	var UPDATE_CREDITS = "http://www2.giochissimo.it/v01/mipuser.updatecredits";
 
 	this.invite = function(){
 		// call to sdk
@@ -36,9 +37,26 @@ var GameOverCore = new function() {
 		this.trackEvent("Challenge", "FbInvite", config.game.title + " + " + config.contentId, properties);
 	}
 
+	var updateCredits = function(callback){
+		var defaultCallback = function(response){
+			Utils.log("GamifiveSDK", "updateCredits", response);
+		}
+		Utils.xhr('GET', UPDATE_CREDITS, callback || defaultCallback);
+	}
+
 	this.share = function(url){
+
+		var callback = function(resp){
+			if (resp.error_code != undefined){
+				Utils.log("GamifiveSDK", "share", "abort", resp);
+			}
+			else {
+				Utils.log("GamifiveSDK", "share", "success", resp);
+				updateCredits();
+			}
+		}
 		// call to sdk
-		GamefiveSDK.share(url);
+		GamefiveSDK.share(url, callback);
 
 		// tracking
 		var config = GamefiveSDK.getConfig();
@@ -46,8 +64,18 @@ var GameOverCore = new function() {
 	}
 
 	this.send = function(url){
+
+		var callback = function(resp){
+			if (resp && resp.success && resp.success === true){
+				Utils.log("GamifiveSDK", "send", "success", resp);
+				updateCredits();
+			}
+			else {
+				Utils.log("GamifiveSDK", "send", "abort", resp);
+			}
+		}
 		// call to sdk
-		GamefiveSDK.send(url);
+		GamefiveSDK.send(url, callback);
 
 		// tracking
 		var config = GamefiveSDK.getConfig();
