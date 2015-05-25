@@ -503,6 +503,7 @@ var GamefiveSDK = new function() {
 			config.events[event](param);
 		}
 	}
+	this.throwEvent = throwEvent;
 
 	/**
 	* Return APIs complete URL

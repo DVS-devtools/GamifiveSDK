@@ -35,13 +35,21 @@ var GameOverCore = new function() {
 			action_cd: 'Yes'
 		}
 		this.trackEvent("Challenge", "FbInvite", config.game.title + " + " + config.contentId, properties);
+		newtonTrackEvent({ 
+			category: 'Challenge', 
+			action: 'FbInvite', 
+			label: config.game.title + " + " + config.contentId, 
+			valuable_cd: 'No', 
+			action_cd: 'Yes' 
+		});
 	}
 
 	var updateCredits = function(callback){
 		var defaultCallback = function(response){
 			Utils.log("GamifiveSDK", "updateCredits", response);
+			GamifiveSDK.throwEvent('user_credits_updated', response);
 		}
-		Utils.xhr('GET', UPDATE_CREDITS, callback || defaultCallback);
+		Utils.xhr('GET', UPDATE_CREDITS, defaultCallback);
 	}
 
 	this.share = function(url){
@@ -61,6 +69,13 @@ var GameOverCore = new function() {
 		// tracking
 		var config = GamefiveSDK.getConfig();
 		this.trackEvent("Challenge", "FbScore", config.game.title + " + " + config.contentId, { valuable_cd: 'No', action_cd: 'Yes' });
+		newtonTrackEvent({ 
+			category: 'Challenge', 
+			action: 'FbScore', 
+			label: config.game.title + " + " + config.contentId, 
+			valuable_cd: 'No', 
+			action_cd: 'Yes' 
+		});
 	}
 
 	this.send = function(url){
@@ -80,6 +95,13 @@ var GameOverCore = new function() {
 		// tracking
 		var config = GamefiveSDK.getConfig();
 		this.trackEvent("Challenge", "FbSend", config.game.title + " + " + config.contentId, { valuable_cd: 'No', action_cd: 'Yes' });
+		newtonTrackEvent({ 
+			category: 'Challenge', 
+			action: 'FbSend', 
+			label: config.game.title + " + " + config.contentId, 
+			valuable_cd: 'No', 
+			action_cd: 'Yes' 
+		});
 	}
 
 	this.g5challenge = function(userId){
@@ -270,6 +292,14 @@ var GameOverCore = new function() {
 				action_cd: 'Yes' 
 			});
 
+			newtonTrackEvent({ 
+				category: 'Favorites', 
+				action: 'Add', 
+				label: '<Page>', 
+				valuable_cd: 'No', 
+				action_cd: 'Yes' 
+			});
+
 		});
 	}
 
@@ -295,6 +325,14 @@ var GameOverCore = new function() {
 
 			// track remove from favorites
 			_this.trackEvent({ 
+				category: 'Favorites', 
+				action: 'Remove', 
+				label: '<Page>', 
+				valuable_cd: 'No', 
+				action_cd: 'Yes' 
+			});
+
+			newtonTrackEvent({ 
 				category: 'Favorites', 
 				action: 'Remove', 
 				label: '<Page>', 
@@ -376,6 +414,13 @@ var GameOverCore = new function() {
 		var label = index;
 
 		this.trackEvent('GameOverRelated', type, label, properties);
+		newtonTrackEvent({ 
+			category: 'GameOverRelated', 
+			action: type, 
+			label: label, 
+			valuable_cd: 'No', 
+			action_cd: 'Yes' 
+		});
 	};
 
 }
