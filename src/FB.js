@@ -79,12 +79,25 @@ var FBConnector = new function() {
 	* @param {function} callback - callback function after FB.ui
 	*/
 	this.send = function(url, callback) {
-		FB.ui({
-			method: 'send',
-			link: url,
-		}, function(response){
-			callback(response);
-		});
+		if (isMobile){
+			var targetUrl = [
+				'http://www.facebook.com/dialog/send',
+	  			'?app_id=' + config.appId,
+				'&link=' + url,
+				'&redirect_uri=' + window.location.origin
+			].join('');
+			// fallback for mobile devices
+			window.open(targetUrl, '_blank');
+		}
+		else {
+			FB.ui({
+				method: 'send',
+				display: 'iframe', // TODO: test if this is useful for solving the send message issue
+				link: url,
+			}, function(response){
+				callback(response);
+			});
+		}
 	}
 
 	/**
@@ -105,7 +118,7 @@ var FBConnector = new function() {
 			appId      : config.appId,
 			cookie     : true,  // enable cookies to allow the server to access 
 			xfbml      : false,  // parse social plugins on this page
-			version    : 'v2.1' // use version 2.1
+			version    : 'v2.4' // use version 2.1
 		});
 	};
 }; 

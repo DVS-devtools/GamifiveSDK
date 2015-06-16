@@ -68,6 +68,11 @@ var GamefiveSDK = new function() {
 			Utils.copyProperties(window.GamifiveInfo, config);
 			initPost();
 		} else {
+			// mock newtonTrackEvent
+			window.newtonTrackEvent = function(){
+				console.log(arguments);
+			};
+
 			Utils.xhr('GET', API('gamifiveinfo'), function(resp, req){
 				Utils.copyProperties(resp, config);
 				initPost();
@@ -207,7 +212,9 @@ var GamefiveSDK = new function() {
 			}), function (resp, req) {
 				// render page with resp
 				sdkElement.create(resp);
-				GameOverCore.initializeLike();
+				if (!config.debug) {
+					GameOverCore.initializeLike();
+				};
 			});
 
 		} else {
@@ -439,6 +446,7 @@ var GamefiveSDK = new function() {
 	*/
 	this.send = function(url, callback){
 		Utils.log("GamifiveSDK", "send", url);
+
 		FBConnector.send(url, callback || function(){});
 	}
 

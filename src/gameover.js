@@ -22,6 +22,8 @@ var GameOverCore = new function() {
 	var MOA_API_FAVORITES_SET = "http://www2.giochissimo.it/v01/favorites.set";
 	var MOA_API_FAVORITES_DELETE = "http://www2.giochissimo.it/v01/favorites.delete";
 	var MOA_API_FAVORITES_GET = "http://www2.giochissimo.it/v01/favorites.get";
+	// TODO: check pip rule for port 4001 and prefix
+	var MOA_API_FAVORITES_CHECK = "http://www2.giochissimo.it:4001/v02/reding/objects/:CONTENTID/users/:USERID/?prefix=FAV-it_igames"
 	var MOA_API_RECOMMEND_EVENT = "http://www2.giochissimo.it/mip-ingestion/v01/recommend/event/:EVENT";
 	var UPDATE_CREDITS = "http://www2.giochissimo.it/v01/mipuser.updatecredits";
 
@@ -367,11 +369,21 @@ var GameOverCore = new function() {
 	}
 
 	this.setLikesList = function(callback){
-		Utils.xhr('GET', url, function(resp, xhr){
-			likesList = {}
+		var favorites_params = {
+			"apikey": apiKey,
+			"size": 51 // delete
+		};
+
+		var favUrl = MOA_API_FAVORITES_GET; // MOA_API_FAVORITES_CHECK;
+		//favUrl = favUrl.replace(':USERID', GamifiveSDK.getConfig().userId);
+		//favUrl = favUrl.replace(':CONTENTID', window.contentId);
+		favUrl += createQuery(favorites_params);
+
+		Utils.xhr('GET', favUrl, function(resp, xhr){
+			likesList = {};
 			for (var index = 0; index < resp.length; index++){
 				var item = resp[index];
-				likesList[item.contentId] = true;
+				likesList[item.id] = true;
 			}
 			if (callback && typeof callback == 'function'){
 				callback();
