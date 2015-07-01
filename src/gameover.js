@@ -70,9 +70,9 @@ var GameOverCore = new function() {
 
 		// tracking
 		var config = GamefiveSDK.getConfig();
-		this.trackEvent("Challenge", "FbScore", config.game.title + " + " + config.contentId, { valuable_cd: 'No', action_cd: 'Yes' });
+		this.trackEvent("Share", "FbScore", config.game.title + " + " + config.contentId, { valuable_cd: 'No', action_cd: 'Yes' });
 		newtonTrackEvent({ 
-			category: 'Challenge', 
+			category: 'Share', 
 			action: 'FbScore', 
 			label: config.game.title + " + " + config.contentId, 
 			valuable_cd: 'No', 

@@ -63,10 +63,21 @@ var GamefiveSDK = new function() {
 			Utils.log("GamifiveSDK", "init", config);
 		}
 
+		var trackGameLoad = function(){
+			newtonTrackEvent({ 
+				category: 'Play', 
+				action: 'GameLoad', 
+				label: config.game.title + " + " + config.contentId, 
+				valuable_cd: 'Yes', 
+				action_cd: 'Yes' 
+			});
+		}
+
 		// get window.GamifiveInfo
 		if(!config.debug){
 			Utils.copyProperties(window.GamifiveInfo, config);
 			initPost();
+			trackGameLoad();
 		} else {
 			// mock newtonTrackEvent
 			window.newtonTrackEvent = function(){
@@ -76,16 +87,9 @@ var GamefiveSDK = new function() {
 			Utils.xhr('GET', API('gamifiveinfo'), function(resp, req){
 				Utils.copyProperties(resp, config);
 				initPost();
+				trackGameLoad();
 			});
 		}
-
-		newtonTrackEvent({ 
-			category: 'Play', 
-			action: 'GameLoad', 
-			label: config.game.title + " + " + config.contentId, 
-			valuable_cd: 'Yes', 
-			action_cd: 'Yes' 
-		});
 	}
 
 	/**
