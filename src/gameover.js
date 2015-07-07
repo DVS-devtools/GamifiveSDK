@@ -36,11 +36,11 @@ var GameOverCore = new function() {
 			valuable_cd: 'No',
 			action_cd: 'Yes'
 		}
-		this.trackEvent("Challenge", "FbInvite", config.game.title + " + " + config.contentId, properties);
+		this.trackEvent("Challenge", "FbInvite", config.contentId, properties);
 		newtonTrackEvent({ 
 			category: 'Challenge', 
 			action: 'FbInvite', 
-			label: config.game.title + " + " + config.contentId, 
+			label: config.contentId, 
 			valuable_cd: 'No', 
 			action_cd: 'Yes' 
 		});
@@ -57,6 +57,7 @@ var GameOverCore = new function() {
 	this.share = function(url){
 
 		var callback = function(resp){
+			Utils.log("GamifiveSDK", "share", resp)
 			if (resp.error_code != undefined){
 				Utils.log("GamifiveSDK", "share", "abort", resp);
 			}
@@ -70,11 +71,11 @@ var GameOverCore = new function() {
 
 		// tracking
 		var config = GamefiveSDK.getConfig();
-		this.trackEvent("Share", "FbScore", config.game.title + " + " + config.contentId, { valuable_cd: 'No', action_cd: 'Yes' });
+		this.trackEvent("Share", "FbScore", config.contentId, { valuable_cd: 'No', action_cd: 'Yes' });
 		newtonTrackEvent({ 
 			category: 'Share', 
 			action: 'FbScore', 
-			label: config.game.title + " + " + config.contentId, 
+			label: config.contentId, 
 			valuable_cd: 'No', 
 			action_cd: 'Yes' 
 		});
@@ -96,11 +97,11 @@ var GameOverCore = new function() {
 
 		// tracking
 		var config = GamefiveSDK.getConfig();
-		this.trackEvent("Challenge", "FbSend", config.game.title + " + " + config.contentId, { valuable_cd: 'No', action_cd: 'Yes' });
+		this.trackEvent("Challenge", "FbSend", config.contentId, { valuable_cd: 'No', action_cd: 'Yes' });
 		newtonTrackEvent({ 
 			category: 'Challenge', 
 			action: 'FbSend', 
-			label: config.game.title + " + " + config.contentId, 
+			label: config.contentId, 
 			valuable_cd: 'No', 
 			action_cd: 'Yes' 
 		});
@@ -134,12 +135,12 @@ var GameOverCore = new function() {
 		GamefiveSDK.onEvent('user_credits_updated', function(e) {
 			// hide paywall, if present
 			Utils.hide("paywall");
-
+			console.log("GamifiveSDK", "showMessage", e);
 			// show message
 			_this.showMessage(e.title, e.message, e.success);
 			
 			// show updated credits feedback
-			if(typeof(e.credits) != 'undefined'){
+			if(window.GamifiveInfo.userFreemium && typeof(e.credits) != 'undefined'){
 				var newCredits = parseInt(e.credits);
 				var newMessage = "";
 				var config = GamefiveSDK.getConfig();

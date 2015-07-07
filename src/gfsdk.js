@@ -67,7 +67,7 @@ var GamefiveSDK = new function() {
 			newtonTrackEvent({ 
 				category: 'Play', 
 				action: 'GameLoad', 
-				label: config.game.title + " + " + config.contentId, 
+				label: config.contentId, 
 				valuable_cd: 'Yes', 
 				action_cd: 'Yes' 
 			});
@@ -169,11 +169,11 @@ var GamefiveSDK = new function() {
 		}
 
 		// TRACKING
-		GameOverCore.trackEvent('Play', 'GameStart', config.game.title + " + " + config.contentId, { valuable_cd: 'Yes', action_cd: 'Yes' });
+		GameOverCore.trackEvent('Play', 'GameStart', config.contentId, { valuable_cd: 'Yes', action_cd: 'Yes' });
 		newtonTrackEvent({ 
 			category: 'Play', 
 			action: 'GameStart', 
-			label: config.game.title + " + " + config.contentId, 
+			label: config.contentId, 
 			valuable_cd: 'Yes', 
 			action_cd: 'Yes' 
 		});
@@ -250,11 +250,11 @@ var GamefiveSDK = new function() {
 		}	
 
 		// TRACKING
-		GameOverCore.trackEvent('Play', 'GameEnd', config.game.title + " + " + config.contentId, { valuable_cd: 'No', action_cd: 'No' });	
+		GameOverCore.trackEvent('Play', 'GameEnd', config.contentId, { valuable_cd: 'No', action_cd: 'No' });	
 		newtonTrackEvent({ 
 			category: 'Play', 
 			action: 'GameEnd', 
-			label: config.game.title + " + " + config.contentId, 
+			label: config.contentId, 
 			valuable_cd: 'Yes', 
 			action_cd: 'Yes' 
 		});
@@ -415,7 +415,7 @@ var GamefiveSDK = new function() {
 			FBConnector.invite(param, function(invResp){
 				Utils.log("GamifiveSDK", "invite", "FBConnector.invite", invResp);
 
-				if(!!invResp && invResp.to.length > 0) {
+				if(!!config.user && config.user.userFreemium && !!invResp && invResp.to.length > 0) {
 					// call updateCredits API
 					Utils.xhr('GET', API('updateCredits', {
 							fbusers_id: invResp.to || null,
