@@ -78,11 +78,18 @@ var GamefiveSDK = new function() {
 			Utils.copyProperties(window.GamifiveInfo, config);
 			initPost();
 			trackGameLoad();
+			config.CHALLENGE_MESSAGE = CHALLENGE_MESSAGE;
+			config.MESSAGE_ERROR = MESSAGE_ERROR;
+			config.MESSAGE_ERROR_TITLE = MESSAGE_ERROR_TITLE;
 		} else {
 			// mock newtonTrackEvent
 			window.newtonTrackEvent = function(){
 				console.log(arguments);
 			};
+
+			config.CHALLENGE_MESSAGE = 'You successfully invited your friends!';
+			config.MESSAGE_ERROR = 'Error!';
+			config.MESSAGE_ERROR_TITLE = 'Something went wrong';
 
 			Utils.xhr('GET', API('gamifiveinfo'), function(resp, req){
 				Utils.copyProperties(resp, config);
@@ -193,9 +200,13 @@ var GamefiveSDK = new function() {
 		config.timeend = Utils.dateNow();
 
 		// set score
-		if(typeof(param.score) == 'number'){
+		if(typeof param.score == 'number'){
 			config.score = parseFloat(param.score);
 		}
+
+		if (typeof param.level == 'number'){
+			config.level = param.level;
+		} 
 
 		if(!config.lite){
 
@@ -212,6 +223,7 @@ var GamefiveSDK = new function() {
 				'start': config.timestart,
 				'duration': config.timeend - config.timestart,
 				'score': config.score,
+				'level': config.level,
 	      		'challenge_id': challengedId
 			}), function (resp, req) {
 				// render page with resp
@@ -228,6 +240,7 @@ var GamefiveSDK = new function() {
 				'start': config.timestart,
 				'duration': config.timeend - config.timestart,
 				'score': config.score,
+				'level': config.level,
 	      		'newapps': 1,
 	      		'appId': config.contentId,
 	      		'label': config.label,
@@ -415,14 +428,19 @@ var GamefiveSDK = new function() {
 			FBConnector.invite(param, function(invResp){
 				Utils.log("GamifiveSDK", "invite", "FBConnector.invite", invResp);
 
-				if(!!config.user && config.user.userFreemium && !!invResp && invResp.to.length > 0) {
+				if(!!invResp && invResp.to.length > 0) {
 					// call updateCredits API
-					Utils.xhr('GET', API('updateCredits', {
-							fbusers_id: invResp.to || null,
-							userId: config.user.userId || null
-						}), function(updResp){
-							throwEvent('user_credits_updated', updResp);
-					});
+					if (!!config.user && config.user.userFreemium){
+						Utils.xhr('GET', API('updateCredits', {
+								fbusers_id: invResp.to || null,
+								userId: config.user.userId || null
+							}), function(updResp){
+								throwEvent('user_credits_updated', updResp);
+						});
+					} 
+					else {
+						throwEvent('user_credits_updated', {title: "", message: config.CHALLENGE_MESSAGE, success: true});
+					}
 				}
 			});
 
@@ -527,7 +545,7 @@ var GamefiveSDK = new function() {
 	var API = function(name, param){
 		// set host
 		var host = (!config.debug) ? Utils.getAbsoluteUrl() : 'http://www2.giochissimo.it';
-
+		
 		// set door (/v01/ or /mock/)
 		var door = (!config.debug) ? '/v01/' : '/mock01/';
 

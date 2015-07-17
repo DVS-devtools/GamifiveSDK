@@ -19,13 +19,17 @@ var GameOverCore = new function() {
 	var heartIconId = "heartIcon";
 
 	var apiKey = "abcdef1234567890";
-	var MOA_API_FAVORITES_SET = "http://www2.giochissimo.it/v01/favorites.set";
-	var MOA_API_FAVORITES_DELETE = "http://www2.giochissimo.it/v01/favorites.delete";
-	var MOA_API_FAVORITES_GET = "http://www2.giochissimo.it/v01/favorites.get";
+	var absUrl = Utils.getAbsoluteUrl();
+	if (absUrl[absUrl.length-1] == '/'){
+		absUrl.substring(0, absUrl.length-1);
+	};
+	var MOA_API_FAVORITES_SET = absUrl + "/v01/favorites.set";
+	var MOA_API_FAVORITES_DELETE = absUrl + "/v01/favorites.delete";
+	var MOA_API_FAVORITES_GET = absUrl + "/v01/favorites.get";
 	// TODO: check pip rule for port 4001 and prefix
-	var MOA_API_FAVORITES_CHECK = "http://www2.giochissimo.it:4001/v02/reding/objects/:CONTENTID/users/:USERID/?prefix=FAV-it_igames"
-	var MOA_API_RECOMMEND_EVENT = "http://www2.giochissimo.it/mip-ingestion/v01/recommend/event/:EVENT";
-	var UPDATE_CREDITS = "http://www2.giochissimo.it/v01/mipuser.updatecredits";
+	var MOA_API_FAVORITES_CHECK = absUrl + ":4001/v02/reding/objects/:CONTENTID/users/:USERID/?prefix=FAV-it_igames"
+	var MOA_API_RECOMMEND_EVENT =absUrl + "/mip-ingestion/v01/recommend/event/:EVENT";
+	var UPDATE_CREDITS = absUrl + "/v01/mipuser.updatecredits";
 
 	this.invite = function(){
 		// call to sdk
@@ -51,7 +55,13 @@ var GameOverCore = new function() {
 			Utils.log("GamifiveSDK", "updateCredits", response);
 			GamifiveSDK.throwEvent('user_credits_updated', response);
 		}
-		Utils.xhr('GET', UPDATE_CREDITS, defaultCallback);
+		var config = GamifiveSDK.getConfig();
+		if (!!config.user && config.user.userFreemium) {
+			Utils.xhr('GET', UPDATE_CREDITS, defaultCallback);
+		}
+		else {
+			defaultCallback({title: "", message: config.CHALLENGE_MESSAGE, success: true});
+		}
 	}
 
 	this.share = function(url){
@@ -140,7 +150,8 @@ var GameOverCore = new function() {
 			_this.showMessage(e.title, e.message, e.success);
 			
 			// show updated credits feedback
-			if(window.GamifiveInfo.userFreemium && typeof(e.credits) != 'undefined'){
+
+			if(typeof(e.credits) != 'undefined'){
 				var newCredits = parseInt(e.credits);
 				var newMessage = "";
 				var config = GamefiveSDK.getConfig();
