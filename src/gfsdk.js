@@ -64,6 +64,7 @@ var GamefiveSDK = new function() {
 		}
 
 		var trackGameLoad = function(){
+			GameOverCore.trackEvent('Play', 'GameLoad', config.contentId, { valuable_cd: 'Yes', action_cd: 'Yes' });
 			newtonTrackEvent({ 
 				category: 'Play', 
 				action: 'GameLoad', 
@@ -204,28 +205,29 @@ var GamefiveSDK = new function() {
 			config.score = parseFloat(param.score);
 		}
 
-		if (typeof param.level == 'number'){
-			config.level = param.level;
-		} 
+		if (!!param.level){
+			config.user.level = parseInt(param.level);
+		}
 
 		if(!config.lite){
+			
+			var queryParams = {
+				'start': config.timestart,
+				'duration': config.timeend - config.timestart,
+				'score': config.score
+			};
 
 			// get challenge id
-			var challengedId;
 			if(!!config.challenge && !!config.challenge.id){
-				challengedId = config.challenge.id;
-			} else {
-				challengedId = null;
+				queryParams.challenge_id = config.challenge.id;
+			} 
+
+			if (typeof config.level != 'undefined'){
+				queryParams.level = config.user.level;
 			}
 
 			// call gameover API
-			Utils.xhr('GET', API('gameover', {
-				'start': config.timestart,
-				'duration': config.timeend - config.timestart,
-				'score': config.score,
-				'level': config.level,
-	      		'challenge_id': challengedId
-			}), function (resp, req) {
+			Utils.xhr('GET', API('gameover', queryParams), function (resp, req) {
 				// render page with resp
 				sdkElement.create(resp);
 				if (!config.debug) {
@@ -235,17 +237,22 @@ var GamefiveSDK = new function() {
 
 		} else {
 
-			// call gameover API
-			Utils.xhr('GET', API('leaderboard', {
+			var queryParams = {
 				'start': config.timestart,
 				'duration': config.timeend - config.timestart,
 				'score': config.score,
-				'level': config.level,
 	      		'newapps': 1,
 	      		'appId': config.contentId,
 	      		'label': config.label,
 	      		'userId': config.userId
-			}));
+			};
+
+			if (typeof config.level != 'undefined'){
+				queryParams.level = config.level;
+			}
+
+			// call gameover API
+			Utils.xhr('GET', API('leaderboard', queryParams));
 
 		}
 
@@ -268,8 +275,8 @@ var GamefiveSDK = new function() {
 			category: 'Play', 
 			action: 'GameEnd', 
 			label: config.contentId, 
-			valuable_cd: 'Yes', 
-			action_cd: 'Yes' 
+			valuable_cd: 'No', 
+			action_cd: 'No' 
 		});
 	}
 
