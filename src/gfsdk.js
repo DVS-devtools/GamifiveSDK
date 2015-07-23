@@ -296,20 +296,22 @@ var GamefiveSDK = new function() {
         var link = document.createElement('a');
         
         // assign the outgoing click     
-        link.href = "javascript: void(0);";
-        link.onclick = function(){ 
+        var handleClick = function(){ 
         	console.log("GamifiveSDK", "More Games Button", "OnClick Action", document.location.origin);
         	GameOverCore.trackEvent('Behavior', 'MoreGames', config.contentId, { game_title: config.game.title, valuable_cd: 'No', action_cd: 'yes' });	
         	newtonTrackEvent({ 
-				category: 'Behavior', 
-				action: 'MoreGames', 
+				category: 'Behavior',
+				action: 'MoreGames',
 				game_title: config.game.title,
-				label: config.contentId, 
-				valuable_cd: 'No', 
-				action_cd: 'Yes' 
+				label: config.contentId,
+				valuable_cd: 'No',
+				action_cd: 'Yes'
 			});
         	document.location.href = document.location.origin;
         };
+
+        link.addEventListener('touchend', handleClick, false);
+        link.addEventListener("click", handleClick, false);
         link.setAttribute("id", "gfsdk-more-games");
 		
 		// default style
