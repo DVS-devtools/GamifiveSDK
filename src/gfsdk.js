@@ -299,6 +299,15 @@ var GamefiveSDK = new function() {
         link.href = "javascript: void(0);";
         link.onclick = function(){ 
         	console.log("GamifiveSDK", "More Games Button", "OnClick Action", document.location.origin);
+        	GameOverCore.trackEvent('Behavior', 'MoreGames', config.contentId, { game_title: config.game.title, valuable_cd: 'No', action_cd: 'yes' });	
+        	newtonTrackEvent({ 
+				category: 'Behavior', 
+				action: 'MoreGames', 
+				game_title: config.game.title,
+				label: config.contentId, 
+				valuable_cd: 'No', 
+				action_cd: 'Yes' 
+			});
         	document.location.href = document.location.origin;
         };
         link.setAttribute("id", "gfsdk-more-games");
