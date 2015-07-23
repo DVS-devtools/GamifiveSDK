@@ -32,6 +32,7 @@ var GamefiveSDK = new function() {
 	* @param {boolean} [param.debug] - Set debug mode
 	* @param {boolean} [param.log] - Enable/disable logging
 	* @param {boolean} [param.lite] - If true SDK doesn't implement GameOver status 
+	* @param {object} [param.moreGamesButtonStyle] - optional style for More Games button element
 	*/
 	this.init = function(param){
 		// get param
@@ -64,10 +65,11 @@ var GamefiveSDK = new function() {
 		}
 
 		var trackGameLoad = function(){
-			GameOverCore.trackEvent('Play', 'GameLoad', config.contentId, { valuable_cd: 'Yes', action_cd: 'Yes' });
+			GameOverCore.trackEvent('Play', 'GameLoad', config.contentId, { game_title: config.game.title, valuable_cd: 'Yes', action_cd: 'Yes' });
 			newtonTrackEvent({ 
 				category: 'Play', 
 				action: 'GameLoad', 
+				game_title: config.game.title,
 				label: config.contentId, 
 				valuable_cd: 'Yes', 
 				action_cd: 'Yes' 
@@ -98,6 +100,9 @@ var GamefiveSDK = new function() {
 				trackGameLoad();
 			});
 		}
+
+		setTimeout(function(){showMoreGamesButton(config.moreGamesButtonStyle);}, 1000);
+
 	}
 
 	/**
@@ -177,10 +182,11 @@ var GamefiveSDK = new function() {
 		}
 
 		// TRACKING
-		GameOverCore.trackEvent('Play', 'GameStart', config.contentId, { valuable_cd: 'Yes', action_cd: 'Yes' });
+		GameOverCore.trackEvent('Play', 'GameStart', config.contentId, { game_title: config.game.title, valuable_cd: 'Yes', action_cd: 'Yes' });
 		newtonTrackEvent({ 
 			category: 'Play', 
 			action: 'GameStart', 
+			game_title: config.game.title,
 			label: config.contentId, 
 			valuable_cd: 'Yes', 
 			action_cd: 'Yes' 
@@ -222,7 +228,7 @@ var GamefiveSDK = new function() {
 				queryParams.challenge_id = config.challenge.id;
 			} 
 
-			if (typeof config.level != 'undefined'){
+			if (typeof config.user.level != 'undefined'){
 				queryParams.level = config.user.level;
 			}
 
@@ -270,14 +276,52 @@ var GamefiveSDK = new function() {
 		}	
 
 		// TRACKING
-		GameOverCore.trackEvent('Play', 'GameEnd', config.contentId, { valuable_cd: 'No', action_cd: 'No' });	
+		GameOverCore.trackEvent('Play', 'GameEnd', config.contentId, { game_title: config.game.title, valuable_cd: 'No', action_cd: 'No' });	
 		newtonTrackEvent({ 
 			category: 'Play', 
 			action: 'GameEnd', 
+			game_title: config.game.title,
 			label: config.contentId, 
 			valuable_cd: 'No', 
 			action_cd: 'No' 
 		});
+	}
+
+	/**
+	* Shows the "More Games" icon. 
+	* By clicking on this button the user will be redirected to the homepage.
+	*/
+
+	var showMoreGamesButton = function(style){
+        var link = document.createElement('a');
+        
+        // assign the outgoing click     
+        link.href = "javascript: void(0);";
+        link.onclick = function(){ 
+        	console.log("GamifiveSDK", "More Games Button", "OnClick Action", document.location.origin);
+        	document.location.href = document.location.origin;
+        };
+        link.setAttribute("id", "gfsdk-more-games");
+		
+		// default style
+		link.style.left = '2px';
+		link.style.height = '44px';
+		link.style['background-position'] = '-22px -428px';
+		link.style.top = '50%';
+		link.style['margin-top'] = '-22px';
+		link.style['z-index'] = "9";
+		link.style.width = '43px';
+		link.style.position = 'absolute';
+		link.style.display = 'block';
+
+        for (var key in style){
+        	link.style[key] = style[key];
+        }
+
+		link.style['background-image'] = 'url(http://www.giochissimo.it/gmenu/sprite.png)';
+		
+		// Adds the element to the document
+        document.body.appendChild(link);
 	}
 
 	/**

@@ -23,13 +23,17 @@ The SDK can be initialized calling its <i>init</i> method with a <i>param</i> ob
     <li>
         <i><b>lite</b></i> (boolean): toggles lite mode, if <i>true</i> a reduced set of functionalities is used, in particular the GameOver screen is not loaded;
     </li>
+    <li> 
+        <i><b>moreGamesButtonStyle</b></i> (object): defines the css style of the "more games" button.  
+    </li>
 </ul>
 <h3> Example </h3>
 
 ```javascript
 GamifiveSDK.init({ 
 	lite: false,
-	debug: true
+	debug: true,
+	moreGamesButtonStyle: { display: 'none'} // disables more games button
 });
 ```
 The <i>init</i> method will store the configuration parameters into the module and perform the operations needed for properly initializing the SDK (if you are not using the lite version). 
@@ -108,7 +112,15 @@ To end a session in non-lite mode, you have to:
 
 <ol>
 	<li>call <i>GamifiveSDK.endSession()</i> method.
-		You should call it passing an object as parameter, containing the field <b>score</b>, which is the score realized by the player during the game session. This value must be a number (not string).
+		You should call it passing an object as parameter - this object can contain:
+	   <ul> 
+    	   <li> an attribute <b>score</b>, which is the score realized by the player during the game session. This value must be a number (not string). </li>
+    	   <li> an attribute <b>level</b>, which is the level reached by the player during the game session. This value must be a number and it will be saved for later use in the sdk configuration (you can retrieve it into <b>GamifiveSDK.getConfig().user.level</b>).
+    	   </li>
+    	   <li>
+    	   No attributes at all: in this case the SDK will only save the game session (starting and ending time).
+    	   </li>
+	   </ul>
 	</li>
 	<li>remove your game over screen - you have to remove your game over screen because the SDK also displays a game over screen. If you don't remove your game over screen, there will be two duplicate screens
 	</li>
