@@ -101,9 +101,20 @@ Usually - but not necessarily - endSession occurs in the 'Game Over' state.
 
 <h3>Lite Mode</h3>
 
-To end a session in lite mode, you just have to call <i>GamifiveSDK.endSession()</i> method.
-		
-You should call it passing an object as parameter, containing the field <b>score</b>, which is the score realized by the player during the game session. This value must be a number (not string).
+To end a session in lite mode, you have to:
+
+<ol>
+	<li>call <i>GamifiveSDK.endSession()</i> method.
+		You should call it passing an object as parameter - this object can contain:
+	   <ul> 
+    	   <li> an attribute <b>level</b>, which is the level reached by the player during the game session. This value must be a number and it will be saved for later use in the sdk configuration (you can retrieve it into <b>GamifiveSDK.getConfig().user.level</b>).
+    	   </li>
+    	   <li>
+    	   No attributes at all: in this case the SDK will only save the game session (starting and ending time).
+    	   </li>
+	   </ul>
+	</li>
+</ol>
 
 		 
 <h3>Normal (non-lite) Mode</h3>
