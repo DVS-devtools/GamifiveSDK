@@ -24,7 +24,7 @@ The SDK can be initialized calling its <i>init</i> method with a <i>param</i> ob
         <i><b>lite</b></i> (boolean): toggles lite mode, if <i>true</i> a reduced set of functionalities is used, in particular the GameOver screen is not loaded;
     </li>
     <li> 
-        <i><b>moreGamesButtonStyle</b></i> (object): defines the css style of the "more games" button.  
+        <i><b>moreGamesButtonStyle</b></i> (object): defines the css style of the "more games" button. If present, the button will be displayed (you can pass an empty object for using the default style). If not present, the button won't be displayed.
     </li>
 </ul>
 <h3> Example </h3>
@@ -33,7 +33,7 @@ The SDK can be initialized calling its <i>init</i> method with a <i>param</i> ob
 GamifiveSDK.init({ 
 	lite: false,
 	debug: true,
-	moreGamesButtonStyle: { display: 'none'} // disables more games button
+	moreGamesButtonStyle: { } // shows more games button with default style
 });
 ```
 The <i>init</i> method will store the configuration parameters into the module and perform the operations needed for properly initializing the SDK (if you are not using the lite version). 
