@@ -101,7 +101,11 @@ var GamefiveSDK = new function() {
 			});
 		}
 
-		setTimeout(function(){showMoreGamesButton(config.moreGamesButtonStyle);}, 1000);
+		setTimeout(function(){
+			if (!!config.moreGamesButtonStyle) {
+				showMoreGamesButton(config.moreGamesButtonStyle);
+			};
+		}, 1000);
 
 	}
 
