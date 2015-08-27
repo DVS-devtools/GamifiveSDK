@@ -65,11 +65,15 @@ var GamefiveSDK = new function() {
 		}
 
 		var trackGameLoad = function(){
-			GameOverCore.trackEvent('Play', 'GameLoad', config.contentId, { game_title: config.game.title, valuable_cd: 'Yes', action_cd: 'Yes' });
+			var gameTitle = config.game.title;
+			if (!gameTitle){
+				Utils.log("GamifiveSDK", "trackGameLoad", "game title is not defined");
+			}
+			GameOverCore.trackEvent('Play', 'GameLoad', config.contentId, { game_title: gameTitle, valuable_cd: 'Yes', action_cd: 'Yes' });
 			newtonTrackEvent({ 
 				category: 'Play', 
 				action: 'GameLoad', 
-				game_title: config.game.title,
+				game_title: gameTitle,
 				label: config.contentId, 
 				valuable_cd: 'Yes', 
 				action_cd: 'Yes' 
@@ -87,7 +91,7 @@ var GamefiveSDK = new function() {
 		} else {
 			// mock newtonTrackEvent
 			window.newtonTrackEvent = function(){
-				console.log(arguments);
+				Utils.log(arguments);
 			};
 
 			config.CHALLENGE_MESSAGE = 'You successfully invited your friends!';
@@ -301,7 +305,7 @@ var GamefiveSDK = new function() {
         
         // assign the outgoing click     
         var handleClick = function(){ 
-        	console.log("GamifiveSDK", "More Games Button", "OnClick Action", document.location.origin);
+        	Utils.log("GamifiveSDK", "More Games Button", "OnClick Action", document.location.origin);
         	GameOverCore.trackEvent('Behavior', 'MoreGames', config.contentId, { game_title: config.game.title, valuable_cd: 'No', action_cd: 'yes' });	
         	newtonTrackEvent({ 
 				category: 'Behavior',

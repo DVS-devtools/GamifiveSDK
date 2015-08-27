@@ -145,7 +145,7 @@ var GameOverCore = new function() {
 		GamefiveSDK.onEvent('user_credits_updated', function(e) {
 			// hide paywall, if present
 			Utils.hide("paywall");
-			console.log("GamifiveSDK", "showMessage", e);
+			Utils.log("GamifiveSDK", "showMessage", e);
 			// show message
 			_this.showMessage(e.title, e.message, e.success);
 			
