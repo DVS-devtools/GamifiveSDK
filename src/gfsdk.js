@@ -7,7 +7,7 @@
 var GamefiveSDK = new function() {
 
 	var config = new Object();
-
+	var sdkInstance = this;
 
 
 	/********************************************
@@ -69,6 +69,7 @@ var GamefiveSDK = new function() {
 			if (!gameTitle){
 				Utils.log("GamifiveSDK", "trackGameLoad", "game title is not defined");
 			}
+			
 			GameOverCore.trackEvent('Play', 'GameLoad', config.contentId, { game_title: gameTitle, valuable_cd: 'Yes', action_cd: 'Yes' });
 			newtonTrackEvent({ 
 				category: 'Play', 
@@ -107,7 +108,7 @@ var GamefiveSDK = new function() {
 
 		setTimeout(function(){
 			if (!!config.moreGamesButtonStyle) {
-				showMoreGamesButton(config.moreGamesButtonStyle);
+				this.showMoreGamesButton(config.moreGamesButtonStyle);
 			};
 		}, 1000);
 
@@ -296,30 +297,39 @@ var GamefiveSDK = new function() {
 	}
 
 	/**
+	* Go to Homepage and track this event on Newton and Analytics 
+	*/
+	this.goToHome = function(){ 
+    	Utils.log("GamifiveSDK", "Go To Homepage", document.location.origin);
+    	GameOverCore.trackEvent('Behavior', 'MoreGames', config.contentId, 
+    		{ 
+    			game_title: config.game.title, 
+    			valuable_cd: 'No', 
+    			action_cd: 'yes' 
+    		}
+    	);	
+    	newtonTrackEvent({ 
+			category: 'Behavior',
+			action: 'MoreGames',
+			game_title: config.game.title,
+			label: config.contentId,
+			valuable_cd: 'No',
+			action_cd: 'Yes'
+		});
+    	document.location.href = document.location.origin;
+    };
+
+	/**
 	* Shows the "More Games" icon. 
 	* By clicking on this button the user will be redirected to the homepage.
 	*/
 
-	var showMoreGamesButton = function(style){
+	this.showMoreGamesButton = function(style){
         var link = document.createElement('a');
         
         // assign the outgoing click     
-        var handleClick = function(){ 
-        	Utils.log("GamifiveSDK", "More Games Button", "OnClick Action", document.location.origin);
-        	GameOverCore.trackEvent('Behavior', 'MoreGames', config.contentId, { game_title: config.game.title, valuable_cd: 'No', action_cd: 'yes' });	
-        	newtonTrackEvent({ 
-				category: 'Behavior',
-				action: 'MoreGames',
-				game_title: config.game.title,
-				label: config.contentId,
-				valuable_cd: 'No',
-				action_cd: 'Yes'
-			});
-        	document.location.href = document.location.origin;
-        };
-
-        link.addEventListener('touchend', handleClick, false);
-        link.addEventListener("click", handleClick, false);
+        link.addEventListener('touchend', sdkInstance.goToHome, false);
+        link.addEventListener("click", sdkInstance.goToHome, false);
         link.setAttribute("id", "gfsdk-more-games");
 		
 		// default style
