@@ -103,6 +103,7 @@ var GamefiveSDK = new function() {
 				Utils.copyProperties(resp, config);
 				initPost();
 				trackGameLoad();
+				config.user.level = parseInt(localStorage.getItem(config.user.userId + ":" + config.contentId));
 			});
 		}
 
@@ -222,6 +223,9 @@ var GamefiveSDK = new function() {
 
 		if (!!param.level){
 			config.user.level = parseInt(param.level);
+			if (config.debug){
+				localStorage.setItem( config.user.userId + ":" + config.contentId, parseInt(config.user.level));
+			}
 		}
 
 		if(!config.lite){
@@ -262,8 +266,8 @@ var GamefiveSDK = new function() {
 	      		'userId': config.userId
 			};
 
-			if (typeof config.level != 'undefined'){
-				queryParams.level = config.level;
+			if (typeof config.user.level != 'undefined'){
+				queryParams.level = config.user.level;
 			}
 
 			// call gameover API

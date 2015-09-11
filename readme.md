@@ -147,6 +147,18 @@ GamifiveSDK.endSession({
 
 <h1>Other methods</h1>
 
+<h2>showMoreGamesButton</h2>
+
+Shows a built-in more games button with default graphics.
+
+GamifiveSDK.showMoreGamesButton(); // displays the button 
+
+<h2>goToHome</h2>
+  
+Redirects to Gamifive's Homepage. Call this function when your more games button is clicked (you don't need to call this function if you use the built-in more games button because it already calls this function by default).
+
+GamifiveSDK.goToHome(); // performs a redirect to the homepage
+
 <h2>getAvatar</h2>
 You can get the user's avatar by calling <i>GamifiveSDK.getAvatar()</i>.
 
