@@ -117,6 +117,10 @@ To end a session in lite mode, you have to:
 	</li>
 </ol>
 
+Here's a simple schema of the flow you have to follow for saving and retrieving the level reached by the player.
+<img src="http://s2.motime.com/js/wl/webstore_html5game/gfsdk/manual/levelsaving.png" width="100%" />
+
+
 		 
 <h3>Normal (non-lite) Mode</h3>
 

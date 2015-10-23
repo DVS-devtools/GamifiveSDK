@@ -264,16 +264,16 @@ var GameOverCore = new function() {
 		var ico = document.getElementById(heartIconId);
 
 		if (value){
-			if (btn.className.indexOf('heart-active') < 0){				
+			if (!!btn && btn.className.indexOf('heart-active') < 0){				
 				btn.className += ' heart-active ';
 			}
-			if (ico.className.indexOf('ico-red') < 0){				
+			if (!!ico && ico.className.indexOf('ico-red') < 0){				
 				ico.className += ' ico-red ';
 			}
 		}
 		else {
-			btn.className = btn.className.replace('heart-active', '');
-			ico.className = ico.className.replace('ico-red', '');
+			if (!!btn) btn.className = btn.className.replace('heart-active', '');
+			if (!!ico) ico.className = ico.className.replace('ico-red', '');
 		}
 	}
 
@@ -281,6 +281,11 @@ var GameOverCore = new function() {
 		// Favorites
 
 		var _this = this;
+
+		if (GamifiveSDK.getConfig().user.userGuest){
+			Utils.log("GamifiveSDK", "like", "blocked for guest user");
+			return;
+		}
 
 		var favorites_params = {	
 			"apikey": apiKey,
@@ -321,6 +326,11 @@ var GameOverCore = new function() {
 
 		// Favorites
 		var _this = this;
+
+		if (GamifiveSDK.getConfig().user.userGuest){
+			Utils.log("GamifiveSDK", "dislike", "blocked for guest user");
+			return;
+		}
 
 		var favorites_params = {	
 			"apikey": apiKey,
@@ -363,9 +373,6 @@ var GameOverCore = new function() {
 			"apikey": apiKey
 		}
 
-		var url = MOA_API_FAVORITES_GET;
-		url += createQuery(favorites_params);
-
 		if (!this.getStatus(window.contentId)){
 			this.like(window.contentId);
 		}
@@ -381,6 +388,12 @@ var GameOverCore = new function() {
 	}
 
 	this.setLikesList = function(callback){
+
+		if (GamifiveSDK.getConfig().user.userGuest){
+			Utils.log("GamifiveSDK", "set likes list", "blocked for guest user");
+			return;
+		}
+
 		var favorites_params = {
 			"apikey": apiKey,
 			"size": 51 // delete

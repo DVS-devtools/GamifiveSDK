@@ -87,7 +87,7 @@ var FBConnector = new function() {
 				'&redirect_uri=' + window.location.origin
 			].join('');
 			// fallback for mobile devices
-			window.open(targetUrl, '_blank');
+			window.open(targetUrl, '_parent'); //'_blank');
 		}
 		else {
 			FB.ui({

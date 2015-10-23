@@ -84,8 +84,13 @@ var GamefiveSDK = new function() {
 		// get window.GamifiveInfo
 		if(!config.debug){
 			Utils.copyProperties(window.GamifiveInfo, config);
+			if (typeof config.user != 'undefined'){
+				config.user.userGuest = !config.user.userFreemium && !config.user.userId; 
+			}
 			initPost();
 			trackGameLoad();
+
+			// from ga_for_game
 			config.CHALLENGE_MESSAGE = CHALLENGE_MESSAGE;
 			config.MESSAGE_ERROR = MESSAGE_ERROR;
 			config.MESSAGE_ERROR_TITLE = MESSAGE_ERROR_TITLE;
@@ -109,7 +114,7 @@ var GamefiveSDK = new function() {
 
 		setTimeout(function(){
 			if (!!config.moreGamesButtonStyle) {
-				this.showMoreGamesButton(config.moreGamesButtonStyle);
+				sdkInstance.showMoreGamesButton(config.moreGamesButtonStyle);
 			};
 		}, 1000);
 
@@ -249,7 +254,7 @@ var GamefiveSDK = new function() {
 			Utils.xhr('GET', API('gameover', queryParams), function (resp, req) {
 				// render page with resp
 				sdkElement.create(resp);
-				if (!config.debug) {
+				if (!config.debug && !getAdditionalInfo().guest) {
 					GameOverCore.initializeLike();
 				};
 			});
@@ -512,7 +517,7 @@ var GamefiveSDK = new function() {
 			FBConnector.invite(param, function(invResp){
 				Utils.log("GamifiveSDK", "invite", "FBConnector.invite", invResp);
 
-				if(!!invResp && invResp.to.length > 0) {
+				if(!!invResp && invResp.to.length > 0 && !config.user.userGuest) {
 					// call updateCredits API
 					if (!!config.user && config.user.userFreemium){
 						Utils.xhr('GET', API('updateCredits', {
@@ -521,7 +526,7 @@ var GamefiveSDK = new function() {
 							}), function(updResp){
 								throwEvent('user_credits_updated', updResp);
 						});
-					} 
+					}
 					else {
 						throwEvent('user_credits_updated', {title: "", message: config.CHALLENGE_MESSAGE, success: true});
 					}
