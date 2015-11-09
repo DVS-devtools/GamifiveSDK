@@ -8,7 +8,7 @@ var GamefiveSDK = new function() {
 
 	var config = new Object();
 	var sdkInstance = this;
-
+	var Utils = GamifiveSDKUtils;
 
 	/********************************************
 	*****  EXTERNAL METHODS FOR DEVELOPERS  *****

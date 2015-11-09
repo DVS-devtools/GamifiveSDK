@@ -6,6 +6,8 @@
 
 var GameOverCore = new function() {
 
+	var Utils = GamifiveSDKUtils;
+
 	/********************************************
 	***** EXTERNAL METHODS FOR GAMEOVER TMPL ****
 	********************************************/

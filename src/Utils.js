@@ -1,15 +1,15 @@
 /**
-* Utils Module
-* @class Utils
+* GamifiveSDKUtils Module
+* @class GamifiveSDKUtils
 * @version 0.4
 */
 
-var Utils = new function() {
+var GamifiveSDKUtils = new function() {
 
 	/**
 	* Get date now (cross-browser compatibility)
 	* @function dateNow
-	* @memberof Utils
+	* @memberof GamifiveSDKUtils
 	*/
 	this.dateNow = function(){
 		if (!Date.now) {
@@ -22,7 +22,7 @@ var Utils = new function() {
 	/**
 	* Copy properties from one object to another object
 	* @function copyProperties
-	* @memberof Utils
+	* @memberof GamifiveSDKUtils
 	* @param {object} source
 	* @param {object} dest
 	*/
@@ -36,7 +36,7 @@ var Utils = new function() {
 	/**
 	* Get query string of an element's "src" attribute
 	* @function getScriptParams
-	* @memberof Utils
+	* @memberof GamifiveSDKUtils
 	* @param {object} selector - selector of element (i.e. #gfsdk)
 	*/
 	this.getScriptParams = function(selector) {
@@ -52,7 +52,7 @@ var Utils = new function() {
 	/**
 	* Cookie management
 	* @function cookie
-	* @memberof Utils
+	* @memberof GamifiveSDKUtils
 	*/
 	this.cookie = {
 		get: function (sKey) {
@@ -105,9 +105,12 @@ var Utils = new function() {
 	/**
 	* Get only domain name (window.location.origin)
 	* @function getAbsoluteUrl
-	* @memberof Utils
+	* @memberof GamifiveSDKUtils
 	*/
 	this.getAbsoluteUrl = function() {
+		if (!window.location.origin) {
+		  window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
+		}
 		return window.location.origin;
 	}
 
@@ -117,7 +120,7 @@ var Utils = new function() {
 	* @param {string} method - method of request (GET, POST...)
 	* @param {string} url - url of request
 	* @param {function} callback - callback called when request finished and response is ready 
-	* @memberof Utils
+	* @memberof GamifiveSDKUtils
 	*/
 	this.xhr = function(method, url, callback) {
 		var xhr = new XMLHttpRequest();
@@ -141,7 +144,7 @@ var Utils = new function() {
 	* Convert an object to a query string
 	* @function querify
 	* @param {object} obj - object to be converted
-	* @memberof Utils
+	* @memberof GamifiveSDKUtils
 	*/
 	this.querify = function(obj) {
 		if (!obj) return '';
@@ -157,7 +160,7 @@ var Utils = new function() {
 	* Convert a query string to an object
 	* @function dequerify
 	* @param {string} query - string to be converted
-	* @memberof Utils
+	* @memberof GamifiveSDKUtils
 	*/
 	this.dequerify = function(query) {
 		var params = new Object();
@@ -180,7 +183,7 @@ var Utils = new function() {
 	/**
 	* Enable log
 	* @function enableLog
-	* @memberof Utils
+	* @memberof GamifiveSDKUtils
 	* @param {boolean} enable
 	*/
 	var flagLog = false;
@@ -191,7 +194,7 @@ var Utils = new function() {
 	/**
 	* Log
 	* @function log
-	* @memberof Utils
+	* @memberof GamifiveSDKUtils
 	* @param content
 	*/
 	this.log = function() {
@@ -207,7 +210,7 @@ var Utils = new function() {
 	/**
 	* Debug
 	* @function error
-	* @memberof Utils
+	* @memberof GamifiveSDKUtils
 	* @param content
 	*/
 	this.debug = function() {
@@ -221,7 +224,7 @@ var Utils = new function() {
 	/**
 	* Error
 	* @function error
-	* @memberof Utils
+	* @memberof GamifiveSDKUtils
 	* @param content
 	*/
 	this.error = function() {
@@ -235,7 +238,7 @@ var Utils = new function() {
 	/**
 	* Verify if an element has class
 	* @function hasClass
-	* @memberof Utils
+	* @memberof GamifiveSDKUtils
 	* @param {string} id - id of element
 	* @param {string} className - class name
 	*/
@@ -246,7 +249,7 @@ var Utils = new function() {
 	/**
 	* Show element
 	* @function show
-	* @memberof Utils
+	* @memberof GamifiveSDKUtils
 	* @param {string} id - id of element
 	*/
 	this.show = function(id){
@@ -260,7 +263,7 @@ var Utils = new function() {
 	/**
 	* Hide element
 	* @function hide
-	* @memberof Utils
+	* @memberof GamifiveSDKUtils
 	* @param {string} id - id of element
 	*/
 	this.hide = function(id){
