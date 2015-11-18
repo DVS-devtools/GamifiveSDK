@@ -18,7 +18,7 @@ The SDK can be initialized calling its <i>init</i> method with a <i>param</i> ob
 
 <ul>
     <li>
-        <i><b>debug</b></i> (boolean): toggles debug mode, if <i>true</i> a mock API is used instead of the original and log is enabled;
+        <i><b>debug</b></i> (boolean): toggles debug mode, if <i>true</i> a mock API is used instead of the original and log is enabled. If you're testing your game outside Gamifive's environment, you must set debug: true, otherwise the SDK will try to use a set of API that are not available into your environment. See https://github.com/BuongiornoMIP/GamifiveSDK/wiki/Debug-mode for further details;
     </li>
     <li>
         <i><b>lite</b></i> (boolean): toggles lite mode, if <i>true</i> a reduced set of functionalities is used, in particular the GameOver screen is not loaded. Lite mode is useful for integrating the SDK into level-based games, so that the game's flow won't get interrupted by the gameover screen. Normal (non-lite) mode, instead, is meant to be used for other kind of games, i.e. those that feature an endless gameplay experience;
