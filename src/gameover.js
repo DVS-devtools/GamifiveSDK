@@ -70,7 +70,7 @@ var GameOverCore = new function() {
 
 		var callback = function(resp){
 			Utils.log("GamifiveSDK", "share", resp)
-			if (typeof resp.error_code != 'undefined'){
+			if (typeof resp.error_code !== 'undefined' || typeof resp.errorMessage !== 'undefined'){
 				Utils.log("GamifiveSDK", "share", "abort", resp);
 			}
 			else {

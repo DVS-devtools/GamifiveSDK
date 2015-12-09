@@ -287,10 +287,10 @@ var GamefiveSDK = new function() {
 			Utils.error("GamifiveSDK", "ERROR", "startSession has not been called");
 		}
 
-		if (typeof(config.score) == 'number'){
+		if (!config.score || typeof(config.score) == 'number'){
 			Utils.debug("GamifiveSDK", "OK", "score has been set correctly");
 		} else {
-			Utils.error("GamifiveSDK", "ERROR", "missing score value");
+			Utils.error("GamifiveSDK", "ERROR", "illegal score value type");
 		}	
 
 		// TRACKING
@@ -308,7 +308,7 @@ var GamefiveSDK = new function() {
 	/**
 	* Go to Homepage and track this event on Newton and Analytics 
 	*/
-	this.goToHome = function(){ 
+	this.goToHome = function(){
     	Utils.log("GamifiveSDK", "Go To Homepage", document.location.origin);
     	GameOverCore.trackEvent('Behavior', 'MoreGames', config.contentId, 
     		{ 
@@ -335,7 +335,7 @@ var GamefiveSDK = new function() {
 
 	this.showMoreGamesButton = function(style){
         var link = document.createElement('a');
-        
+
         // assign the outgoing click     
         link.addEventListener('touchend', sdkInstance.goToHome, false);
         link.addEventListener("click", sdkInstance.goToHome, false);
@@ -356,7 +356,8 @@ var GamefiveSDK = new function() {
         	link.style[key] = style[key];
         }
 
-		link.style['background-image'] = 'url(http://www.giochissimo.it/gmenu/sprite.png)';
+        // moreGamesButtonSprite from ga_for_game.tmpl
+		link.style['background-image'] = 'url(' + moreGamesButtonSprite + ')';
 		
 		// Adds the element to the document
         document.body.appendChild(link);

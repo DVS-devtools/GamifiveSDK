@@ -15,12 +15,14 @@ var FBConnector = new function() {
 	* @memberof FBConnector
 	*/
 	this.start = function() {
-		var d = document, s = 'script', id = 'facebook-jssdk'; 
-		var js, fjs = d.getElementsByTagName(s)[0];
-		if (d.getElementById(id)) return;
-		js = d.createElement(s); js.id = id;
-		js.src = "//connect.facebook.net/en_US/sdk.js";
-		fjs.parentNode.insertBefore(js, fjs);
+		if (parseInt(localStorage.getItem('hybrid')) !== 1){
+			var d = document, s = 'script', id = 'facebook-jssdk'; 
+			var js, fjs = d.getElementsByTagName(s)[0];
+			if (d.getElementById(id)) return;
+			js = d.createElement(s); js.id = id;
+			js.src = "//connect.facebook.net/en_US/sdk.js";
+			fjs.parentNode.insertBefore(js, fjs);
+		}
 	}
 
 	/**
@@ -63,12 +65,19 @@ var FBConnector = new function() {
 	* @param {function} callback - callback function after FB.ui
 	*/
 	this.share = function(url, callback) {
-		FB.ui({
-			method: 'share',
-			href: url,
-		}, function(response){
-			callback(response);
-		});
+		if (parseInt(localStorage.getItem('hybrid')) === 1){
+
+			Stargate.facebookShare(url, callback, function(error){
+				console.error("GamifiveSDK :: fb share error", error);
+			});
+		} else {
+			FB.ui({
+				method: 'share',
+				href: url,
+			}, function(response){
+				callback(response);
+			});
+		}
 	}
 
 	/**
