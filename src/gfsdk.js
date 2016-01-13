@@ -9,11 +9,58 @@ var GamefiveSDK = new function() {
 	var config = new Object();
 	var sdkInstance = this;
 	var Utils = GamifiveSDKUtils;
+	var STATUS_KEY = 'GamifiveSDKStatus';
+
+	var storage;
+	if (typeof Dixie !== 'undefined'){
+		// inside Gamifive: Dixie is defined
+		storage = new Dixie();
+		storage.init({type: 'localStorage'});
+	} else {
+		// debug mode: Dixie is not defined
+		storage = new function(){
+			this.set = function(key, obj){
+				localStorage.setItem(key, JSON.stringify(obj));
+			}
+			this.get = function(key){
+				return JSON.parse(localStorage.getItem(key));
+			}
+			this.delete = function(key){
+				localStorage.removeItem(key);
+			}
+		}
+	}
 
 	/********************************************
 	*****  EXTERNAL METHODS FOR DEVELOPERS  *****
 	********************************************/ 
 
+	/**
+	* Saves an object to record the status of the game
+	* @function saveStatus
+	* @memberof Gfsdk
+	*/
+	this.saveUserData = function(obj){
+		storage.set(STATUS_KEY, obj);
+	}
+
+	/**
+	* Returns the status of the game
+	* @function getStatus
+	* @memberof Gfsdk
+	*/
+	this.loadUserData = function(){
+		return storage.get(STATUS_KEY);
+	}
+
+	/**
+	* Deletes the status of the game
+	* @function clearStatus
+	* @memberof Gfsdk
+	*/
+	this.clearUserData = function(){
+		storage.delete(STATUS_KEY);
+	}
 
 	/**
 	* Reset GamefiveSDK
@@ -287,10 +334,12 @@ var GamefiveSDK = new function() {
 			Utils.error("GamifiveSDK", "ERROR", "startSession has not been called");
 		}
 
-		if (!config.score || typeof(config.score) == 'number'){
-			Utils.debug("GamifiveSDK", "OK", "score has been set correctly");
-		} else {
-			Utils.error("GamifiveSDK", "ERROR", "illegal score value type");
+		if (typeof config.score !== 'undefined'){
+			if (typeof(config.score) == 'number'){
+				Utils.debug("GamifiveSDK", "OK", "score has been set correctly");
+			} else {
+				Utils.error("GamifiveSDK", "ERROR", "illegal score value type");
+			}
 		}	
 
 		// TRACKING

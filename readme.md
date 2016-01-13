@@ -151,6 +151,55 @@ GamifiveSDK.endSession({
 
 <h1>Other methods</h1>
 
+<h2>saveUserData</h2>
+Saves an Object containing the player's progress (after converting it to a JSON string).
+
+```javascript
+// the structure of this object is just an example
+var playerProgress = { 
+    level1: { 
+        unlocked: true, 
+        stars: 3
+    }, 
+    level2: {
+        unlocked: false, 
+        stars: 0
+    } 
+};
+  
+// saves the object containing the player's progress
+GamifiveSDK.saveUserData(playerProgress); 
+```
+
+<h2>loadUserData</h2>  
+Retrieves the JSON string containing the player's progress and returns it as a JavaScript Object. 
+  
+```javascript
+// returns an object containing the player's progress
+var playerProgress = GamifiveSDK.loadUserData(); 
+```
+Beware that JSON doesn't save undefined properties, so if you try to save
+
+```javascript
+GamifiveSDK.saveUserData({A: undefined, B: 2}); 
+```
+when you read the object back, you get
+
+```javascript
+var myProgress = GamifiveSDK.loadUserData();
+console.log(myProgress); 
+>> {B: 2}
+```
+
+<h2>clearUserData</h2>
+Deletes the player's progress.
+
+  
+```javascript
+// the previously saved progress is deleted
+GamifiveSDK.clearUserData(); 
+```
+
 <h2>showMoreGamesButton</h2>
 
 Shows a built-in more games button with default graphics.
