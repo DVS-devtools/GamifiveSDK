@@ -152,7 +152,7 @@ GamifiveSDK.endSession({
 <h1>Other methods</h1>
 
 <h2>saveUserData</h2>
-Saves an Object containing the player's progress (after converting it to a JSON string).
+Saves an Object containing the player's progress.
 
 ```javascript
 // the structure of this object is just an example
@@ -171,14 +171,18 @@ var playerProgress = {
 GamifiveSDK.saveUserData(playerProgress); 
 ```
 
-<h2>loadUserData</h2>  
+GamifiveSDK.saveUserData internally uses JSON.stringify and actually saves the object as a string, but this is an internal procedure and **you MUST pass an object**, not a JSON string, as a parameter to GamifiveSDK.saveUserData.
+
+
+<h2>UserData</h2>  
 Retrieves the JSON string containing the player's progress and returns it as a JavaScript Object. 
   
 ```javascript
 // returns an object containing the player's progress
-var playerProgress = GamifiveSDK.loadUserData(); 
+var playerProgress = GamifiveSDK.getUserData(); 
 ```
-Beware that JSON doesn't save undefined properties, so if you try to save
+
+Beware that JSON.stringify (used inside GamifiveSDK.saveUserData) ignores undefined properties, so if you try to save
 
 ```javascript
 GamifiveSDK.saveUserData({A: undefined, B: 2}); 
@@ -186,7 +190,7 @@ GamifiveSDK.saveUserData({A: undefined, B: 2});
 when you read the object back, you get
 
 ```javascript
-var myProgress = GamifiveSDK.loadUserData();
+var myProgress = GamifiveSDK.getUserData();
 console.log(myProgress); 
 >> {B: 2}
 ```
