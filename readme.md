@@ -174,7 +174,7 @@ GamifiveSDK.saveUserData(playerProgress);
 GamifiveSDK.saveUserData internally uses JSON.stringify and actually saves the object as a string, but this is an internal procedure and **you MUST pass an object**, not a JSON string, as a parameter to GamifiveSDK.saveUserData.
 
 
-<h2>UserData</h2>  
+<h2>loadUserData</h2>  
 Retrieves the JSON string containing the player's progress and returns it as a JavaScript Object. 
   
 ```javascript
