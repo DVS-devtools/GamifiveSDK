@@ -9,31 +9,23 @@ var GamefiveSDK = new function() {
 	var config = new Object();
 	var sdkInstance = this;
 	var Utils = GamifiveSDKUtils;
-	var STATUS_KEY = 'GamifiveSDKStatus';
+	var moreGamesLink;
 
-	var storage;
-	if (typeof Dixie !== 'undefined'){
-		// inside Gamifive: Dixie is defined
-		storage = new Dixie();
-		storage.init({type: 'localStorage'});
-	} else {
-		// debug mode: Dixie is not defined
-		storage = new function(){
-			this.set = function(key, obj){
-				localStorage.setItem(key, JSON.stringify(obj));
-			}
-			this.get = function(key){
-				return JSON.parse(localStorage.getItem(key));
-			}
-			this.delete = function(key){
-				localStorage.removeItem(key);
-			}
-		}
-	}
+	// default key for guest (unknown) user's data
+	var userStatusKey = 'GamifiveSDKStatus_unknown';
 
 	/********************************************
 	*****  EXTERNAL METHODS FOR DEVELOPERS  *****
 	********************************************/ 
+
+	/**
+	* Returns the status of the game
+	* @function getStatus
+	* @memberof Gfsdk
+	*/
+	this.loadUserData = function(callback){
+		return storage.get(userStatusKey);
+	}
 
 	/**
 	* Saves an object to record the status of the game
@@ -41,16 +33,7 @@ var GamefiveSDK = new function() {
 	* @memberof Gfsdk
 	*/
 	this.saveUserData = function(obj){
-		storage.set(STATUS_KEY, obj);
-	}
-
-	/**
-	* Returns the status of the game
-	* @function getStatus
-	* @memberof Gfsdk
-	*/
-	this.loadUserData = function(){
-		return storage.get(STATUS_KEY);
+		storage.set(userStatusKey, obj);
 	}
 
 	/**
@@ -59,7 +42,7 @@ var GamefiveSDK = new function() {
 	* @memberof Gfsdk
 	*/
 	this.clearUserData = function(){
-		storage.delete(STATUS_KEY);
+		storage.delete(userStatusKey);
 	}
 
 	/**
@@ -117,8 +100,8 @@ var GamefiveSDK = new function() {
 				Utils.log("GamifiveSDK", "trackGameLoad", "game title is not defined");
 			}
 			
-			GameOverCore.trackEvent('Play', 'GameLoad', config.contentId, { game_title: gameTitle, valuable_cd: 'Yes', action_cd: 'Yes' });
-			newtonTrackEvent({ 
+			tryAnalyticsTrackEvent('Play', 'GameLoad', config.contentId, { game_title: gameTitle, valuable_cd: 'Yes', action_cd: 'Yes' });
+			tryNewtonTrackEvent({ 
 				category: 'Play', 
 				action: 'GameLoad', 
 				game_title: gameTitle,
@@ -134,6 +117,10 @@ var GamefiveSDK = new function() {
 			if (typeof config.user != 'undefined'){
 				config.user.userGuest = !config.user.userFreemium && !config.user.userId; 
 			}
+			if (config && config.user && config.user.userId){
+				userStatusKey = "GamifiveSDKStatus_" + config.user.userId;
+			} 
+
 			initPost();
 			trackGameLoad();
 
@@ -142,8 +129,8 @@ var GamefiveSDK = new function() {
 			config.MESSAGE_ERROR = MESSAGE_ERROR;
 			config.MESSAGE_ERROR_TITLE = MESSAGE_ERROR_TITLE;
 		} else {
-			// mock newtonTrackEvent
-			window.newtonTrackEvent = function(){
+			// mock tryNewtonTrackEvent
+			window.tryNewtonTrackEvent = function(){
 				Utils.log(arguments);
 			};
 
@@ -198,6 +185,8 @@ var GamefiveSDK = new function() {
 	this.startSession = function() {
 		Utils.log("GamifiveSDK", "startSession");
 
+		sdkInstance.hideMoreGamesButton();
+
 		// set time start
 		config.timestart = Utils.dateNow();
 
@@ -243,9 +232,17 @@ var GamefiveSDK = new function() {
 			}
 		}
 
+		console.log("gamestart", { 
+			category: 'Play', 
+			action: 'GameStart', 
+			game_title: config.game.title,
+			label: config.contentId, 
+			valuable_cd: 'Yes', 
+			action_cd: 'Yes' 
+		})
 		// TRACKING
-		GameOverCore.trackEvent('Play', 'GameStart', config.contentId, { game_title: config.game.title, valuable_cd: 'Yes', action_cd: 'Yes' });
-		newtonTrackEvent({ 
+		tryAnalyticsTrackEvent('Play', 'GameStart', config.contentId, { game_title: config.game.title, valuable_cd: 'Yes', action_cd: 'Yes' });
+		tryNewtonTrackEvent({ 
 			category: 'Play', 
 			action: 'GameStart', 
 			game_title: config.game.title,
@@ -264,6 +261,11 @@ var GamefiveSDK = new function() {
 	*/
 	this.endSession = function(param){
 		Utils.log("GamifiveSDK", "endSession", param);
+
+		// show it ONLY if it was previously created
+		if (moreGamesLink){
+			sdkInstance.showMoreGamesButton();	
+		}
 
 		// set time end
 		config.timeend = Utils.dateNow();
@@ -343,8 +345,8 @@ var GamefiveSDK = new function() {
 		}	
 
 		// TRACKING
-		GameOverCore.trackEvent('Play', 'GameEnd', config.contentId, { game_title: config.game.title, valuable_cd: 'No', action_cd: 'No' });	
-		newtonTrackEvent({ 
+		tryAnalyticsTrackEvent('Play', 'GameEnd', config.contentId, { game_title: config.game.title, valuable_cd: 'No', action_cd: 'No' });	
+		tryNewtonTrackEvent({ 
 			category: 'Play', 
 			action: 'GameEnd', 
 			game_title: config.game.title,
@@ -359,14 +361,14 @@ var GamefiveSDK = new function() {
 	*/
 	this.goToHome = function(){
     	Utils.log("GamifiveSDK", "Go To Homepage", document.location.origin);
-    	GameOverCore.trackEvent('Behavior', 'MoreGames', config.contentId, 
+    	tryAnalyticsTrackEvent('Behavior', 'MoreGames', config.contentId, 
     		{ 
     			game_title: config.game.title, 
     			valuable_cd: 'No', 
     			action_cd: 'yes' 
     		}
     	);	
-    	newtonTrackEvent({ 
+    	tryNewtonTrackEvent({ 
 			category: 'Behavior',
 			action: 'MoreGames',
 			game_title: config.game.title,
@@ -383,33 +385,45 @@ var GamefiveSDK = new function() {
 	*/
 
 	this.showMoreGamesButton = function(style){
-        var link = document.createElement('a');
+        if (!moreGamesLink){
+        	moreGamesLink = document.createElement('a');
 
-        // assign the outgoing click     
-        link.addEventListener('touchend', sdkInstance.goToHome, false);
-        link.addEventListener("click", sdkInstance.goToHome, false);
-        link.setAttribute("id", "gfsdk-more-games");
-		
+	        // assign the outgoing click     
+	        moreGamesLink.addEventListener('touchend', sdkInstance.goToHome, false);
+	        moreGamesLink.addEventListener("click", sdkInstance.goToHome, false);
+	        moreGamesLink.setAttribute("id", "gfsdk-more-games");
+	        document.body.appendChild(moreGamesLink);
+
+		}
+
+		var defaultStyle = {};
 		// default style
-		link.style.left = '2px';
-		link.style.height = '44px';
-		link.style['background-position'] = '-22px -428px';
-		link.style.top = '50%';
-		link.style['margin-top'] = '-22px';
-		link.style['z-index'] = "9";
-		link.style.width = '43px';
-		link.style.position = 'absolute';
-		link.style.display = 'block';
+		defaultStyle.left = '2px' ;
+		defaultStyle.height = '44px';
+		defaultStyle['background-position'] = '-22px -428px';
+		defaultStyle.top = '50%';
+		defaultStyle['margin-top'] = '-22px';
+		defaultStyle['z-index'] = "9";
+		defaultStyle.width = '43px';
+		defaultStyle.position = 'absolute';
+		// moreGamesButtonSprite from ga_for_game.tmpl
+		defaultStyle['background-image'] = 'url(' + moreGamesButtonSprite + ')';
 
-        for (var key in style){
-        	link.style[key] = style[key];
-        }
+		for (var key in style){
+			defaultStyle[key] = style[key];
+		}
 
-        // moreGamesButtonSprite from ga_for_game.tmpl
-		link.style['background-image'] = 'url(' + moreGamesButtonSprite + ')';
-		
-		// Adds the element to the document
-        document.body.appendChild(link);
+		for (var key in defaultStyle){
+			moreGamesLink.style[key] = defaultStyle[key];
+		}
+
+		moreGamesLink.style.display = 'block';
+	}
+
+	this.hideMoreGamesButton = function(){
+		if (moreGamesLink){
+			moreGamesLink.style.display = 'none';
+		}
 	}
 
 	/**

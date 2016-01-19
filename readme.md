@@ -206,15 +206,32 @@ GamifiveSDK.clearUserData();
 
 <h2>showMoreGamesButton</h2>
 
-Shows a built-in more games button with default graphics.
+Shows a built-in more games button. If no parameters are passed, the button is created with default style, otherwise the object passed as parameter will be used as a custom style.
 
-GamifiveSDK.showMoreGamesButton(); // displays the button 
+```javascript
+// display the button with default style:
+GamifiveSDK.showMoreGamesButton(); 
 
+// display the button with custom style:
+GamifiveSDK.showMoreGamesButton({left: '2px', height: '44px'}); 
+```
+
+<h2>hideMoreGamesButton</h2>
+
+Hides the more games button (if it was previously shown).
+
+```javascript
+GamifiveSDK.hideMoreGamesButton(); 
+```
 <h2>goToHome</h2>
   
 Redirects to Gamifive's Homepage. Call this function when your more games button is clicked (you don't need to call this function if you use the built-in more games button because it already calls this function by default).
 
-GamifiveSDK.goToHome(); // performs a redirect to the homepage
+```javascript
+// perform a redirect to the homepage
+
+GamifiveSDK.goToHome(); 
+```
 
 <h2>getAvatar</h2>
 You can get the user's avatar by calling <i>GamifiveSDK.getAvatar()</i>.
