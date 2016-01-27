@@ -43,11 +43,11 @@ Please note that the <i>init</i> method will not create a new instance of <i>Gam
  
 <h2>3) Starting a session</h2>
 A session is a continued user activity like a game match. 
-Ideally a session begins when the player starts playing a new game and his score is set to zero.
+Ideally a session begins everytime the player starts playing a new game and his score is set to zero.
 
 <h3> Lite Mode</h3>
 
-For starting a session  in lite mode you just have to call <i>GamifiveSDK.startSession()</i>, after <i>GamifiveSDK.init()</i>.
+For starting a session  in lite mode you just have to call <i>GamifiveSDK.startSession()</i>.
 
 
 <h3> Normal (non-lite) Mode</h3>
