@@ -179,7 +179,7 @@ Retrieves the JSON string containing the player's progress and returns it as a J
   
 ```javascript
 // returns an object containing the player's progress
-var playerProgress = GamifiveSDK.getUserData(); 
+var playerProgress = GamifiveSDK.loadUserData(); 
 ```
 
 Beware that JSON.stringify (used inside GamifiveSDK.saveUserData) ignores undefined properties, so if you try to save
@@ -190,7 +190,7 @@ GamifiveSDK.saveUserData({A: undefined, B: 2});
 when you read the object back, you get
 
 ```javascript
-var myProgress = GamifiveSDK.getUserData();
+var myProgress = GamifiveSDK.loadUserData();
 console.log(myProgress); 
 >> {B: 2}
 ```
