@@ -122,7 +122,7 @@ var GamifiveSDKUtils = new function() {
 	* @param {function} callback - callback called when request finished and response is ready 
 	* @memberof GamifiveSDKUtils
 	*/
-	this.xhr = function(method, url, callback) {
+	var doXhr = function(method, url, callback){
 		var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function() {
             if ( xhr.readyState === 4 ) {
@@ -138,7 +138,9 @@ var GamifiveSDKUtils = new function() {
         xhr.open(method, url);
         xhr.send();
         return xhr;
-    };
+	}
+
+	this.xhr = (typeof tryXhr === 'function') ? tryXhr : doXhr;
 
     /**
 	* Convert an object to a query string
@@ -214,11 +216,13 @@ var GamifiveSDKUtils = new function() {
 	* @param content
 	*/
 	this.debug = function() {
-		var printable = new Array(arguments.length);
-		for(var k=0; k < arguments.length; k++){
-			printable[k] = arguments[k];
+		if(flagLog){
+			var printable = new Array(arguments.length);
+			for(var k=0; k < arguments.length; k++){
+				printable[k] = arguments[k];
+			}
+			console.debug(printable);
 		}
-		console.debug(printable);
 	}
 
 	/**

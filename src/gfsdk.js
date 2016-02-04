@@ -10,6 +10,8 @@ var GamefiveSDK = new function() {
 	var sdkInstance = this;
 	var Utils = GamifiveSDKUtils;
 	var moreGamesLink;
+	// will hold a reference to Dixie storage or debug mode storage
+	var _storage;
 
 	// default key for guest (unknown) user's data
 	var userStatusKey = 'GamifiveSDKStatus_unknown';
@@ -24,7 +26,7 @@ var GamefiveSDK = new function() {
 	* @memberof Gfsdk
 	*/
 	this.loadUserData = function(callback){
-		return storage.get(userStatusKey);
+		return _storage.get(userStatusKey);
 	}
 
 	/**
@@ -33,7 +35,7 @@ var GamefiveSDK = new function() {
 	* @memberof Gfsdk
 	*/
 	this.saveUserData = function(obj){
-		storage.set(userStatusKey, obj);
+		_storage.set(userStatusKey, obj);
 	}
 
 	/**
@@ -42,7 +44,7 @@ var GamefiveSDK = new function() {
 	* @memberof Gfsdk
 	*/
 	this.clearUserData = function(){
-		storage.delete(userStatusKey);
+		_storage.delete(userStatusKey);
 	}
 
 	/**
@@ -113,31 +115,71 @@ var GamefiveSDK = new function() {
 
 		// get window.GamifiveInfo
 		if(!config.debug){
-			Utils.copyProperties(window.GamifiveInfo, config);
-			if (typeof config.user != 'undefined'){
-				config.user.userGuest = !config.user.userFreemium && !config.user.userId; 
+			// get storage from ga_for_games (Dixie)
+			_storage = storage;
+			
+			var _copyInfo = function(){
+				Utils.copyProperties(window.GamifiveInfo, config);
+				if (typeof config.user != 'undefined'){
+					config.user.userGuest = !config.user.userFreemium && !config.user.userId; 
+				}
+				if (config && config.user && config.user.userId){
+					userStatusKey = "GamifiveSDKStatus_" + config.user.userId;
+				}
+
+				// from ga_for_game
+				config.CHALLENGE_MESSAGE = CHALLENGE_MESSAGE;
+				config.MESSAGE_ERROR = MESSAGE_ERROR;
+				config.MESSAGE_ERROR_TITLE = MESSAGE_ERROR_TITLE;
+
+				initPost();
+				trackGameLoad();
 			}
-			if (config && config.user && config.user.userId){
-				userStatusKey = "GamifiveSDKStatus_" + config.user.userId;
-			} 
 
-			initPost();
-			trackGameLoad();
+			if (typeof window.GamifiveInfo !== 'undefined'){
+				_copyInfo();
+			} else {
+				// Dirty hack, fix this
+				var gameplayDirPrefix = 'html5gameplay';
+				var rx = new RegExp('<PREFIX>/([a-z0-9]+)/'.replace('<PREFIX>', gameplayDirPrefix));
 
-			// from ga_for_game
-			config.CHALLENGE_MESSAGE = CHALLENGE_MESSAGE;
-			config.MESSAGE_ERROR = MESSAGE_ERROR;
-			config.MESSAGE_ERROR_TITLE = MESSAGE_ERROR_TITLE;
+				var gpparams = {content_id: window.location.pathname.match(rx)[1]};
+				Utils.xhr('GET', API('gameplay', gpparams), function(resp, req){
+					window.GamifiveInfo = JSON.parse(req.responseText).game_info;
+					_copyInfo();
+				});
+			}
+
 		} else {
-			// mock tryNewtonTrackEvent
+			moreGamesButtonSprite = 'http://s.motime.com/img/wl/webstore_html5game/images/gameover/sprite.png?v=20151120101238';
+
+			// mock tryNewtonTrackEvent and tryAnalyticsTrackEvent
 			window.tryNewtonTrackEvent = function(){
 				Utils.log(arguments);
 			};
+
+			window.tryAnalyticsTrackEvent = function(){
+				Utils.log(arguments);
+			};
+
+			// debug mode: Dixie is not defined, use a mock 
+		    _storage = new function(){
+		        this.set = function(key, obj){
+		            localStorage.setItem(key, JSON.stringify(obj));
+		        }
+		        this.get = function(key){
+		            return JSON.parse(localStorage.getItem(key));
+		        }
+		        this.delete = function(key){
+		            localStorage.removeItem(key);
+		        }
+		    }
 
 			config.CHALLENGE_MESSAGE = 'You successfully invited your friends!';
 			config.MESSAGE_ERROR = 'Error!';
 			config.MESSAGE_ERROR_TITLE = 'Something went wrong';
 
+			// For this one, offline mode can be ignored (this branch of the if won't be executed, in hybrid)
 			Utils.xhr('GET', API('gamifiveinfo'), function(resp, req){
 				Utils.copyProperties(resp, config);
 				initPost();
@@ -192,6 +234,7 @@ var GamefiveSDK = new function() {
 
 		if(!config.lite){
 
+			// branch: offline and online mode	
 			Utils.xhr('GET', API('canDownload'), function(resp, req){
 				Utils.log("GamifiveSDK", "startSession", "canDownload", resp, req);
 
@@ -264,7 +307,7 @@ var GamefiveSDK = new function() {
 
 		// show it ONLY if it was previously created
 		if (moreGamesLink){
-			sdkInstance.showMoreGamesButton();	
+			sdkInstance.showMoreGamesButton(customStyle);	
 		}
 
 		// set time end
@@ -344,6 +387,8 @@ var GamefiveSDK = new function() {
 			}
 		}	
 
+		config.timestart = null;
+
 		// TRACKING
 		tryAnalyticsTrackEvent('Play', 'GameEnd', config.contentId, { game_title: config.game.title, valuable_cd: 'No', action_cd: 'No' });	
 		tryNewtonTrackEvent({ 
@@ -383,6 +428,7 @@ var GamefiveSDK = new function() {
 	* Shows the "More Games" icon. 
 	* By clicking on this button the user will be redirected to the homepage.
 	*/
+	var customStyle;
 
 	this.showMoreGamesButton = function(style){
         if (!moreGamesLink){
@@ -410,6 +456,10 @@ var GamefiveSDK = new function() {
 		defaultStyle['background-image'] = 'url(' + moreGamesButtonSprite + ')';
 
 		for (var key in style){
+			if (!customStyle){
+				customStyle = {};
+			}
+			customStyle[key] = style[key];
 			defaultStyle[key] = style[key];
 		}
 
@@ -710,7 +760,8 @@ var GamefiveSDK = new function() {
 			newChallenge: 'challenge.post',
 			mipConnect: 'mipuser.fbconnect',
 			leaderboard: 'leaderboard',
-			gamifiveinfo: 'gamifiveinfo'
+			gamifiveinfo: 'gamifiveinfo',
+			gameplay: 'gameplay'
 		};
 
 		// convert param to queryString
