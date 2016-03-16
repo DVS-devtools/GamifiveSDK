@@ -21,17 +21,30 @@ var GameOverCore = new function() {
 	var heartIconId = "heartIcon";
 
 	var apiKey = "abcdef1234567890";
-	var absUrl = Utils.getAbsoluteUrl();
-	if (absUrl[absUrl.length-1] == '/'){
-		absUrl.substring(0, absUrl.length-1);
-	};
-	var MOA_API_FAVORITES_SET = absUrl + "/v01/favorites.set";
-	var MOA_API_FAVORITES_DELETE = absUrl + "/v01/favorites.delete";
-	var MOA_API_FAVORITES_GET = absUrl + "/v01/favorites.get";
+
+	var absUrl;
+	
+	var MOA_API_FAVORITES_SET;
+	var MOA_API_FAVORITES_DELETE;
+	var MOA_API_FAVORITES_GET;
 	// TODO: check pip rule for port 4001 and prefix
-	var MOA_API_FAVORITES_CHECK = absUrl + ":4001/v02/reding/objects/:CONTENTID/users/:USERID/?prefix=FAV-it_igames"
-	var MOA_API_RECOMMEND_EVENT =absUrl + "/mip-ingestion/v01/recommend/event/:EVENT";
-	var UPDATE_CREDITS = absUrl + "/v01/mipuser.updatecredits";
+	var MOA_API_FAVORITES_CHECK;
+	var MOA_API_RECOMMEND_EVENT;
+	var UPDATE_CREDITS;
+	
+	this.initializeAPIUrls = function(){
+		absUrl = Utils.getAbsoluteUrl();
+		if (absUrl[absUrl.length-1] == '/'){
+			absUrl.substring(0, absUrl.length-1);
+		};
+		MOA_API_FAVORITES_SET = absUrl + "/v01/favorites.set";
+		MOA_API_FAVORITES_DELETE = absUrl + "/v01/favorites.delete";
+		MOA_API_FAVORITES_GET = absUrl + "/v01/favorites.get";
+		// TODO: check pip rule for port 4001 and prefix
+		MOA_API_FAVORITES_CHECK = absUrl + ":4001/v02/reding/objects/:CONTENTID/users/:USERID/?prefix=FAV-it_igames"
+		MOA_API_RECOMMEND_EVENT =absUrl + "/mip-ingestion/v01/recommend/event/:EVENT";
+		UPDATE_CREDITS = absUrl + "/v01/mipuser.updatecredits";
+	}
 
 	this.invite = function(){
 		// call to sdk
@@ -398,12 +411,10 @@ var GameOverCore = new function() {
 
 		var favorites_params = {
 			"apikey": apiKey,
-			"size": 51 // delete
+			"size": 51 
 		};
 
-		var favUrl = MOA_API_FAVORITES_GET; // MOA_API_FAVORITES_CHECK;
-		//favUrl = favUrl.replace(':USERID', GamifiveSDK.getConfig().userId);
-		//favUrl = favUrl.replace(':CONTENTID', window.contentId);
+		var favUrl = MOA_API_FAVORITES_GET; 
 		favUrl += createQuery(favorites_params);
 
 		Utils.xhr('GET', favUrl, function(resp, xhr){

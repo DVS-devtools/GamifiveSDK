@@ -20,32 +20,127 @@ var GamefiveSDK = new function() {
 	*****  EXTERNAL METHODS FOR DEVELOPERS  *****
 	********************************************/ 
 
-	/**
-	* Returns the status of the game
-	* @function getStatus
-	* @memberof Gfsdk
-	*/
-	this.loadUserData = function(callback){
-		return _storage.get(userStatusKey);
-	}
+	    /**
+    * Returns the status of the game
+    * @function getStatus
+    * @memberof Gfsdk
+    */
+    var getUserData = function(callback){
+        var getUserDataUrl = MOA_API_APPLICATION_OBJECTS_GET;
 
-	/**
-	* Saves an object to record the status of the game
-	* @function saveStatus
-	* @memberof Gfsdk
-	*/
-	this.saveUserData = function(obj){
-		_storage.set(userStatusKey, obj);
-	}
+        var userDataId = '';
+        try {
+            //userDataId = config.user.gameInfo._id;
+        } catch (err){
+            // does not exist
+        }
 
-	/**
-	* Deletes the status of the game
-	* @function clearStatus
-	* @memberof Gfsdk
-	*/
-	this.clearUserData = function(){
-		_storage.delete(userStatusKey);
-	}
+        getUserDataUrl = getUserDataUrl
+                            .replace(':QUERY', JSON.stringify({contentId: config.contentId}))
+                            .replace(':ID', userDataId)
+                            .replace(':ACCESS_TOKEN', '')
+                            .replace(':EXTERNAL_TOKEN', config.userId)
+                            .replace(':COLLECTION', 'gameInfo') // from vh?
+
+        // unique parameter in qs to avoid cache 
+        getUserDataUrl += '&_ts=' + new Date().getTime() + Math.floor(Math.random()*1000);
+            
+        Utils.xhr('GET', getUserDataUrl, function(resp, req){
+            console.log("GamifiveSDK :: fetch UserData", resp);
+            // save into config
+            var toParse = resp.response.data[0]; 
+           	if (!!toParse && typeof toParse.info !== 'undefined') {
+                toParse.info = JSON.parse(toParse.info);
+            }
+            config.user.gameInfo = toParse;
+            if (typeof callback === 'function') callback(toParse ? toParse.info : null);
+        });
+    }
+
+    this.loadUserData = function(callback){
+        if (!debug){
+
+            if (window.location.origin.indexOf('cdvfile') < 0){
+                 getUserData(callback);
+            }
+           
+            try {
+                return config.user.gameInfo.info;
+            } catch (err){
+                return null;
+            }
+        } else {
+            return storage.get(userStatusKey);
+        }
+    }
+
+    /**
+    * Saves an object to record the status of the game
+    * @function saveStatus
+    * @memberof Gfsdk
+    */
+    var setUserData = function(dataToSave){
+
+        var setUserDataUrl, userDataId;
+        var dataToSaveAsJSON = JSON.stringify(dataToSave);
+
+        var setUserDataParams = function(){
+            setUserDataUrl = MOA_API_APPLICATION_OBJECTS_SET;
+
+            userDataId = '';
+            try {
+                userDataId = config.user.gameInfo._id;
+            } catch (err){
+                // does not exist, keep default
+            }
+
+            setUserDataUrl = setUserDataUrl
+                                .replace(':QUERY', JSON.stringify({contentId: config.contentId}))
+                                .replace(':ID', userDataId)
+                                .replace(':ACCESS_TOKEN', '')
+                                .replace(':EXTERNAL_TOKEN', config.userId)
+                                .replace(':COLLECTION', 'gameInfo');
+            
+            setUserDataUrl += "&info=" + encodeURIComponent(dataToSaveAsJSON)
+                                + "&domain=" + encodeURIComponent(window.location.origin)
+                                + "&contentId=" + config.contentId;
+        }        
+
+        if (window.location.origin.indexOf('cdvfile') < 0){
+
+            getUserData(function(){
+                setUserDataParams();
+                Utils.xhr('POST', setUserDataUrl, function(resp, req){});
+            });
+        } else {
+            setUserDataParams();
+            // local save in volatile variable
+            config.user.gameInfo.info = dataToSave;
+            GamifiveSDKOffline.enqueue(GamifiveSDKOffline.XHR_QUEUE, {method: 'POST', url: setUserDataUrl});
+        }
+    
+    }
+
+    this.saveUserData = function(obj, callback){
+        if (!debug){
+            setUserData(obj, callback);
+        } else {
+            storage.set(userStatusKey, callback);
+        }
+    }
+
+    /**
+    * Deletes the status of the game
+    * @function clearStatus
+    * @memberof Gfsdk
+    */
+    this.clearUserData = function(){
+        if (!debug){
+            setUserData(null);   
+        } else {
+            storage.set(userStatusKey, null);
+        }
+    }
 
 	/**
 	* Reset GamefiveSDK
@@ -55,6 +150,19 @@ var GamefiveSDK = new function() {
 	this.reset = function(){
 		config = {};
 	}
+
+    // provvisorio
+    var getGamifiveInfoAPI = function(callback){
+        var gpparams = {content_id: config.content_id};
+
+        if (window.location.origin.indexOf('cdvfile') > -1){
+            
+            Utils.xhr('JSONP', API('gameplay_proxy', gpparams) + config.user.ponyUrl, function(resp, req){
+                if (callback){ callback(resp); }
+            });
+        } 
+    }
+    this.getGamifiveInfoAPI = getGamifiveInfoAPI;
 
 	/**
 	* Init GamefiveSDK
@@ -66,9 +174,19 @@ var GamefiveSDK = new function() {
 	* @param {boolean} [param.lite] - If true SDK doesn't implement GameOver status 
 	* @param {object} [param.moreGamesButtonStyle] - optional style for More Games button element
 	*/
-	this.init = function(param){
+	var doInit = function(param){
 		// get param
 		Utils.copyProperties(param, config);
+
+        try {
+            var gameplayDirPrefix = 'games';
+            var rx = new RegExp('<PREFIX>/([a-z0-9]+)/'.replace('<PREFIX>', gameplayDirPrefix));
+            config.content_id = window.location.pathname.match(rx)[1];
+        } catch (err){
+            // not hybrid 
+        }
+
+        GameOverCore.initializeAPIUrls();
 
 		// enable/disable debug
 		if(localStorage.getItem('log') == 1){
@@ -80,7 +198,7 @@ var GamefiveSDK = new function() {
 		var initPost = function(){
 			if(!config.lite){
 				// init events array
-				config.events = [];
+				config.events = {};
 
 				// set facebook appId and init facebook
 				FBConnector.setConfig('appId', config.fbAppId);
@@ -113,13 +231,37 @@ var GamefiveSDK = new function() {
 			});
 		}
 
+        // mocks for debug and hybrid-offline
+        if (typeof tryNewtonTrackEvent === 'undefined'){ 
+            // mock tryNewtonTrackEvent and tryAnalyticsTrackEvent
+            window.tryNewtonTrackEvent = function(){
+                Utils.log(arguments);
+            };   
+        }
+
+        if (typeof tryAnalyticsTrackEvent === 'undefined'){  
+            window.tryAnalyticsTrackEvent = function(){
+                Utils.log(arguments);
+            };   
+        }
+
+        if (typeof storage === 'undefined' && typeof Dixie !== 'undefined'){
+            window.storage = new Dixie();
+            storage.init({type: 'localStorage'});
+        }
+
 		// get window.GamifiveInfo
 		if(!config.debug){
 			// get storage from ga_for_games (Dixie)
+            
 			_storage = storage;
 			
 			var _copyInfo = function(){
 				Utils.copyProperties(window.GamifiveInfo, config);
+				try {
+					config.user.gameInfo.info = JSON.parse(config.user.gameInfo.info);
+				} catch (err) {}
+
 				if (typeof config.user != 'undefined'){
 					config.user.userGuest = !config.user.userFreemium && !config.user.userId; 
 				}
@@ -139,28 +281,16 @@ var GamefiveSDK = new function() {
 			if (typeof window.GamifiveInfo !== 'undefined'){
 				_copyInfo();
 			} else {
-				// Dirty hack, fix this
-				var gameplayDirPrefix = 'html5gameplay';
-				var rx = new RegExp('<PREFIX>/([a-z0-9]+)/'.replace('<PREFIX>', gameplayDirPrefix));
-
-				var gpparams = {content_id: window.location.pathname.match(rx)[1]};
-				Utils.xhr('GET', API('gameplay', gpparams), function(resp, req){
-					window.GamifiveInfo = JSON.parse(req.responseText).game_info;
-					_copyInfo();
-				});
+				getGamifiveInfoAPI(function(data){
+                    console.log("GameInfo", data);
+                    window.GamifiveInfo = data.game_info; 
+                    _copyInfo();
+                });
 			}
 
 		} else {
+            // mock sprite more games button
 			moreGamesButtonSprite = 'http://s.motime.com/img/wl/webstore_html5game/images/gameover/sprite.png?v=20151120101238';
-
-			// mock tryNewtonTrackEvent and tryAnalyticsTrackEvent
-			window.tryNewtonTrackEvent = function(){
-				Utils.log(arguments);
-			};
-
-			window.tryAnalyticsTrackEvent = function(){
-				Utils.log(arguments);
-			};
 
 			// debug mode: Dixie is not defined, use a mock 
 		    _storage = new function(){
@@ -196,6 +326,46 @@ var GamefiveSDK = new function() {
 
 	}
 
+    this.init = function(param){
+
+        if (window.location.origin.indexOf('cdvfile') > -1){
+            Stargate.initialize({}).then(function(){
+                Utils.log("GamifiveSDK :: Stargate initialized");
+
+                GamifiveSDKOffline.load();
+
+
+
+                Stargate.file.readFileAsJSON(Stargate.game.GAMES_DIR + 'user.json').then(function(userResp){
+                    if (typeof config.user === 'undefined'){
+                        config.user = {};
+                    }
+                    for (var userKey in userResp){
+                        config.user[userKey] = userResp[userKey];
+                    }
+                });
+                return Stargate.file.readFileAsJSON(Stargate.game.GAMES_DIR + "cookie.json");
+            }).then(function(result){
+                console.log("readFileAsJSON", result);
+                var cookieStorage = new Dixie();
+                cookieStorage.init({type: 'cookie'});
+                for (var key in result){
+                    cookieStorage.set(key, result[key], 7);
+                }
+
+                stargateCanPlay(function(){
+                    doInit(param);
+                }, function(){
+                    // todo: torna online!
+                });
+                
+            })
+        } else {   
+            doInit(param); 
+        }
+    }
+
+
 	/**
 	* Set callback used after startSession
 	* @function onStartSession
@@ -224,6 +394,18 @@ var GamefiveSDK = new function() {
 	* @function startSession
 	* @memberof Gfsdk
 	*/
+    var stargateCanPlay = function(successCallback, errorCallback){
+        Stargate.file.readFileAsJSON(Stargate.game.GAMES_DIR + "user.json").then(function(result){
+
+            if (new Date(result.data_scadenza_abb) >= new Date()){
+                successCallback();
+            } else {
+                errorCallback();
+            }
+        }).catch(errorCallback);
+    }
+
+
 	this.startSession = function() {
 		Utils.log("GamifiveSDK", "startSession");
 
@@ -232,31 +414,46 @@ var GamefiveSDK = new function() {
 		// set time start
 		config.timestart = Utils.dateNow();
 
+
+
 		if(!config.lite){
 
-			// branch: offline and online mode	
-			Utils.xhr('GET', API('canDownload'), function(resp, req){
-				Utils.log("GamifiveSDK", "startSession", "canDownload", resp, req);
+            if (window.location.origin.indexOf('cdvfile') < 0){
+                // branch: offline and online mode  
+                Utils.xhr('GET', API('canDownload'), function(resp, req){
+                    Utils.log("GamifiveSDK", "startSession", "canDownload", resp, req);
 
-				if(resp.canDownload){
-					// clear dom
-					sdkElement.delete();
+                    if(resp.canDownload){
+                        // clear dom
+                        sdkElement.delete();
 
-					// call onStartSession callback
-					if(!!config.startCallback){
-						config.startCallback.call();
-					}
-				} else {
-					// call gameover API
-					Utils.xhr('GET', API('gameover'), function (resp, req) {
-						// render page with resp
-						sdkElement.create(resp);
+                        // call onStartSession callback
+                        if(!!config.startCallback){
+                            config.startCallback.call();
+                        }
+                    } else {
+                        // call gameover API
+                        Utils.xhr('GET', API('gameover'), function (resp, req) {
+                            // render page with resp
+                            sdkElement.create(resp);
 
-						// throw event 'user_no_credits'
-						throwEvent('user_no_credits');
-					});
-				}
-			});
+                            // throw event 'user_no_credits'
+                            throwEvent('user_no_credits');
+                        });
+                    }
+                });
+            } else {
+                stargateCanPlay(function(){
+                    sdkElement.delete();
+
+                    // call onStartSession callback
+                    if(!!config.startCallback){
+                        config.startCallback.call();
+                    }
+                }, function(){
+                    // todo
+                });
+            }
 
 		}
 
@@ -343,13 +540,22 @@ var GamefiveSDK = new function() {
 			}
 
 			// call gameover API
-			Utils.xhr('GET', API('gameover', queryParams), function (resp, req) {
-				// render page with resp
-				sdkElement.create(resp);
-				if (!config.debug && !getAdditionalInfo().guest) {
-					GameOverCore.initializeLike();
-				};
-			});
+			if (window.location.origin.indexOf('cdvfile') === -1){
+                Utils.xhr('GET', API('gameover', queryParams), function (resp, req) {
+    				// render page with resp
+    				sdkElement.create(resp);
+    				if (!config.debug && !getAdditionalInfo().guest) {
+    					GameOverCore.initializeLike();
+    				};
+    			});
+            } else {
+                queryParams.content_id = config.content_id;
+                Stargate.game.buildGameOver(queryParams)
+                    .then(function(data){
+                        console.log("Build gameover with Stargate", data);
+                        sdkElement.create(data);
+                    });
+            }
 
 		} else {
 
@@ -367,9 +573,12 @@ var GamefiveSDK = new function() {
 				queryParams.level = config.user.level;
 			}
 
-			// call gameover API
-			Utils.xhr('GET', API('leaderboard', queryParams));
-
+            var leaderboardCallUrl = API('leaderboard', queryParams);
+            if (window.location.origin.indexOf('cdvfile') === -1){
+    			Utils.xhr('GET', leaderboardCallUrl);
+            } else {
+                GamifiveSDKOffline.enqueue({method: 'GET', url: leaderboardCallUrl})
+            }
 		}
 
 		// ERROR HANDLING
@@ -405,6 +614,7 @@ var GamefiveSDK = new function() {
 	* Go to Homepage and track this event on Newton and Analytics 
 	*/
 	this.goToHome = function(){
+
     	Utils.log("GamifiveSDK", "Go To Homepage", document.location.origin);
     	tryAnalyticsTrackEvent('Behavior', 'MoreGames', config.contentId, 
     		{ 
@@ -421,7 +631,20 @@ var GamefiveSDK = new function() {
 			valuable_cd: 'No',
 			action_cd: 'Yes'
 		});
-    	document.location.href = document.location.origin;
+
+        if (window.location.origin.indexOf('cdvfile') < 0){
+            document.location.href = window.location.origin;
+        } else {
+            var homeUrl = window.location.origin;
+            var connection = Stargate.checkConnection();
+            if (connection.type === 'offline'){
+                homeUrl = Stargate.game.OFFLINE_INDEX;
+            }
+            GamifiveSDKOffline.persist(function(){
+               document.location.href = homeUrl; 
+            });
+        }
+    	
     };
 
 	/**
@@ -431,6 +654,9 @@ var GamefiveSDK = new function() {
 	var customStyle;
 
 	this.showMoreGamesButton = function(style){
+
+        if (typeof moreGamesButtonSprite === 'undefined') return;
+
         if (!moreGamesLink){
         	moreGamesLink = document.createElement('a');
 
@@ -761,7 +987,9 @@ var GamefiveSDK = new function() {
 			mipConnect: 'mipuser.fbconnect',
 			leaderboard: 'leaderboard',
 			gamifiveinfo: 'gamifiveinfo',
-			gameplay: 'gameplay'
+			gameplay: 'gameplay', 
+
+            gameplay_proxy: 'gameplay_proxy'
 		};
 
 		// convert param to queryString

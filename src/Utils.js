@@ -108,6 +108,11 @@ var GamifiveSDKUtils = new function() {
 	* @memberof GamifiveSDKUtils
 	*/
 	this.getAbsoluteUrl = function() {
+		if (typeof Stargate !== 'undefined' 
+			&& typeof Stargate.conf !== 'undefined'
+			&& typeof Stargate.conf.getWebappOrigin === 'function'){
+			return Stargate.conf.getWebappOrigin();
+		}
 		if (!window.location.origin) {
 		  window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
 		}
@@ -122,25 +127,47 @@ var GamifiveSDKUtils = new function() {
 	* @param {function} callback - callback called when request finished and response is ready 
 	* @memberof GamifiveSDKUtils
 	*/
-	var doXhr = function(method, url, callback){
-		var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function() {
-            if ( xhr.readyState === 4 ) {
-            	var resp;
-            	try { 
-            		resp = xhr.response.replace(/(\n|\r)/gm,"");
-            		resp = JSON.parse(resp);
-            	} catch(e) {}
-            	resp.success = (xhr.status >= 200 && xhr.status <= 399);
-                if (callback) callback(resp , xhr);
-            }
-        };
-        xhr.open(method, url);
-        xhr.send();
-        return xhr;
+	var doXhr = function(method, url, callback, data){
+
+		if (method.toUpperCase() !== 'JSONP'){
+
+			var xhr = new XMLHttpRequest();
+
+	        xhr.onreadystatechange = function() {
+	            if ( xhr.readyState === 4 ) {
+	            	var resp;
+	            	try { 
+	            		resp = xhr.response.replace(/(\n|\r)/gm,"");
+	            		resp = JSON.parse(resp);
+	            	} catch(e) {}
+	            	resp.success = (xhr.status >= 200 && xhr.status <= 399);
+	                if (callback) callback(resp , xhr);
+	            }
+	        };
+	        xhr.open(method, url);
+
+		    xhr.send();
+	        
+	        return xhr;
+		} else {
+			var script = document.createElement('script');
+
+			url += (url.indexOf('?') < 0 ? '?' : '&') + 'callback=window.handle_jsonp&format=jsonp';
+
+			script.src = url;
+
+			window.handle_jsonp = function(data){
+				callback(data);
+				//delete window.handle_jsonp;
+				//script.parentElement.removeChild(script);
+			}
+
+			document.getElementsByTagName('head')[0].appendChild(script);
+		}
 	}
 
 	this.xhr = (typeof tryXhr === 'function') ? tryXhr : doXhr;
+
 
     /**
 	* Convert an object to a query string
