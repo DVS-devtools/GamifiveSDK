@@ -6,6 +6,8 @@ var GamifiveSDKOffline = new function(){
     var OFFLINE_DATA_FILENAME = 'offlineData.json';
 
     this.data = {
+        GamifiveInfo: {},
+        GaForGame: {},
         queues: {
             'newton': [],
             'ga': [],
@@ -26,37 +28,84 @@ var GamifiveSDKOffline = new function(){
             callback = function(){}
         }
         
-        Stargate.file.createFile(Stargate.game.GAMES_DIR, OFFLINE_DATA_FILENAME)
-            .then(function(result){ 
-                Utils.log("writing offline data", offlineInstance.data);
-                Stargate.file.write(result.path, JSON.stringify(offlineInstance.data))
-                    .then(callback); 
-            })
-            .catch(function(err){
-                Utils.error("error sg create offlineData file", err);
-                callback();
-            })
+        Stargate.file.createFile(GamifiveSDK.getStargateBaseDir(), OFFLINE_DATA_FILENAME)
+        .then(function(result){ 
+            Utils.log("writing offline data", offlineInstance.data);
+            Stargate.file.write(result.path, JSON.stringify(offlineInstance.data))
+                .then(callback); 
+        })
+        .catch(function(err){
+            Utils.error("error sg create offlineData file", err);
+            callback();
+        })
     }
 
-    this.load = function(){
-        Stargate.file.readFileAsJSON(Stargate.game.GAMES_DIR + OFFLINE_DATA_FILENAME)
-            .then(function(result){
-                var queue;
-                for (var key in offlineInstance.data.queues){
-                    queue = offlineInstance.data.queues[key];
-                    
-                    if (!result.queues || !result.queues[key]) {
-                        break;
+    this.load = function(callback){
+
+        var fileExistsPromise = Stargate.file.fileExists(GamifiveSDK.getStargateBaseDir() + OFFLINE_DATA_FILENAME);
+
+        fileExistsPromise.then(function(boolExists){
+            if (!boolExists){
+                return Stargate.file.createFile(GamifiveSDK.getStargateBaseDir(), OFFLINE_DATA_FILENAME);
+            } else {
+                return Stargate.file.readFileAsJSON(GamifiveSDK.getStargateBaseDir() + OFFLINE_DATA_FILENAME).then(function(result){
+                    var queue;
+                    for (var key in offlineInstance.data.queues){
+                        queue = offlineInstance.data.queues[key];
+                        
+                        if (!result.queues || !result.queues[key]) {
+                            break;
+                        }
+
+                        while (result.queues[key].length > 0){
+                            queue.unshift(result.queues[key].pop());   
+                        }
                     }
 
-                    while (result.queues[key].length > 0){
-                        queue.unshift(result.queues[key].pop());   
+                    if (typeof result.GaForGame != 'undefined'){
+                        offlineInstance.data.GaForGame = result.GaForGame;
                     }
-                }
-            })
-            .catch(function(err){
-                // file does not exist, do nothing
-            });
+
+                    if (typeof result.GamifiveInfo != 'undefined'){
+                        offlineInstance.data.GamifiveInfo = result.GamifiveInfo;
+                    }
+
+                    if (typeof callback === 'function'){
+                        callback();
+                    }
+                })
+                .catch(function(err){
+                    console.error(err);
+                    if (typeof callback === 'function'){
+                        callback();
+                    }
+                });
+            }
+        });
+        
     }
 
+    this.getGamifiveInfo = function(contentId){
+        var toReturn = offlineInstance.data.GamifiveInfo[contentId];
+        return toReturn;
+    }
+
+    this.setGamifiveInfo = function(contentId, data){
+        if (typeof 'undefined' === offlineInstance.data.GamifiveInfo[contentId]){
+            offlineInstance.data.GamifiveInfo[contentId] = {};
+        }
+        offlineInstance.data.GamifiveInfo[contentId] = data;
+    }
+
+    this.setGaForGameJSON = function(contentId, data){
+        if (typeof 'undefined' === offlineInstance.data.GaForGame[contentId]){
+            offlineInstance.data.GaForGame[contentId] = {};
+        }
+        offlineInstance.data.GaForGame[contentId] = data;
+    }
+
+    this.getGaForGameJSON = function(contentId){
+        var toReturn = offlineInstance.data.GaForGame[contentId];
+        return toReturn;
+    }
 }
