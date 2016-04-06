@@ -497,12 +497,7 @@ var GamefiveSDK = new function() {
                             window.moreGamesButtonSprite = resp.IMAGES_sprite_game;
                             window.isMobile = resp.IS_SMARTPHONE;
 
-                            stargateCanPlay(function(){
-                                doInit(param);
-                            }, function(canPlayError){
-                                console.warn("stargate can play catch", canPlayError);
-                                // todo: torna online!
-                            });
+                            doInit(param);
                         }
 
                         var checkedConnection = Stargate.checkConnection();
@@ -551,41 +546,6 @@ var GamefiveSDK = new function() {
 		}
 	}
 
-	/**
-	* Call onStartSession callback
-	* @function startSession
-	* @memberof Gfsdk
-	*/
-    var stargateCanPlay = function(successCallback, errorCallback){
-
-        var gameObjPath = STARGATE_BASE_DIR + 'games/' + config.content_id + '/meta.json';
-
-        Utils.log("game meta path", gameObjPath);
-
-        var gameObjPromise = Stargate.file.readFileAsJSON(gameObjPath);
-
-        gameObjPromise.then(function(data){
-            var hasNoExpirationDate = data.access_type.guest || data.access_type.free;
-            if (hasNoExpirationDate){
-                Utils.log("user has no expiration date, proceed");
-                successCallback();
-            } else {
-                Stargate.file.readFileAsJSON(STARGATE_BASE_DIR + "user.json").then(function(result){
-                    if (new Date(result.data_scadenza_abb) >= new Date()){
-                        successCallback();
-                    } else {
-                        errorCallback({type: 'abbonamento_scaduto'});
-                    }
-                }).catch(function(readFileErr){
-                    errorCallback(readFileErr)
-                });
-            }
-        });
-
-        
-    }
-
-
 	this.startSession = function() {
 		Utils.log("GamifiveSDK", "startSession");
 
@@ -623,16 +583,12 @@ var GamefiveSDK = new function() {
                     }
                 });
             } else {
-                stargateCanPlay(function(){
-                    sdkElement.delete();
+                sdkElement.delete();
 
-                    // call onStartSession callback
-                    if(!!config.startCallback){
-                        config.startCallback.call();
-                    }
-                }, function(){
-                    // todo
-                });
+                // call onStartSession callback
+                if(!!config.startCallback){
+                    config.startCallback.call();
+                }
             }
 
 		}
