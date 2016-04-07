@@ -80,30 +80,7 @@ var GamifiveSDK = new function(){
         }
     });
 
-}
-
-
-var User = new function(){
-
-    this.data;
-
-    this.saveUserData = function(dataToSave, callback){
-        this.data = dataToSave;
-        callback(this.data);
-    }
-
-    this.loadUserData = function(callback){
-        callback(this.data);
-        return this.data;
-    }
-
-    this.clearUserData = function(callback){
-        this.data = null;
-        callback(this.data);
-    }
-}
-
-GamifiveSDK.registerComponent(User);
+};
 
 // old games backward-compatibility
 var GamefiveSDK = GamifiveSDK;
