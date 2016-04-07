@@ -690,6 +690,8 @@ var GamefiveSDK = new function() {
                     .then(function(data){
                         console.log("Build gameover with Stargate", data);
                         sdkElement.create(data);
+                        var homeBtn = document.querySelectorAll('.logo')[0]; 
+                        homeBtn.addEventListener('touchend',GamifiveSDK.goToHome);
                     });
             }
 
@@ -775,10 +777,8 @@ var GamefiveSDK = new function() {
         if (window.location.origin.indexOf('cdvfile') < 0){
             document.location.href = window.location.origin;
         } else {
-            var homeUrl = Stargate.game.OFFLINE_INDEX;
             GamifiveSDKOffline.persist(function(){
-               //document.location.href = homeUrl; 
-               window.navigator.app.loadUrl(homeUrl);
+               Stargate.goToLocalIndex();
             });
         }
     	
