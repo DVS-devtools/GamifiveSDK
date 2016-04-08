@@ -1,6 +1,6 @@
 var session = require("../src/components/session/debug_session");
 
-describe("",function(){
+describe("A description",function(){
     it("Public interface is defined", function(){
         expect(session.init).toBeDefined();
         expect(session.startSession).toBeDefined();
@@ -12,6 +12,5 @@ describe("",function(){
 
     it("Trivial", function(){
         expect(true).toEqual(true);
-        console.log("bella zio");
     });
 });
