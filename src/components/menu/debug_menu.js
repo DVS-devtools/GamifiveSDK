@@ -1,4 +1,4 @@
-var Logger = require('.components/');
+var Logger = require('../logger/logger');
 
 var Menu = new function(){
     

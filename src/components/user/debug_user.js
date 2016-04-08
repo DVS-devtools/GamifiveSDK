@@ -1,4 +1,5 @@
-var Logger = require('.components/');
+var Logger = require('../logger/logger');
+
 
 var User = new function(){
 
