@@ -3,5 +3,6 @@ git:
   depth: 10
 before_install:
   - npm install
+  - npm install -g phantomjs phantomjs-prebuilt
 node_js:
   - "0.12"
