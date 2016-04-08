@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "description": "",
   "main": "src/index_web.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:BuongiornoMIP/GamifiveSDK.git"
+  },
   "scripts": {
     "build:web": "browserify src/builders/build_web.js -o dist/gfsdk_web.js -s GamifiveSDK",
     "build:debug": "browserify src/builders/build_debug.js -o dist/gfsdk_debug.js -s GamifiveSDK",
