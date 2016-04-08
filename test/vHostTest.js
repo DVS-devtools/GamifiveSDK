@@ -2,7 +2,7 @@ var VHost = require("../src/components/vhost/debug_vhost");
 
 require('jasmine-ajax');
 
-fdescribe("A description",function(){
+describe("A description",function(){
         
     beforeEach(function() {
         jasmine.Ajax.install();
