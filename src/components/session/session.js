@@ -1,10 +1,10 @@
 var Session = new function(){
 
     var Logger  = require('../logger/logger');
-    var Newton  = require('../newton/debug_newton');
-    var GA      = require('../ga/debug_ga');
-    var VHost   = require('../vhost/debug_vhost');
-    var Network = require('../network/debug_network');
+    var Newton  = require('../newton/newton');
+    var GA      = require('../ga/ga');
+    var VHost   = require('../vhost/vhost');
+    var Network = require('../network/network');
 
     var config;
 

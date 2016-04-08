@@ -1,9 +1,9 @@
 var Facebook = new function(){
 
     var Logger = require('../logger/logger');
-    var Newton = require('../newton/debug_newton');
-    var GA     = require('../ga/debug_ga');
-    var VHost  = require('../vhost/debug_vhost');
+    var Newton = require('../newton/newton');
+    var GA     = require('../ga/ga');
+    var VHost  = require('../vhost/vhost');
 
     this.init = function(params){
         Logger.debug('GamifiveSDK', 'Facebook', 'init', params);

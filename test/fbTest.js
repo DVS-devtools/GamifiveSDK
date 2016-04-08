@@ -1,4 +1,4 @@
-var session = require("../src/components/fb/debug_fb");
+var session = require("../src/components/fb/fb");
 
 describe("A description",function(){
 

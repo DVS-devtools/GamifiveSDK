@@ -1,4 +1,4 @@
-var session = require("../src/components/session/debug_session");
+var session = require("../src/components/session/session");
 
 describe("A description",function(){
     

@@ -3,8 +3,8 @@ var GameInfo = new function(){
     var gameInfoInstance = this;
 
     var Logger  = require('../logger/logger');
-    var Network = require('../network/debug_network');
-    var VHost   = require('../vhost/debug_vhost');
+    var Network = require('../network/network');
+    var VHost   = require('../vhost/vhost');
 
     var gameInfo;
     var gameInfoMockUrl = VHost.get('GAME_INFO_MOCK_URL');

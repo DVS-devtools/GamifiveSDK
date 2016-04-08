@@ -1,4 +1,4 @@
-var session = require("../src/components/game_info/debug_game_info");
+var session = require("../src/components/game_info/game_info");
 
 describe("A description",function(){
     

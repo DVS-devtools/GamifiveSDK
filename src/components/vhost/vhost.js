@@ -3,7 +3,7 @@ var VHost = new function(){
     var vHostInstance = this;
 
     var Logger  = require('../logger/logger');   
-    var Network = require('../network/debug_network');
+    var Network = require('../network/network');
 
     var vHost = {};
     var gameSDKVHostUrl = 'api/vhost';

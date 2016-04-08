@@ -1,9 +1,9 @@
 var Menu = new function(){
 
     var Logger = require('../logger/logger');
-    var Newton = require('../newton/debug_newton');
-    var GA     = require('../newton/debug_ga');
-    var VHost  = require('../vhost/debug_vhost');
+    var Newton = require('../newton/newton');
+    var GA     = require('../newton/ga');
+    var VHost  = require('../vhost/vhost');
     
     this.showMenu = function(style){
         Logger.info('GamifiveSDK', 'Menu', 'showMenu', style);

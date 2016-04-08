@@ -1,4 +1,4 @@
-var VHost = require("../src/components/vhost/debug_vhost");
+var VHost = require("../src/components/vhost/vhost");
 
 require('jasmine-ajax');
 
