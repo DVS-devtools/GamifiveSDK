@@ -1,28 +1,41 @@
-var Logger = require('../logger/logger');
-
 var Session = new function(){
+
+    var Logger  = require('../logger/logger');
+    var Newton  = require('../newton/debug_newton');
+    var GA      = require('../ga/debug_ga');
+    var VHost   = require('../vhost/debug_vhost');
+    var Network = require('../network/debug_network');
+
+    var config;
+
+    this.getConfig = function(){
+        return config;
+    }
+
     this.init = function(params){
-        Logger.error('GamifiveSDK', 'Session', 'init', 'not implemented');
+        config = {};
+
+        Logger.info('GamifiveSDK', 'Session', 'init', params);
     }
 
     this.onStartSession = function(callback){
-        Logger.error('GamifiveSDK', 'Session', 'onStartSession', 'not implemented');
+        Logger.debug('GamifiveSDK', 'Session', 'onStartSession');
     }
 
     this.startSession = function(){
-        Logger.error('GamifiveSDK', 'Session', 'startSession', 'not implemented');
+        Logger.info('GamifiveSDK', 'Session', 'startSession');
     }
 
     this.onPauseEnter = function(callback){
-        Logger.error('GamifiveSDK', 'Session', 'onPauseEnter', 'not implemented');
+        Logger.debug('GamifiveSDK', 'Session', 'onPauseEnter');
     }
 
     this.onPauseExit = function(callback){
-        Logger.error('GamifiveSDK', 'Session', 'onPauseExit', 'not implemented');
+        Logger.debug('GamifiveSDK', 'Session', 'onPauseExit');
     }
 
     this.endSession = function(data){
-        Logger.error('GamifiveSDK', 'Session', 'init', 'not implemented');
+        Logger.info('GamifiveSDK', 'Session', 'endSession', data);
     }
 };
 

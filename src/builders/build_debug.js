@@ -7,16 +7,15 @@ var requiredComponents = [
     '../components/fb/debug_fb.js'
 ];
 
-var requiredModule;
+var requiredComponent;
 for (var i=0; i<requiredComponents.length; i++){
-    requiredModule = require(requiredComponents[i]);
+    requiredComponent = require(requiredComponents[i]);
 
-    for (var key in requiredModule){
-        if (requiredModule.hasOwnProperty(key)){
-            build[key] = requiredModule[key];
+    for (var key in requiredComponent){
+        if (requiredComponent.hasOwnProperty(key)){
+            build[key] = requiredComponent[key];
         }
     }
 }
 
 module.exports = build;
-

@@ -1,0 +1,29 @@
+var GameInfo = new function(){
+
+    var gameInfoInstance = this;
+
+    var Logger  = require('../logger/logger');
+    var Newton  = require('../newton/debug_newton');
+    var GA      = require('../ga/debug_ga');
+    var Network = require('../network/debug_network');
+    var VHost   = require('../vhost/debug_vhost');
+
+    var gameInfo;
+    var gameInfoMockUrl = VHost.get('GAME_INFO_MOCK_URL');
+
+    this.load = function(callback){
+        Logger.debug('GamifiveSDK', 'GameInfo', 'load');
+        Network.xhr('GET', gameInfoMockUrl, callback);
+    }
+
+    this.persist = function(callback){
+        Logger.debug('GamifiveSDK', 'GameInfo', 'persist');
+    }
+
+    this.get = function(){
+        return JSON.parse(JSON.stringify(gameInfo));
+    }
+
+};
+
+module.exports = GameInfo;
