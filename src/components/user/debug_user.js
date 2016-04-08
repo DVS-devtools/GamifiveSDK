@@ -59,7 +59,7 @@ var User = new function(){
 
         // unique parameter in qs to avoid cache 
         urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random()*1000);
-            
+        
         Network.xhr('GET', urlToCall, function(resp, req){
             
             if (typeof callback === 'function'){
@@ -76,7 +76,6 @@ var User = new function(){
         doSaveUserData(null, callback);
     }
 
-    
 };
 
 module.exports = User;

@@ -1,4 +1,4 @@
-var session = require("../src/components/session/debug_session");
+var session = require("../src/components/game_info/debug_game_info");
 
 describe("A description",function(){
     /*it("Public interface is defined", function(){

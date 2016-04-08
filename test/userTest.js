@@ -1,7 +1,7 @@
-var session = require("../src/components/session/debug_session");
+var session = require("../src/components/user/debug_user");
 
 describe("A description",function(){
-    /*it("Public interface is defined", function(){
+    it("Public interface is defined", function(){
         expect(session.init).toBeDefined();
         expect(session.getConfig).toBeDefined();
         expect(session.startSession).toBeDefined();
@@ -13,5 +13,5 @@ describe("A description",function(){
 
     it("Trivial", function(){
         expect(true).toEqual(true);
-    });*/
+    });
 });

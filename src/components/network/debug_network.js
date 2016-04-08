@@ -18,15 +18,17 @@ var Network = new function(){
             }
             document.getElementsByTagName('head')[0].appendChild(script);
         } else {
-
             var xhr = new XMLHttpRequest();
+
             xhr.onreadystatechange = function() {
                 if ( xhr.readyState === 4 ) {
                     var resp;
-                    try { 
+                    try {
                         resp = xhr.response.replace(/(\n|\r)/gm,"");
                         resp = JSON.parse(resp);
-                    } catch(e) {}
+                    } catch(e) { 
+                        resp = xhr;
+                    }
                     resp.success = (xhr.status >= 200 && xhr.status <= 399);
                     if (callback) {
                         callback(resp , xhr);

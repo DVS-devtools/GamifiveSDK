@@ -1,4 +1,4 @@
-var session = require("../src/components/session/debug_session");
+var session = require("../src/components/fb/debug_fb");
 
 describe("A description",function(){
     /*it("Public interface is defined", function(){
