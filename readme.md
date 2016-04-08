@@ -1,4 +1,7 @@
 [![Build Status](https://travis-ci.org/BuongiornoMIP/GamifiveSDK.svg?branch=refactoring)](https://travis-ci.org/BuongiornoMIP/GamifiveSDK)
+
+[![Coverage Status](https://coveralls.io/repos/github/BuongiornoMIP/GamifiveSDK/badge.svg?branch=refactoring)](https://coveralls.io/github/BuongiornoMIP/GamifiveSDK?branch=refactoring)
+
 <h1>GamifiveSDK 0.4</h1>
 <p>This is the how-to for game developers for integrating GamifiveSDK into their games.</p>
 
