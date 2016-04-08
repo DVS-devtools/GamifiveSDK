@@ -3,8 +3,6 @@ var GameInfo = new function(){
     var gameInfoInstance = this;
 
     var Logger  = require('../logger/logger');
-    var Newton  = require('../newton/debug_newton');
-    var GA      = require('../ga/debug_ga');
     var Network = require('../network/debug_network');
     var VHost   = require('../vhost/debug_vhost');
 
