@@ -1,22 +1,11 @@
-var build;
+var build = {};
 
-var requiredComponents = [
-    '../components/session/web_session.js',
-    '../components/menu/web_menu.js',
-    '../components/user/web_user.js',
-    '../components/fb/web_fb.js'
-];
+build.Menu = require('../components/menu/menu.js');
+build.User = require('../components/user/user.js');
+build.FB = require('../components/fb/fb.js');
+build.Session = require('../components/session/session.js');
 
-var requiredModule;
-for (var i=0; i<requiredComponents.length; i++){
-    requiredModule = require(requiredComponents[i]);
-
-    for (var key in requiredModule){
-        if (requiredModule.hasOwnProperty(key)){
-            build[key] = requiredModule[key];
-        }
-    }
-}
+require('../retro/retro-interface.js')(build);
 
 module.exports = build;
 
