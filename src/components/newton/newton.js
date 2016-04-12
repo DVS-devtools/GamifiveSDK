@@ -4,23 +4,23 @@ var Newton = new function(){
     var VHost  = require('../vhost/vhost');
         
     this.init = function(initProperties){
-        Logger.debug('GamifiveSDK', 'Newton', 'login', initProperties);
+        Logger.log('GamifiveSDK', 'Newton', 'login', initProperties);
     }
 
     this.login = function(userid, properties, callback){
-        Logger.debug('GamifiveSDK', 'Newton', 'login', userid, properties);
+        Logger.log('GamifiveSDK', 'Newton', 'login', userid, properties);
         if (typeof callback === 'function'){
             callback();
         }
     }
 
     this.trackEvent = function(eventProperties){
-        Logger.debug('GamifiveSDK', 'Newton', 'trackEvent', eventProperties);
+        Logger.log('GamifiveSDK', 'Newton', 'trackEvent', eventProperties);
     }
 
     this.pageTrack = function(url){
         url = url || window.location.origin;
-        Logger.debug('GamifiveSDK', 'Newton', 'pageTrack', url);
+        Logger.log('GamifiveSDK', 'Newton', 'pageTrack', url);
     }
 
 };

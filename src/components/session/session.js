@@ -19,7 +19,7 @@ var Session = new function(){
     }
 
     this.onStartSession = function(callback){
-        Logger.debug('GamifiveSDK', 'Session', 'onStartSession');
+        Logger.log('GamifiveSDK', 'Session', 'onStartSession');
     }
 
     this.startSession = function(){
@@ -27,11 +27,11 @@ var Session = new function(){
     }
 
     this.onPauseEnter = function(callback){
-        Logger.debug('GamifiveSDK', 'Session', 'onPauseEnter');
+        Logger.log('GamifiveSDK', 'Session', 'onPauseEnter');
     }
 
     this.onPauseExit = function(callback){
-        Logger.debug('GamifiveSDK', 'Session', 'onPauseExit');
+        Logger.log('GamifiveSDK', 'Session', 'onPauseExit');
     }
 
     this.endSession = function(data){

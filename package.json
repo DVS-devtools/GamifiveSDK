@@ -17,6 +17,7 @@
     "test": "karma start --no-auto-watch --browsers PhantomJS --single-run"
   },
   "devDependencies": {
+    "bower": "^1.7.9",
     "browserify": "^13.0.0",
     "browserify-istanbul": "^2.0.0",
     "coveralls": "^2.11.9",

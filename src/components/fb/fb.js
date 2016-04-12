@@ -6,7 +6,7 @@ var Facebook = new function(){
     var VHost  = require('../vhost/vhost');
 
     this.init = function(params){
-        Logger.debug('GamifiveSDK', 'Facebook', 'init', params);
+        Logger.log('GamifiveSDK', 'Facebook', 'init', params);
     }
 
     this.share = function(url, callback){

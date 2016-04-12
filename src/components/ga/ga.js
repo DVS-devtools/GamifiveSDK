@@ -4,16 +4,16 @@ var GA = new function(){
     var VHost  = require('../vhost/vhost');
 
     this.init = function(initProperties){
-        Logger.debug('GamifiveSDK', 'GA', 'login', initProperties);
+        Logger.log('GamifiveSDK', 'GA', 'login', initProperties);
     }
     
     this.trackEvent = function(eventProperties){
-        Logger.debug('GamifiveSDK', 'GA', 'trackEvent', eventProperties);
+        Logger.log('GamifiveSDK', 'GA', 'trackEvent', eventProperties);
     }
 
     this.pageTrack = function(url){
         url =  url || window.location.origin;
-        Logger.debug('GamifiveSDK', 'GA', 'pageTrack', url);
+        Logger.log('GamifiveSDK', 'GA', 'pageTrack', url);
     }
 
 };

@@ -12,7 +12,7 @@ var VHost = new function(){
         Network.xhr('GET', gameSDKVHostUrl, function(resp){
 
             vHost = resp.response;
-            Logger.debug('GamifiveSDK', 'VHost', 'load', vHost);
+            Logger.log('GamifiveSDK', 'VHost', 'load', vHost);
 
             if (typeof callback === 'function'){
                 callback(vHost);

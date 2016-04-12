@@ -10,12 +10,12 @@ var GameInfo = new function(){
     var gameInfoMockUrl = VHost.get('GAME_INFO_MOCK_URL');
 
     this.load = function(callback){
-        Logger.debug('GamifiveSDK', 'GameInfo', 'load');
+        Logger.log('GamifiveSDK', 'GameInfo', 'load');
         Network.xhr('GET', gameInfoMockUrl, callback);
     }
 
     this.persist = function(callback){
-        Logger.debug('GamifiveSDK', 'GameInfo', 'persist');
+        Logger.log('GamifiveSDK', 'GameInfo', 'persist');
     }
 
     this.get = function(){
