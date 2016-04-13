@@ -10,9 +10,19 @@ var User = new function(){
 
     var userInfo;
 
-    var userInfoUrl     = VHost.get('...');
-    var loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
-    var saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
+    var userInfoUrl;
+    var loadUserDataUrl;
+    var saveUserDataUrl;
+
+    VHost.afterLoad(function(){    
+        userInfoUrl     = VHost.get('...');
+        loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
+        saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
+    });
+
+    this.getUserInfo = function(){
+        return userInfo;
+    }
 
     var doSaveUserData = function(data, callback){
 
@@ -31,6 +41,9 @@ var User = new function(){
         urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random()*1000);
             
         Network.xhr('GET', urlToCall, function(resp, req){
+
+            // TODO: check
+            userInfo.gameInfo = data;
             
             if (typeof callback === 'function'){
                 callback(userInfo.gameInfo);
@@ -62,6 +75,9 @@ var User = new function(){
         
         Network.xhr('GET', urlToCall, function(resp, req){
             
+            // TODO: check
+            userInfo = resp.response;
+
             if (typeof callback === 'function'){
                 callback(userInfo.gameInfo);
             }

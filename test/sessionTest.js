@@ -1,15 +1,15 @@
-var session = require("../src/components/session/session");
+var Session = require("../src/components/session/session");
 
 describe("A description",function(){
     
     it("Public interface is defined", function(){
-        expect(session.init).toBeDefined();
-        expect(session.getConfig).toBeDefined();
-        expect(session.startSession).toBeDefined();
-        expect(session.onStartSession).toBeDefined();
-        expect(session.endSession).toBeDefined();
-        expect(session.onPauseEnter).toBeDefined();
-        expect(session.onPauseExit).toBeDefined();
+        expect(Session.init).toBeDefined();
+        expect(Session.getConfig).toBeDefined();
+        expect(Session.start).toBeDefined();
+        expect(Session.onStart).toBeDefined();
+        expect(Session.end).toBeDefined();
+        expect(Session.onPauseEnter).toBeDefined();
+        expect(Session.onPauseExit).toBeDefined();
     });
 
     

@@ -4,7 +4,7 @@ var Network = new function(){
 
     var Logger = require('../logger/logger');
     
-    this.xhr = function(method, url, callback){
+    this.xhr = function(method, url, callback, isSynchronous){
 
         if (method.toUpperCase() === 'JSONP'){
 
@@ -17,10 +17,12 @@ var Network = new function(){
                 callback(data);
             }
             document.getElementsByTagName('head')[0].appendChild(script);
+
         } else {
+            
             var xhr = new XMLHttpRequest();
 
-            xhr.onreadystatechange = function() {
+            xhr.onreadystatechange = function(){
                 if ( xhr.readyState === 4 ) {
                     var resp;
                     try {
@@ -36,7 +38,7 @@ var Network = new function(){
                 }
             };
 
-            xhr.open(method, url);
+            xhr.open(method, url, isSynchronous);
             xhr.send();   
             return xhr;
         }

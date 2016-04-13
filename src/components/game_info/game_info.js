@@ -7,19 +7,23 @@ var GameInfo = new function(){
     var VHost   = require('../vhost/vhost');
 
     var gameInfo;
-    var gameInfoMockUrl = VHost.get('GAME_INFO_MOCK_URL');
+    var gameInfoUrl; 
+
+    VHost.afterLoad(function(){
+        gameInfoUrl = VHost.get('GAME_INFO_URL');
+    });
 
     this.load = function(callback){
         Logger.log('GamifiveSDK', 'GameInfo', 'load');
-        Network.xhr('GET', gameInfoMockUrl, callback);
+        Network.xhr('GET', gameInfoUrl, callback);
     }
 
     this.persist = function(callback){
         Logger.log('GamifiveSDK', 'GameInfo', 'persist');
     }
 
-    this.get = function(){
-        return JSON.parse(JSON.stringify(gameInfo));
+    this.getInfo = function(){
+        return gameInfo;
     }
 
 };

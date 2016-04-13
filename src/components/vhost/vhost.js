@@ -2,25 +2,37 @@ var VHost = new function(){
 
     var vHostInstance = this;
 
-    var Logger  = require('../logger/logger');   
+    var Logger  = require('../logger/logger');
     var Network = require('../network/network');
+    var Event   = require('../event/event');
 
-    var vHost = {};
+    var vHost;
     var gameSDKVHostUrl = 'api/vhost';
 
-    this.load = function(callback){
+    var AFTER_LOAD_EVENT_KEY = 'VHOST_AFTER_LOAD';
+
+    this.load = function(){
+
         Network.xhr('GET', gameSDKVHostUrl, function(resp){
 
-            vHost = resp.response;
+            if (!!resp && typeof resp.response !== 'undefined'){
+                vHost = resp.response;
+            }
             Logger.log('GamifiveSDK', 'VHost', 'load', vHost);
 
-            if (typeof callback === 'function'){
-                callback(vHost);
-            }
+            Event.trigger(AFTER_LOAD_EVENT_KEY);
         });
     }
 
+    this.afterLoad = function(callback){
+        Event.bind(AFTER_LOAD_EVENT_KEY, callback);
+    }
+
     this.get = function(key){
+        if (typeof vHost === 'undefined'){
+            Logger.error('GamifiveSDK', 'VHost', 'get', 'cannot get "' + key + '" before loading the VHost');
+            return undefined;
+        }
         return vHost[key];
     }
 

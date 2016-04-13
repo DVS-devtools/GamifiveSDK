@@ -9,14 +9,23 @@ var Menu = new function(){
     
     var menuElement;
     var menuStyle;
-    var menuSprite;
+
+    // default value
+    var menuSprite = 'http://s.motime.com/img/wl/webstore_html5game/images/gameover/sprite.png?v=' + Date.now();
+
+    VHost.afterLoad(function(){
+        menuSprite = VHost.get('MORE_GAMES_BUTTON_SPRITE');
+    });
 
     var goToHomeCallback = function(){
         Logger.warn('GamifiveSDK', 'Menu', 'goToHomeCallback not set');
     }
 
     this.init = function(params){
-        if (typeof params.goToHomeCallback !== 'undefined'){
+        Logger.log('GamifiveSDK', 'Menu', 'init', params);
+
+        if (!!params && typeof params.goToHomeCallback !== 'undefined'){
+
             if (typeof params.goToHomeCallback === 'function'){
                 goToHomeCallback = params.goToHomeCallback;
             } else {
@@ -24,12 +33,9 @@ var Menu = new function(){
                     + typeof params.goToHomeCallback + '"');
             }
         }
+    }
 
-        Logger.log('GamifiveSDK', 'Menu', 'init', params);
-
-        menuSprite = VHost.get('MORE_GAMES_BUTTON_SPRITE');
-        menuSprite = menuSprite || 'http://s.motime.com/img/wl/webstore_html5game/images/gameover/sprite.png?v=' + Date.now();
-
+    this.resetStyle = function(){
         menuStyle = {};
         menuStyle.left = '2px' ;
         menuStyle.height = '44px';
@@ -41,8 +47,18 @@ var Menu = new function(){
         menuStyle.position = 'absolute';
         menuStyle['background-image'] = 'url(' + menuSprite + ')';
     }
-    // set default style
-    menuInstance.init();
+
+    this.setCustomStyle = function(customStyle){
+        if (!menuStyle){
+            menuInstance.resetStyle();
+        }
+        // override menu style
+        if (customStyle){
+            for (var key in customStyle){
+                menuStyle[key] = customStyle[key];
+            }   
+        }
+    }
 
     this.show = function(customStyle){
         Logger.info('GamifiveSDK', 'Menu', 'showMenu', customStyle);
@@ -56,10 +72,7 @@ var Menu = new function(){
             document.body.appendChild(menuElement);
         }
 
-        // override menu style
-        for (var key in customStyle){
-            menuStyle[key] = customStyle[key];
-        }
+        menuInstance.setCustomStyle(customStyle);
 
         // apply menu style to element
         for (var key in menuStyle){
