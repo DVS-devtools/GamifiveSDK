@@ -38,7 +38,9 @@ var Network = new function(){
                 }
             };
 
-            xhr.open(method, url, isSynchronous);
+            // xhr.open accepts a parameter to specify if execution must be async (true) or sync (false)
+            var isAsynchronous = !isSynchronous;
+            xhr.open(method, url, isAsynchronous);
             xhr.send();   
             return xhr;
         }

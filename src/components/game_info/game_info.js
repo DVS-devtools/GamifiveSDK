@@ -7,7 +7,7 @@ var GameInfo = new function(){
     var VHost   = require('../vhost/vhost');
 
     var gameInfo;
-    var gameInfoUrl; 
+    var gameInfoUrl;
 
     VHost.afterLoad(function(){
         gameInfoUrl = VHost.get('GAME_INFO_URL');
