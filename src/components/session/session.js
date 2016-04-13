@@ -11,7 +11,9 @@ var Session = new function(){
 
     var startCallback;
 
-    var config = {};
+    var config = {
+        MAX_RECORDED_SESSIONS_NUMBER: 2
+    };
 
     this.getConfig = function(){
         return config;
@@ -50,10 +52,7 @@ var Session = new function(){
     }
 
     var getLastSession = function(){
-        if (typeof config.sessions === typeof [] && config.sessions.length > 0){
-            return config.sessions[0];
-        }
-        return null;
+        return config.sessions[0];
     }
 
     this.start = function(){
@@ -66,6 +65,8 @@ var Session = new function(){
                 score: undefined,
                 level: undefined
             });
+
+            config.sessions = config.sessions.slice(0, config.MAX_RECORDED_SESSIONS_NUMBER);
         }
 
         if (typeof config.sessions === typeof []){
@@ -73,8 +74,7 @@ var Session = new function(){
             if (config.sessions.length === 0){
                 addNewSession();
             } else {
-                var lastSession = config.sessions[0];
-                if (typeof lastSession.endTime !== 'undefined'){
+                if (typeof getLastSession().endTime !== 'undefined'){
                     addNewSession();
                 } else {
                     throw 'GamifiveSDK :: Session :: start :: previous session not ended';
@@ -114,18 +114,18 @@ var Session = new function(){
         Logger.info('GamifiveSDK', 'Session', 'end', data);
 
         if (config.sessions.length < 1){
-            throw 'GamifiveSDK :: Session :: end :: session not started';
+            throw 'GamifiveSDK :: Session :: end :: no sessions started';
         }
 
-        if (typeof config.sessions[0].endTime !== 'undefined'){
+        if (typeof getLastSession().endTime !== 'undefined'){
             throw 'GamifiveSDK :: Session :: end :: session already ended';
         }
 
-        config.sessions[0].endTime = new Date();
+        getLastSession().endTime = new Date();
 
         if (typeof data.score !== 'undefined'){
-            if (typeof data.score === 'number'){
-                config.sessions[0].score = data.score;
+            if (typeof data.score !== 'number'){
+                getLastSession().score = data.score;
             } else {
                 throw 'GamifiveSDK :: Session :: end :: invalid type of score: \
                     expected number, got ' + typeof data.score;
@@ -134,7 +134,7 @@ var Session = new function(){
 
         if (typeof data.level !== 'undefined'){
             if (typeof data.level === 'number'){
-                config.sessions[0].level = data.level;
+               getLastSession().level = data.level;
             } else {
                 throw 'GamifiveSDK :: Session :: end :: invalid type of level: \
                     expected number, got ' + typeof data.level;
