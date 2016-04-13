@@ -39,7 +39,7 @@ var Session = new function(){
                 goToHomeCallback: sessionInstance.goToHome
             });
             Menu.show();
-            
+
         });
 
         VHost.load();
@@ -49,11 +49,23 @@ var Session = new function(){
         config = {};
     }
 
+    var getLastSession = function(){
+        if (typeof config.sessions === typeof [] && config.sessions.length > 0){
+            return config.sessions[0];
+        }
+        return null;
+    }
+
     this.start = function(){
         Logger.info('GamifiveSDK', 'Session', 'start');
 
         var addNewSession = function(){
-            lastSession.unshift({startTime: new Date()})
+            config.sessions.unshift({
+                startTime: new Date(),
+                endTime: undefined,
+                score: undefined,
+                level: undefined
+            });
         }
 
         if (typeof config.sessions === typeof []){
@@ -104,7 +116,30 @@ var Session = new function(){
         if (config.sessions.length < 1){
             throw 'GamifiveSDK :: Session :: end :: session not started';
         }
+
+        if (typeof config.sessions[0].endTime !== 'undefined'){
+            throw 'GamifiveSDK :: Session :: end :: session already ended';
+        }
+
         config.sessions[0].endTime = new Date();
+
+        if (typeof data.score !== 'undefined'){
+            if (typeof data.score === 'number'){
+                config.sessions[0].score = data.score;
+            } else {
+                throw 'GamifiveSDK :: Session :: end :: invalid type of score: \
+                    expected number, got ' + typeof data.score;
+            }
+        }
+
+        if (typeof data.level !== 'undefined'){
+            if (typeof data.level === 'number'){
+                config.sessions[0].level = data.level;
+            } else {
+                throw 'GamifiveSDK :: Session :: end :: invalid type of level: \
+                    expected number, got ' + typeof data.level;
+            }
+        }
 
         Menu.show();
     }
