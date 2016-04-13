@@ -12,9 +12,9 @@ var addRetroInterface = function(build){
         build.onStartSession = build.Session.onStart;
         build.endSession = build.Session.end;
         build.getConfig = function(){
-            var toReturn = Session.getConfig();
-            toReturn.user = User.getInfo();
-            toReturn.game = GameInfo.getInfo();
+            var toReturn = build.Session.getConfig();
+            toReturn.user = build.User.getInfo();
+            toReturn.game = build.GameInfo.getInfo();
             return toReturn;
         }
     }

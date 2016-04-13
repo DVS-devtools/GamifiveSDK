@@ -11,10 +11,6 @@ var Session = new function(){
 
     var startCallback;
 
-    Menu.init({
-        goToHomeCallback: sessionInstance.goToHome
-    });
-
     var config = {};
 
     this.getConfig = function(){
@@ -38,7 +34,12 @@ var Session = new function(){
         config.sessions = [];
 
         VHost.afterLoad(function(){
+
+            Menu.init({
+                goToHomeCallback: sessionInstance.goToHome
+            });
             Menu.show();
+            
         });
 
         VHost.load();

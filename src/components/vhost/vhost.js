@@ -16,6 +16,7 @@ var VHost = new function(){
         Network.xhr('GET', gameSDKVHostUrl, function(resp){
 
             if (!!resp && typeof resp.response !== 'undefined'){
+                Logger.log('GamifiveSDK', 'VHost', 'load response', resp);
                 vHost = resp.response;
             }
             Logger.log('GamifiveSDK', 'VHost', 'load', vHost);

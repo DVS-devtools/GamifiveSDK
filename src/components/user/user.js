@@ -20,7 +20,7 @@ var User = new function(){
         saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
     });
 
-    this.getUserInfo = function(){
+    this.getInfo = function(){
         return userInfo;
     }
 
