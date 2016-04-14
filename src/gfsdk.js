@@ -65,7 +65,7 @@ var GamefiveSDK = new function() {
     * @memberof Gfsdk
     */
     this.loadUserData = function(callback){
-        if (!config.debug){
+        if (!config.debug && MOA_API_APPLICATION_OBJECTS_GET.length > 0){
 
             if (window.location.origin.indexOf('cdvfile') < 0){
                  getUserData(callback);
@@ -155,7 +155,7 @@ var GamefiveSDK = new function() {
     * @memberof Gfsdk
     */
     this.saveUserData = function(obj, callback){
-        if (!config.debug){
+        if (!config.debug && MOA_API_APPLICATION_OBJECTS_SET.length > 0){
             setUserData(obj, callback);
         } else {
             storage.set(userStatusKey, callback);
@@ -168,7 +168,7 @@ var GamefiveSDK = new function() {
     * @memberof Gfsdk
     */
     this.clearUserData = function(){
-        if (!config.debug){
+        if (!config.debug && MOA_API_APPLICATION_OBJECTS_SET.length > 0){
             setUserData(null);   
         } else {
             storage.set(userStatusKey, null);
