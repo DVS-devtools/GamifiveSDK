@@ -1,8 +1,8 @@
 var session = require("../src/components/user/user");
 
-describe("A description",function(){
+describe('User',function(){
 
-    it("User", function(){
+    it("User TODO", function(){
         expect(true).toEqual(true);
     });
 });

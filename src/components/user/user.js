@@ -52,12 +52,12 @@ var User = new function(){
         });
     }
 
-    this.saveUserData = function(data, callback){
+    this.saveData = function(data, callback){
         Logger.info('GamifiveSDK', 'User', 'saveUserData', data);
         doSaveUserData(data, callback);
     }
 
-    this.loadUserData = function(callback){
+    this.loadData = function(callback){
         Logger.info('GamifiveSDK', 'User', 'loadUserData');
 
         var contentId = GameInfo.get('...');
@@ -87,7 +87,7 @@ var User = new function(){
         return userInfo.gameInfo;
     }
 
-    this.clearUserData = function(callback){
+    this.clearData = function(callback){
         Logger.info('GamifiveSDK', 'User', 'clearUserData');
         doSaveUserData(null, callback);
     }

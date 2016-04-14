@@ -2,23 +2,24 @@ var VHost = require("../src/components/vhost/vhost");
 
 require('jasmine-ajax');
 
-describe("A description",function(){
+describe("VHost",function(){
         
     beforeEach(function() {
         jasmine.Ajax.install();
+        VHost.reset();
     });
 
     afterEach(function() {
         jasmine.Ajax.uninstall();
     });
 
-    it("load is defined", function(){
+    it("load should be defined", function(){
         expect(VHost.load).toBeDefined();
         console.log("VHost.load is defined");
     }); 
 
     
-    it('url should be api/vhost', function(){
+    it('load url should be api/vhost', function(){
         VHost.load();
         var request = jasmine.Ajax.requests.mostRecent();
         expect(request.url).toBe('api/vhost');        
@@ -26,6 +27,7 @@ describe("A description",function(){
     });
 
     it('load and get should work', function(){
+
         VHost.afterLoad(function(){
             expect(VHost.get('test')).toEqual(1234);
         });

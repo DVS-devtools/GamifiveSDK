@@ -11,7 +11,11 @@ var VHost = new function(){
 
     var AFTER_LOAD_EVENT_KEY = 'VHOST_AFTER_LOAD';
 
-    this.load = function(synchronous){
+    this.reset = function(){
+        vHost = undefined;
+    }
+
+    this.load = function(){
 
         Network.xhr('GET', gameSDKVHostUrl, function(resp){
 
@@ -22,7 +26,7 @@ var VHost = new function(){
             Logger.log('GamifiveSDK', 'VHost', 'load', vHost);
 
             Event.trigger(AFTER_LOAD_EVENT_KEY);
-        }, synchronous);
+        });
     }
 
     this.afterLoad = function(callback){

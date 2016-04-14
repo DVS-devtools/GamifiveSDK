@@ -1,8 +1,8 @@
 var session = require("../src/components/game_info/game_info");
 
-describe("A description",function(){
+describe("GameInfo",function(){
     
-    it("Session", function(){
+    it("GameInfo TODO", function(){
         expect(true).toEqual(true);
     });
 });

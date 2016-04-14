@@ -1,8 +1,8 @@
 var session = require("../src/components/fb/fb");
 
-describe("A description",function(){
+describe("FB",function(){
 
-    it("FB", function(){
+    it("FB TODO", function(){
         expect(true).toEqual(true);
     });
 });
