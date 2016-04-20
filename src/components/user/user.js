@@ -1,12 +1,12 @@
+var Logger  = require('../logger/logger');
+var Newton  = require('../newton/newton');
+var GA      = require('../ga/ga');
+var VHost   = require('../vhost/vhost');
+var Network = require('../network/network');
+
 var User = new function(){
 
     var userInstance = this;
-
-    var Logger  = require('../logger/logger');
-    var Newton  = require('../newton/newton');
-    var GA      = require('../ga/ga');
-    var VHost   = require('../vhost/vhost');
-    var Network = require('../network/network');
 
     var userInfo;
 
@@ -15,7 +15,7 @@ var User = new function(){
     var saveUserDataUrl;
 
     VHost.afterLoad(function(){    
-        userInfoUrl     = VHost.get('...');
+        userInfoUrl     = VHost.get('USER_CHECK_URL');
         loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
         saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
     });
@@ -60,8 +60,8 @@ var User = new function(){
     this.loadData = function(callback){
         Logger.info('GamifiveSDK', 'User', 'loadUserData');
 
-        var contentId = GameInfo.get('...');
-        var userId    = '...';
+        var contentId = GameInfo.get('contentId');
+        var userId    = userInfo.userId;
 
         var urlToCall = loadUserDataUrl
                             .replace(':QUERY', JSON.stringify({contentId: contentId}))

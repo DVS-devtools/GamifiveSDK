@@ -1,11 +1,11 @@
+var Logger = require('../logger/logger');
+var Newton = require('../newton/newton');
+var GA     = require('../ga/ga');
+var VHost  = require('../vhost/vhost');
+
 var Menu = new function(){
 
     var menuInstance = this;
-
-    var Logger = require('../logger/logger');
-    var Newton = require('../newton/newton');
-    var GA     = require('../ga/ga');
-    var VHost  = require('../vhost/vhost');
     
     var menuElement;
     var menuStyle;
@@ -13,9 +13,13 @@ var Menu = new function(){
     // default value
     var menuSprite = 'http://s.motime.com/img/wl/webstore_html5game/images/gameover/sprite.png?v=' + Date.now();
 
-    VHost.afterLoad(function(){
-        menuSprite = VHost.get('MORE_GAMES_BUTTON_SPRITE');
-    });
+    if (typeof moreGamesButtonSprite === 'undefined'){
+        VHost.afterLoad(function(){
+            menuSprite = VHost.get('MORE_GAMES_BUTTON_SPRITE');
+        });
+    } else {
+        menuSprite = moreGamesButtonSprite;
+    }
 
     var goToHomeCallback = function(){
         Logger.warn('GamifiveSDK', 'Menu', 'goToHomeCallback not set');

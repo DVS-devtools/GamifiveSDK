@@ -1,10 +1,10 @@
+var Logger  = require('../logger/logger');
+var Network = require('../network/network');
+var Event   = require('../event/event');
+
 var VHost = new function(){
 
     var vHostInstance = this;
-
-    var Logger  = require('../logger/logger');
-    var Network = require('../network/network');
-    var Event   = require('../event/event');
 
     var vHost;
     var gameSDKVHostUrl = 'api/vhost';
@@ -16,7 +16,6 @@ var VHost = new function(){
     }
 
     this.load = function(){
-
         Network.xhr('GET', gameSDKVHostUrl, function(resp){
 
             if (!!resp && typeof resp.response !== 'undefined'){

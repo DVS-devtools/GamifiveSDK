@@ -1,7 +1,7 @@
-var GA = new function(){
+var Logger = require('../logger/logger');
+var VHost  = require('../vhost/vhost');
 
-    var Logger = require('../logger/logger');
-    var VHost  = require('../vhost/vhost');
+var GA = new function(){
 
     this.init = function(initProperties){
         Logger.log('GamifiveSDK', 'GA', 'login', initProperties);

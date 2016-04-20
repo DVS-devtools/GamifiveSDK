@@ -1,8 +1,8 @@
+var Logger = require('../logger/logger');
+
 var Network = new function(){
 
     var networkInstance = this;
-
-    var Logger = require('../logger/logger');
     
     this.xhr = function(method, url, callback){
         Logger.log('GamifiveSDK', 'Network', 'xhr', method, url);

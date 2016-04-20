@@ -1,8 +1,8 @@
+var Logger  = require('../logger/logger');
+
 var Event = new function(){
 
     var eventInstance = this;
-
-    var Logger  = require('../logger/logger');
     
     var events = {};
 

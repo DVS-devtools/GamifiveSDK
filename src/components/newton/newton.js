@@ -1,7 +1,7 @@
+var Logger = require('../logger/logger');
+var VHost  = require('../vhost/vhost');
+    
 var Newton = new function(){
-
-    var Logger = require('../logger/logger');
-    var VHost  = require('../vhost/vhost');
         
     this.init = function(initProperties){
         Logger.log('GamifiveSDK', 'Newton', 'login', initProperties);

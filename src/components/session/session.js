@@ -1,13 +1,13 @@
+var Logger  = require('../logger/logger');
+var Newton  = require('../newton/newton');
+var GA      = require('../ga/ga');
+var VHost   = require('../vhost/vhost');
+var Network = require('../network/network');
+var Menu    = require('../menu/menu');
+
 var Session = new function(){
 
     var sessionInstance = this;
-
-    var Logger  = require('../logger/logger');
-    var Newton  = require('../newton/newton');
-    var GA      = require('../ga/ga');
-    var VHost   = require('../vhost/vhost');
-    var Network = require('../network/network');
-    var Menu    = require('../menu/menu');
 
     var startCallback;
 
@@ -58,7 +58,7 @@ var Session = new function(){
     this.start = function(){
         Logger.info('GamifiveSDK', 'Session', 'start');
 
-        var addNewSession = function(){
+        var startNewSession = function(){
             config.sessions.unshift({
                 startTime: new Date(),
                 endTime: undefined,
@@ -67,15 +67,21 @@ var Session = new function(){
             });
 
             config.sessions = config.sessions.slice(0, config.MAX_RECORDED_SESSIONS_NUMBER);
+
+            Menu.hide();
+
+            if (typeof startCallback === 'function') {
+                startCallback();
+            }
         }
 
         if (typeof config.sessions === typeof []){
 
             if (config.sessions.length === 0){
-                addNewSession();
+                startNewSession();
             } else {
                 if (typeof getLastSession().endTime !== 'undefined'){
-                    addNewSession();
+                    startNewSession();
                 } else {
                     throw 'GamifiveSDK :: Session :: start :: previous session not ended';
                 }
@@ -84,13 +90,10 @@ var Session = new function(){
         } else {
             throw 'GamifiveSDK :: Session :: start :: init not called';
         }
-
-        startCallback();
     }
 
     this.onStart = function(callback){
         Logger.info('GamifiveSDK', 'Session', 'onStart');
-        Menu.hide();
 
         if (typeof callback === 'function'){
             startCallback = callback;
@@ -124,7 +127,7 @@ var Session = new function(){
         getLastSession().endTime = new Date();
 
         if (typeof data.score !== 'undefined'){
-            if (typeof data.score !== 'number'){
+            if (typeof data.score === 'number'){
                 getLastSession().score = data.score;
             } else {
                 throw 'GamifiveSDK :: Session :: end :: invalid type of score: \
