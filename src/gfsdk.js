@@ -11,7 +11,11 @@ var GamefiveSDK = new function() {
 	var Utils = GamifiveSDKUtils;
 	var moreGamesLink;
 	// will hold a reference to Dixie storage or debug mode storage
-	var _storage;
+
+    if (typeof storage === 'undefined' && typeof Dixie !== 'undefined'){
+        window.storage = new Dixie();
+        window.storage.init({type: 'localStorage'});
+    }
 
 	// default key for guest (unknown) user's data
 	var userStatusKey = 'GamifiveSDKStatus_unknown';
@@ -88,10 +92,15 @@ var GamefiveSDK = new function() {
                 
                 return toReturn.info;
             } catch (err){
+                console.warn("GamifiveSDK :: loadUserData :: No cached data to return")
                 return null;
             }
         } else {
-            return storage.get(userStatusKey);
+            var toReturn = window.storage.get(userStatusKey);
+            if (typeof callback == 'function'){
+                callback();
+            }
+            return toReturn;
         }
     }
 
@@ -158,7 +167,10 @@ var GamefiveSDK = new function() {
         if (!config.debug && MOA_API_APPLICATION_OBJECTS_SET.length > 0){
             setUserData(obj, callback);
         } else {
-            storage.set(userStatusKey, callback);
+            window.storage.set(userStatusKey, obj);
+            if (typeof callback == 'function'){
+                callback();
+            }
         }
     }
 
@@ -171,7 +183,7 @@ var GamefiveSDK = new function() {
         if (!config.debug && MOA_API_APPLICATION_OBJECTS_SET.length > 0){
             setUserData(null);   
         } else {
-            storage.set(userStatusKey, null);
+            window.storage.set(userStatusKey, null);
         }
     }
 
@@ -279,17 +291,9 @@ var GamefiveSDK = new function() {
             };   
         }
 
-        if (typeof storage === 'undefined' && typeof Dixie !== 'undefined'){
-            window.storage = new Dixie();
-            storage.init({type: 'localStorage'});
-        }
-
 		// get window.GamifiveInfo
 		if(!config.debug){
-			// get storage from ga_for_games (Dixie)
-            
-			_storage = storage;
-			
+			// get storage from ga_for_games (Dixie)			
 			var _copyInfo = function(){
 				Utils.copyProperties(window.GamifiveInfo, config);
 				try {
@@ -325,11 +329,14 @@ var GamefiveSDK = new function() {
 			}
 
 		} else {
+            window.MOA_API_APPLICATION_OBJECTS_SET = '';
+            window.MOA_API_APPLICATION_OBJECTS_GET = '';
+
             // mock sprite more games button
 			moreGamesButtonSprite = 'http://s.motime.com/img/wl/webstore_html5game/images/gameover/sprite.png?v=20151120101238';
 
 			// debug mode: Dixie is not defined, use a mock 
-		    _storage = new function(){
+		    window.storage = new function(){
 		        this.set = function(key, obj){
 		            localStorage.setItem(key, JSON.stringify(obj));
 		        }
