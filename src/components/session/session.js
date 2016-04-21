@@ -11,9 +11,15 @@ var Session = new function(){
 
     var startCallback;
 
-    var config = {
-        MAX_RECORDED_SESSIONS_NUMBER: 2
-    };
+    var config;
+
+    this.reset = function(){
+        config = {
+            MAX_RECORDED_SESSIONS_NUMBER: 2
+        };
+    }
+    // apply default configuration
+    sessionInstance.reset();
 
     this.getConfig = function(){
         return config;
@@ -22,14 +28,13 @@ var Session = new function(){
     this.init = function(params){
         Logger.info('GamifiveSDK', 'Session', 'init', params);
 
-        if (!!params){
-            if (typeof params.moreGamesButtonStyle !== 'undefined'){
-                Menu.setCustomStyle(params.moreGamesButtonStyle);
-            }
-        }
-
+        // copy parameters into internal configuration
         for (var key in params){
             config[key] = params[key];
+        }
+
+        if (typeof config.moreGamesButtonStyle !== 'undefined'){
+            Menu.setCustomStyle(config.moreGamesButtonStyle);
         }
 
         // allows starting a new session
@@ -40,15 +45,12 @@ var Session = new function(){
             Menu.init({
                 goToHomeCallback: sessionInstance.goToHome
             });
+
             Menu.show();
 
         });
 
         VHost.load();
-    }
-
-    this.reset = function(){
-        config = {};
     }
 
     var getLastSession = function(){
@@ -58,37 +60,42 @@ var Session = new function(){
     this.start = function(){
         Logger.info('GamifiveSDK', 'Session', 'start');
 
-        var startNewSession = function(){
-            config.sessions.unshift({
-                startTime: new Date(),
-                endTime: undefined,
-                score: undefined,
-                level: undefined
-            });
-
-            config.sessions = config.sessions.slice(0, config.MAX_RECORDED_SESSIONS_NUMBER);
-
-            Menu.hide();
-
-            if (typeof startCallback === 'function') {
-                startCallback();
-            }
+        // if init has been called, then config.session will be []
+        if (typeof config.sessions !== typeof []){
+            throw 'GamifiveSDK :: Session :: start :: init not called';
         }
 
-        if (typeof config.sessions === typeof []){
+        // if a previous session exists, it must have been ended
+        if (config.sessions.length > 0 & typeof getLastSession().endTime === 'undefined'){
+            throw 'GamifiveSDK :: Session :: start :: previous session not ended';     
+        }
 
-            if (config.sessions.length === 0){
-                startNewSession();
-            } else {
-                if (typeof getLastSession().endTime !== 'undefined'){
-                    startNewSession();
-                } else {
-                    throw 'GamifiveSDK :: Session :: start :: previous session not ended';
-                }
-            }
+        // ok, you can start a new session
+        config.sessions.unshift({
+            startTime: new Date(),
+            endTime: undefined,
+            score: undefined,
+            level: undefined
+        });
+
+        config.sessions = config.sessions.slice(0, config.MAX_RECORDED_SESSIONS_NUMBER);
+
+        
+
+        if (config.lite){
 
         } else {
-            throw 'GamifiveSDK :: Session :: start :: init not called';
+
+        }
+
+        if (typeof startCallback === 'function') {
+            try {
+                Menu.hide();
+                startCallback();
+            } catch (e){
+                Logger.error('GamifiveSDK', 'startSession', 'error while trying to start a session', e);
+                Menu.show();
+            }
         }
     }
 
