@@ -232,9 +232,9 @@ var GameOverCore = new function() {
 	this.trackEvent = function(category, action, label, properties){
 		var config = GamefiveSDK.getConfig();
 		if(!config.debug){
-			GameAnalytics.trackEvent(category, action, label, properties);
+			tryAnalyticsTrackEvent(category, action, label, properties);
 		} else {
-			Utils.log("GameAnalytics", "trackEvent", category, action, label, properties);
+			Utils.log("GaAnalytics", "trackEvent", category, action, label, properties);
 		}
 	}
 
