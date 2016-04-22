@@ -1,9 +1,19 @@
 var Logger = require('../logger/logger');
 
+/**
+* Utility module for handling network functionalities
+* @class Network
+* @version 0.9
+*/
 var Network = new function(){
 
     var networkInstance = this;
     
+    /**
+    * performs an XMLHttpRequest
+    * @function xhr
+    * @memberof Network
+    */
     this.xhr = function(method, url, callback){
         Logger.log('GamifiveSDK', 'Network', 'xhr', method, url);
         

@@ -4,6 +4,11 @@ var GA      = require('../ga/ga');
 var VHost   = require('../vhost/vhost');
 var Network = require('../network/network');
 
+/**
+* User module
+* @class User
+* @version 0.9
+*/
 var User = new function(){
 
     var userInstance = this;
@@ -14,12 +19,25 @@ var User = new function(){
     var loadUserDataUrl;
     var saveUserDataUrl;
 
-    VHost.afterLoad(function(){    
-        userInfoUrl     = VHost.get('USER_CHECK_URL');
-        loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
-        saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
-    });
+    /**
+    * initializes the User module
+    * @function init
+    * @memberof User
+    */
+    this.init = function(params){
 
+        VHost.afterLoad(function(){    
+            userInfoUrl     = VHost.get('USER_CHECK_URL');
+            loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
+            saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
+        });
+    }
+
+    /**
+    * returns the necessary info about the User
+    * @function getInfo
+    * @memberof User
+    */
     this.getInfo = function(){
         return userInfo;
     }
@@ -52,11 +70,21 @@ var User = new function(){
         });
     }
 
+    /**
+    * saves some user's data 
+    * @function saveData
+    * @memberof User
+    */
     this.saveData = function(data, callback){
         Logger.info('GamifiveSDK', 'User', 'saveUserData', data);
         doSaveUserData(data, callback);
     }
 
+    /**
+    * loads some user's data 
+    * @function loadData
+    * @memberof User
+    */
     this.loadData = function(callback){
         Logger.info('GamifiveSDK', 'User', 'loadUserData');
 
@@ -87,6 +115,11 @@ var User = new function(){
         return userInfo.gameInfo;
     }
 
+    /**
+    * clear some user's data 
+    * @function clearData
+    * @memberof User
+    */
     this.clearData = function(callback){
         Logger.info('GamifiveSDK', 'User', 'clearUserData');
         doSaveUserData(null, callback);

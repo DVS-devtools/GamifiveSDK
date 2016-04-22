@@ -2,6 +2,11 @@ var Logger  = require('../logger/logger');
 var Network = require('../network/network');
 var VHost   = require('../vhost/vhost');
 
+/**
+* GameInfo module
+* @class GameInfo
+* @version 0.9
+*/
 var GameInfo = new function(){
 
     var gameInfoInstance = this;
@@ -13,6 +18,11 @@ var GameInfo = new function(){
         gameInfoUrl = VHost.get('GAME_INFO_URL');
     });
 
+    /**
+    * loads the necessary information about the game
+    * @function load
+    * @memberof GameInfo
+    */
     this.load = function(callback){
         Logger.log('GamifiveSDK', 'GameInfo', 'load');
 
@@ -26,10 +36,20 @@ var GameInfo = new function(){
         });
     }
 
+    /**
+    * saves the necessary information about the game, to be able to use it offline
+    * @function persist
+    * @memberof GameInfo
+    */
     this.persist = function(callback){
         Logger.log('GamifiveSDK', 'GameInfo', 'persist');
     }
 
+    /**
+    * returns the necessary information about the game
+    * @function getInfo
+    * @memberof GameInfo
+    */
     this.getInfo = function(){
         return gameInfo;
     }

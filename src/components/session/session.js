@@ -1,10 +1,16 @@
-var Logger  = require('../logger/logger');
-var Newton  = require('../newton/newton');
-var GA      = require('../ga/ga');
-var VHost   = require('../vhost/vhost');
-var Network = require('../network/network');
-var Menu    = require('../menu/menu');
+var Logger   = require('../logger/logger');
+var Newton   = require('../newton/newton');
+var GA       = require('../ga/ga');
+var VHost    = require('../vhost/vhost');
+var Network  = require('../network/network');
+var Menu     = require('../menu/menu');
+var Location = require('../location/location');
 
+/**
+* Session module
+* @class Session
+* @version 0.9
+*/
 var Session = new function(){
 
     var sessionInstance = this;
@@ -13,6 +19,11 @@ var Session = new function(){
 
     var config;
 
+    /**
+    * resets the internal configuration to default value
+    * @function reset
+    * @memberof Session
+    */
     this.reset = function(){
         config = {
             MAX_RECORDED_SESSIONS_NUMBER: 2
@@ -21,10 +32,20 @@ var Session = new function(){
     // apply default configuration
     sessionInstance.reset();
 
+    /**
+    * returns the internal configuration
+    * @function getConfig
+    * @memberof Session
+    */
     this.getConfig = function(){
         return config;
     }
 
+    /**
+    * initializes the module with custom parameters
+    * @function init
+    * @memberof Session
+    */
     this.init = function(params){
         Logger.info('GamifiveSDK', 'Session', 'init', params);
 
@@ -57,6 +78,11 @@ var Session = new function(){
         return config.sessions[0];
     }
 
+    /**
+    * starts a new gameplay session
+    * @function start
+    * @memberof Session
+    */
     this.start = function(){
         Logger.info('GamifiveSDK', 'Session', 'start');
 
@@ -99,6 +125,11 @@ var Session = new function(){
         }
     }
 
+    /**
+    * sets a callback function to be called when starting a gameplay session
+    * @function onStart
+    * @memberof Session
+    */
     this.onStart = function(callback){
         Logger.info('GamifiveSDK', 'Session', 'onStart');
 
@@ -110,16 +141,31 @@ var Session = new function(){
         }
     }   
 
+    /**
+    * sets a callback function to be called when the game enters pause status
+    * @function onPauseEnter
+    * @memberof Session
+    */
     this.onPauseEnter = function(callback){
         Logger.log('GamifiveSDK', 'Session', 'onPauseEnter');
         Menu.show();
     }
 
+    /**
+    * sets a callback function to be called when the game exits pause status
+    * @function onPauseExit
+    * @memberof Session
+    */
     this.onPauseExit = function(callback){
         Logger.log('GamifiveSDK', 'Session', 'onPauseExit');
         Menu.hide();
     }
 
+    /**
+    * ends a session and (if not in lite mode) shows the platform's gameover screen
+    * @function end
+    * @memberof Session
+    */
     this.end = function(data){
         Logger.info('GamifiveSDK', 'Session', 'end', data);
 
@@ -154,8 +200,14 @@ var Session = new function(){
         Menu.show();
     }
 
+    /**
+    * returns to the main page of the webapp
+    * @function goToHome
+    * @memberof Session
+    */
     this.goToHome = function(){
         Logger.info('GamifiveSDK', 'Session', 'goToHome');
+        window.location.href = Location.getOrigin();
     }
 
 };

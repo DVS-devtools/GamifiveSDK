@@ -3,31 +3,44 @@ var Newton = require('../newton/newton');
 var GA     = require('../ga/ga');
 var VHost  = require('../vhost/vhost');
 
+/**
+* Gameplay page menu module (old "more games button")
+* @class Menu
+* @version 0.9
+*/
 var Menu = new function(){
 
     var menuInstance = this;
     
     var menuElement;
     var menuStyle;
+    var menuSprite;
 
-    // default value
-    var menuSprite = 'http://s.motime.com/img/wl/webstore_html5game/images/gameover/sprite.png?v=' + Date.now();
-
-    if (typeof moreGamesButtonSprite === 'undefined'){
-        VHost.afterLoad(function(){
-            menuSprite = VHost.get('MORE_GAMES_BUTTON_SPRITE');
-        });
-    } else {
-        menuSprite = moreGamesButtonSprite;
-    }
-
+    /**
+    * sets the callback to be executed in order to perform a redirect to the main page of the app
+    * @function goToHomeCallback
+    * @memberof Menu
+    */
     var goToHomeCallback = function(){
         Logger.warn('GamifiveSDK', 'Menu', 'goToHomeCallback not set');
     }
 
+    /**
+    * initializes the Menu
+    * @function init
+    * @memberof Menu
+    */
     this.init = function(params){
         Logger.log('GamifiveSDK', 'Menu', 'init', params);
 
+        if (typeof moreGamesButtonSprite === 'undefined'){
+            VHost.afterLoad(function(){
+                menuSprite = VHost.get('MORE_GAMES_BUTTON_SPRITE');
+            });
+        } else {
+            menuSprite = moreGamesButtonSprite;
+        }
+        
         if (!!params && typeof params.goToHomeCallback !== 'undefined'){
 
             if (typeof params.goToHomeCallback === 'function'){
@@ -39,6 +52,11 @@ var Menu = new function(){
         }
     }
 
+    /**
+    * resets the style of the menu to its default value
+    * @function resetStyle
+    * @memberof Menu
+    */
     this.resetStyle = function(){
         menuStyle = {};
         menuStyle.left = '2px' ;
@@ -52,6 +70,11 @@ var Menu = new function(){
         menuStyle['background-image'] = 'url(' + menuSprite + ')';
     }
 
+    /**
+    * sets a custom style for the menu
+    * @function setCustomStyle
+    * @memberof Menu
+    */
     this.setCustomStyle = function(customStyle){
         if (!menuStyle){
             menuInstance.resetStyle();
@@ -64,6 +87,11 @@ var Menu = new function(){
         }
     }
 
+    /**
+    * shows the menu
+    * @function show
+    * @memberof Menu
+    */
     this.show = function(customStyle){
         Logger.info('GamifiveSDK', 'Menu', 'showMenu', customStyle);
 
@@ -86,6 +114,11 @@ var Menu = new function(){
         menuElement.style.display = 'block';
     }
 
+    /**
+    * hides the menu
+    * @function hide
+    * @memberof Menu
+    */
     this.hide = function(){
         Logger.info('GamifiveSDK', 'Menu', 'hideMenu');
         menuInstance.close();
@@ -94,10 +127,20 @@ var Menu = new function(){
         }
     }
 
+    /**
+    * opens the menu to show more options
+    * @function open
+    * @memberof Menu
+    */
     this.open = function(){
         Logger.warn('GamifiveSDK', 'Menu', 'open', 'not implemented');
     }
 
+    /**
+    * closes the menu
+    * @function close
+    * @memberof Menu
+    */
     this.close = function(){
         Logger.warn('GamifiveSDK', 'Menu', 'close', 'not implemented');
     }

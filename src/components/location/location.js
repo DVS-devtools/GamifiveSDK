@@ -1,9 +1,19 @@
 var Logger = require('../logger/logger');
 
+/**
+* Utility module for managing locations
+* @class Location
+* @version 0.9
+*/
 var Location = new function(){
 
     var locationInstance = this;
     
+    /**
+    * returns the main page of the webapp
+    * @function getOrigin
+    * @memberof Location
+    */
     this.getOrigin = function(){
         var stargateWebappOriginIsDefined = typeof Stargate !== 'undefined' 
                                             && typeof Stargate.conf !== 'undefined'

@@ -1,4 +1,4 @@
-var session = require("../src/components/user/user");
+var User = require("../src/components/user/user");
 
 describe('User',function(){
 

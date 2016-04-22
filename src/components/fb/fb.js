@@ -4,11 +4,30 @@ var GA     = require('../ga/ga');
 var VHost  = require('../vhost/vhost');
 var Location = require('../location/location');
 
+/**
+* Facebook module
+* @class Facebook
+* @version 0.9
+*/
 var Facebook = new function(){
 
     var initialized = false;
     var isMobile = false;  // retrieve from stargate module
 
+    /**
+    * returns true iff the Facebook sdk has been successfully downloaded and initialized
+    * @function isInitialized
+    * @memberof Facebook
+    */
+    this.isInitialized = function(){
+        return initialized;
+    }
+
+    /**
+    * downloads and initializes the Facebook sdk 
+    * @function init
+    * @memberof Facebook
+    */
     this.init = function(params){
         Logger.log('GamifiveSDK', 'Facebook', 'init', params);
 
@@ -38,6 +57,11 @@ var Facebook = new function(){
 
     }
 
+    /**
+    * used to display a dialog for sharing on Facebook
+    * @function share
+    * @memberof Facebook
+    */
     this.share = function(url, callback){
 
         if(!initialized){
@@ -60,6 +84,11 @@ var Facebook = new function(){
 
     }
 
+    /**
+    * used to send a message on Facebook
+    * @function send
+    * @memberof Facebook
+    */
     this.send = function(url, callback){
 
         if(!initialized){
