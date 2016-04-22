@@ -11,11 +11,11 @@ var GameOverCore = new function() {
 	/********************************************
 	***** EXTERNAL METHODS FOR GAMEOVER TMPL ****
 	********************************************/
- 
+
 	this.playAgain = function(){
 		// call to sdk
 		GamefiveSDK.startSession();
-	} 
+	}
 
 	var likeBtnId = "gameOverLikeBtn";
 	var heartIconId = "heartIcon";
@@ -23,7 +23,7 @@ var GameOverCore = new function() {
 	var apiKey = "abcdef1234567890";
 
 	var absUrl;
-	
+
 	var MOA_API_FAVORITES_SET;
 	var MOA_API_FAVORITES_DELETE;
 	var MOA_API_FAVORITES_GET;
@@ -31,19 +31,19 @@ var GameOverCore = new function() {
 	var MOA_API_FAVORITES_CHECK;
 	var MOA_API_RECOMMEND_EVENT;
 	var UPDATE_CREDITS;
-	
+
 	this.initializeAPIUrls = function(){
 		absUrl = Utils.getAbsoluteUrl();
 		if (absUrl[absUrl.length-1] == '/'){
 			absUrl.substring(0, absUrl.length-1);
 		};
-		MOA_API_FAVORITES_SET = absUrl + "/v01/favorites.set";
-		MOA_API_FAVORITES_DELETE = absUrl + "/v01/favorites.delete";
-		MOA_API_FAVORITES_GET = absUrl + "/v01/favorites.get";
+		MOA_API_FAVORITES_SET = absUrl + "v01/favorites.set";
+		MOA_API_FAVORITES_DELETE = absUrl + "v01/favorites.delete";
+		MOA_API_FAVORITES_GET = absUrl + "v01/favorites.get";
 		// TODO: check pip rule for port 4001 and prefix
 		MOA_API_FAVORITES_CHECK = absUrl + ":4001/v02/reding/objects/:CONTENTID/users/:USERID/?prefix=FAV-it_igames"
-		MOA_API_RECOMMEND_EVENT =absUrl + "/mip-ingestion/v01/recommend/event/:EVENT";
-		UPDATE_CREDITS = absUrl + "/v01/mipuser.updatecredits";
+		MOA_API_RECOMMEND_EVENT =absUrl + "mip-ingestion/v01/recommend/event/:EVENT";
+		UPDATE_CREDITS = absUrl + "v01/mipuser.updatecredits";
 	}
 
 	this.invite = function(){
@@ -56,12 +56,12 @@ var GameOverCore = new function() {
 			action_cd: 'Yes'
 		}
 		this.trackEvent("Challenge", "FbInvite", config.contentId, properties);
-		newtonTrackEvent({ 
-			category: 'Challenge', 
-			action: 'FbInvite', 
-			label: config.contentId, 
-			valuable_cd: 'No', 
-			action_cd: 'Yes' 
+		newtonTrackEvent({
+			category: 'Challenge',
+			action: 'FbInvite',
+			label: config.contentId,
+			valuable_cd: 'No',
+			action_cd: 'Yes'
 		});
 	}
 
@@ -97,12 +97,12 @@ var GameOverCore = new function() {
 		// tracking
 		var config = GamefiveSDK.getConfig();
 		this.trackEvent("Share", "FbScore", config.contentId, { valuable_cd: 'No', action_cd: 'Yes' });
-		newtonTrackEvent({ 
-			category: 'Share', 
-			action: 'FbScore', 
-			label: config.contentId, 
-			valuable_cd: 'No', 
-			action_cd: 'Yes' 
+		newtonTrackEvent({
+			category: 'Share',
+			action: 'FbScore',
+			label: config.contentId,
+			valuable_cd: 'No',
+			action_cd: 'Yes'
 		});
 	}
 
@@ -123,12 +123,12 @@ var GameOverCore = new function() {
 		// tracking
 		var config = GamefiveSDK.getConfig();
 		this.trackEvent("Challenge", "FbSend", config.contentId, { valuable_cd: 'No', action_cd: 'Yes' });
-		newtonTrackEvent({ 
-			category: 'Challenge', 
-			action: 'FbSend', 
-			label: config.contentId, 
-			valuable_cd: 'No', 
-			action_cd: 'Yes' 
+		newtonTrackEvent({
+			category: 'Challenge',
+			action: 'FbSend',
+			label: config.contentId,
+			valuable_cd: 'No',
+			action_cd: 'Yes'
 		});
 	}
 
@@ -163,7 +163,7 @@ var GameOverCore = new function() {
 			Utils.log("GamifiveSDK", "showMessage", e);
 			// show message
 			_this.showMessage(e.title, e.message, e.success);
-			
+
 			// show updated credits feedback
 
 			if(typeof(e.credits) != 'undefined'){
@@ -173,8 +173,8 @@ var GameOverCore = new function() {
 
 				// zero credits
 				if(newCredits == 0 && typeof(config.dictionary.matchLeftNone) != 'undefined'){
-					newMessage = (config.dictionary.matchLeftNone).replace("%s", newCredits);	
-					document.getElementById("credits-count").innerHTML = newMessage;	
+					newMessage = (config.dictionary.matchLeftNone).replace("%s", newCredits);
+					document.getElementById("credits-count").innerHTML = newMessage;
 				// one credit
 				} else if(newCredits == 1 && typeof(config.dictionary.matchLeftSingular) != 'undefined'){
 					newMessage = (config.dictionary.matchLeftSingular).replace("%s", newCredits);
@@ -254,7 +254,7 @@ var GameOverCore = new function() {
 			// add error class
 			document.getElementById("messages").className += " error";
 		}
-	} 
+	}
 
 	this.closeMessage = function(){
 		Utils.log("Gameover", "closeMessage");
@@ -279,10 +279,10 @@ var GameOverCore = new function() {
 		var ico = document.getElementById(heartIconId);
 
 		if (value){
-			if (!!btn && btn.className.indexOf('heart-active') < 0){				
+			if (!!btn && btn.className.indexOf('heart-active') < 0){
 				btn.className += ' heart-active ';
 			}
-			if (!!ico && ico.className.indexOf('ico-red') < 0){				
+			if (!!ico && ico.className.indexOf('ico-red') < 0){
 				ico.className += ' ico-red ';
 			}
 		}
@@ -302,7 +302,7 @@ var GameOverCore = new function() {
 			return;
 		}
 
-		var favorites_params = {	
+		var favorites_params = {
 			"apikey": apiKey,
 			"content_id": contentId
 		}
@@ -311,27 +311,27 @@ var GameOverCore = new function() {
 		favUrl += createQuery(favorites_params);
 
 		Utils.xhr('POST', favUrl, function(resp, xhr){
-			// heart icon becomes red 
+			// heart icon becomes red
 			_this.switchHeart(true);
 
 			// add to likesList
 			likesList[contentId] = true;
 
 			// track add to favorites
-			_this.trackEvent({ 
-				category: 'Favorites', 
-				action: 'Add', 
-				label: '<Page>', 
-				valuable_cd: 'No', 
-				action_cd: 'Yes' 
+			_this.trackEvent({
+				category: 'Favorites',
+				action: 'Add',
+				label: '<Page>',
+				valuable_cd: 'No',
+				action_cd: 'Yes'
 			});
 
-			newtonTrackEvent({ 
-				category: 'Favorites', 
-				action: 'Add', 
-				label: '<Page>', 
-				valuable_cd: 'No', 
-				action_cd: 'Yes' 
+			newtonTrackEvent({
+				category: 'Favorites',
+				action: 'Add',
+				label: '<Page>',
+				valuable_cd: 'No',
+				action_cd: 'Yes'
 			});
 
 		});
@@ -347,7 +347,7 @@ var GameOverCore = new function() {
 			return;
 		}
 
-		var favorites_params = {	
+		var favorites_params = {
 			"apikey": apiKey,
 			"content_id": contentId
 		}
@@ -363,28 +363,28 @@ var GameOverCore = new function() {
 			delete likesList[contentId];
 
 			// track remove from favorites
-			_this.trackEvent({ 
-				category: 'Favorites', 
-				action: 'Remove', 
-				label: '<Page>', 
-				valuable_cd: 'No', 
-				action_cd: 'Yes' 
+			_this.trackEvent({
+				category: 'Favorites',
+				action: 'Remove',
+				label: '<Page>',
+				valuable_cd: 'No',
+				action_cd: 'Yes'
 			});
 
-			newtonTrackEvent({ 
-				category: 'Favorites', 
-				action: 'Remove', 
-				label: '<Page>', 
-				valuable_cd: 'No', 
-				action_cd: 'Yes' 
+			newtonTrackEvent({
+				category: 'Favorites',
+				action: 'Remove',
+				label: '<Page>',
+				valuable_cd: 'No',
+				action_cd: 'Yes'
 			});
 		});
 	}
 
 	this.toggleLike = function (){
 		var icon = document.getElementById(heartIconId);
-		
-		var favorites_params = {	
+
+		var favorites_params = {
 			"apikey": apiKey
 		}
 
@@ -411,10 +411,10 @@ var GameOverCore = new function() {
 
 		var favorites_params = {
 			"apikey": apiKey,
-			"size": 51 
+			"size": 51
 		};
 
-		var favUrl = MOA_API_FAVORITES_GET; 
+		var favUrl = MOA_API_FAVORITES_GET;
 		favUrl += createQuery(favorites_params);
 
 		Utils.xhr('GET', favUrl, function(resp, xhr){
@@ -447,7 +447,7 @@ var GameOverCore = new function() {
 		if (likesList === undefined){
 			_this.setLikesList(doInitialize);
 		}
-		else {	
+		else {
 			doInitialize();
 		}
 	}
@@ -464,12 +464,12 @@ var GameOverCore = new function() {
 		var label = index;
 
 		this.trackEvent('GameOverRelated', type, label, properties);
-		newtonTrackEvent({ 
-			category: 'GameOverRelated', 
-			action: type, 
-			label: label, 
-			valuable_cd: 'No', 
-			action_cd: 'Yes' 
+		newtonTrackEvent({
+			category: 'GameOverRelated',
+			action: type,
+			label: label,
+			valuable_cd: 'No',
+			action_cd: 'Yes'
 		});
 	};
 

@@ -29,7 +29,7 @@ var GamefiveSDK = new function() {
 
 	/********************************************
 	*****  EXTERNAL METHODS FOR DEVELOPERS  *****
-	********************************************/ 
+	********************************************/
 
     var getUserData = function(callback){
         var getUserDataUrl = MOA_API_APPLICATION_OBJECTS_GET;
@@ -48,13 +48,13 @@ var GamefiveSDK = new function() {
                             .replace(':EXTERNAL_TOKEN', config.userId)
                             .replace(':COLLECTION', 'gameInfo') // from vh?
 
-        // unique parameter in qs to avoid cache 
+        // unique parameter in qs to avoid cache
         getUserDataUrl += '&_ts=' + new Date().getTime() + Math.floor(Math.random()*1000);
-            
+
         Utils.xhr('GET', getUserDataUrl, function(resp, req){
             console.log("GamifiveSDK :: fetch UserData", resp);
             // save into config
-            var toParse = resp.response.data[0]; 
+            var toParse = resp.response.data[0];
            	if (!!toParse && typeof toParse.info !== 'undefined') {
                 toParse.info = JSON.parse(toParse.info);
             }
@@ -71,14 +71,14 @@ var GamefiveSDK = new function() {
     this.loadUserData = function(callback){
         if (!config.debug && MOA_API_APPLICATION_OBJECTS_GET.length > 0){
 
-            if (window.location.origin.indexOf('cdvfile') < 0){
+            if (Utils.getAbsoluteUrl().indexOf('cdvfile') < 0){
                  getUserData(callback);
             }
-           
+
             try {
                 var toReturn = config.user.gameInfo;
-                
-                if (typeof GamifiveSDKOffline !== 'undefined' 
+
+                if (typeof GamifiveSDKOffline !== 'undefined'
                         && typeof GamifiveSDKOffline.data !== 'undefined'
                         && typeof GamifiveSDKOffline.data.game_info !== 'undefined'){
 
@@ -89,7 +89,7 @@ var GamefiveSDK = new function() {
                         toReturn.UpdatedAt = gameInfoOffline.UpdatedAt;
                     }
                 }
-                
+
                 return toReturn.info;
             } catch (err){
                 console.warn("GamifiveSDK :: loadUserData :: No cached data to return")
@@ -125,13 +125,13 @@ var GamefiveSDK = new function() {
                                 .replace(':ACCESS_TOKEN', '')
                                 .replace(':EXTERNAL_TOKEN', config.userId)
                                 .replace(':COLLECTION', 'gameInfo');
-            
-            setUserDataUrl += "&info=" + encodeURIComponent(dataToSaveAsJSON)
-                                + "&domain=" + encodeURIComponent(window.location.origin)
-                                + "&contentId=" + config.contentId;
-        }        
 
-        if (window.location.origin.indexOf('cdvfile') < 0){
+            setUserDataUrl += "&info=" + encodeURIComponent(dataToSaveAsJSON)
+                                + "&domain=" + encodeURIComponent(Utils.getAbsoluteUrl())
+                                + "&contentId=" + config.contentId;
+        }
+
+        if (Utils.getAbsoluteUrl().indexOf('cdvfile') < 0){
 
             getUserData(function(){
                 setUserDataParams();
@@ -155,7 +155,7 @@ var GamefiveSDK = new function() {
             GamifiveSDKOffline.enqueue(GamifiveSDKOffline.XHR_QUEUE, {method: 'POST', url: setUserDataUrl});
             if (typeof callback === 'function') callback();
         }
-    
+
     }
 
     /**
@@ -181,7 +181,7 @@ var GamefiveSDK = new function() {
     */
     this.clearUserData = function(){
         if (!config.debug && MOA_API_APPLICATION_OBJECTS_SET.length > 0){
-            setUserData(null);   
+            setUserData(null);
         } else {
             window.storage.set(userStatusKey, null);
         }
@@ -199,17 +199,17 @@ var GamefiveSDK = new function() {
     // provvisorio
     var getGamifiveInfoAPI = function(callback){
         var gpparams = {content_id: config.content_id};
-        
-        if (window.location.origin.indexOf('cdvfile') > -1){
-            
+
+        if (Utils.getAbsoluteUrl().indexOf('cdvfile') > -1){
+
             var connectionTest = Stargate.checkConnection();
 
             if (connectionTest.type !== 'offline'){
                 Utils.xhr('JSONP', API('gameplay_proxy', gpparams) + config.user.ponyUrl, function(resp, req){
-                    if (callback){ 
-                        callback(resp); 
+                    if (callback){
+                        callback(resp);
                     }
-                });    
+                });
             } else {
                 callback({game_info: GamifiveSDKOffline.getGamifiveInfo(config.content_id)}); // offline saved version
             }
@@ -225,7 +225,7 @@ var GamefiveSDK = new function() {
 	* @param {object} param - configuration
 	* @param {boolean} [param.debug] - Set debug mode
 	* @param {boolean} [param.log] - Enable/disable logging
-	* @param {boolean} [param.lite] - If true SDK doesn't implement GameOver status 
+	* @param {boolean} [param.lite] - If true SDK doesn't implement GameOver status
 	* @param {object} [param.moreGamesButtonStyle] - optional style for More Games button element
 	*/
 	var doInit = function(param){
@@ -265,35 +265,35 @@ var GamefiveSDK = new function() {
 			if (!gameTitle){
 				Utils.log("GamifiveSDK", "trackGameLoad", "game title is not defined");
 			}
-			
+
 			tryAnalyticsTrackEvent('Play', 'GameLoad', config.contentId, { game_title: gameTitle, valuable_cd: 'Yes', action_cd: 'Yes' });
-			tryNewtonTrackEvent({ 
-				category: 'Play', 
-				action: 'GameLoad', 
+			tryNewtonTrackEvent({
+				category: 'Play',
+				action: 'GameLoad',
 				game_title: gameTitle,
-				label: config.contentId, 
-				valuable_cd: 'Yes', 
-				action_cd: 'Yes' 
+				label: config.contentId,
+				valuable_cd: 'Yes',
+				action_cd: 'Yes'
 			});
 		}
 
         // mocks for debug and hybrid-offline
-        if (typeof tryNewtonTrackEvent === 'undefined'){ 
+        if (typeof tryNewtonTrackEvent === 'undefined'){
             // mock tryNewtonTrackEvent and tryAnalyticsTrackEvent
             window.tryNewtonTrackEvent = function(){
                 Utils.log(arguments);
-            };   
+            };
         }
 
-        if (typeof tryAnalyticsTrackEvent === 'undefined'){  
+        if (typeof tryAnalyticsTrackEvent === 'undefined'){
             window.tryAnalyticsTrackEvent = function(){
                 Utils.log(arguments);
-            };   
+            };
         }
 
 		// get window.GamifiveInfo
 		if(!config.debug){
-			// get storage from ga_for_games (Dixie)			
+			// get storage from ga_for_games (Dixie)
 			var _copyInfo = function(){
 				Utils.copyProperties(window.GamifiveInfo, config);
 				try {
@@ -301,7 +301,7 @@ var GamefiveSDK = new function() {
 				} catch (err) {}
 
 				if (typeof config.user != 'undefined'){
-					config.user.userGuest = !config.user.userFreemium && !config.user.userId; 
+					config.user.userGuest = !config.user.userFreemium && !config.user.userId;
 				}
 				if (config && config.user && config.user.userId){
 					userStatusKey = "GamifiveSDKStatus_" + config.user.userId;
@@ -322,7 +322,7 @@ var GamefiveSDK = new function() {
 				getGamifiveInfoAPI(function(data){
                     console.log("GameInfo", data);
                     window.GamifiveInfo = data.game_info;
-                    
+
                     GamifiveSDKOffline.setGamifiveInfo(config.content_id, data.game_info);
                     _copyInfo();
                 });
@@ -335,7 +335,7 @@ var GamefiveSDK = new function() {
             // mock sprite more games button
 			moreGamesButtonSprite = 'http://s.motime.com/img/wl/webstore_html5game/images/gameover/sprite.png?v=20151120101238';
 
-			// debug mode: Dixie is not defined, use a mock 
+			// debug mode: Dixie is not defined, use a mock
 		    window.storage = new function(){
 		        this.set = function(key, obj){
 		            localStorage.setItem(key, JSON.stringify(obj));
@@ -371,14 +371,14 @@ var GamefiveSDK = new function() {
 
     this.init = function(param){
 
-        if (window.location.origin.indexOf('cdvfile') > -1){
+        if (Utils.getAbsoluteUrl().indexOf('cdvfile') > -1){
             var gameplayDirPrefix = 'games';
             var rx = new RegExp('<PREFIX>/([a-z0-9]+)/'.replace('<PREFIX>', gameplayDirPrefix));
             config.content_id = window.location.pathname.match(rx)[1];
             console.log("GamifiveSDK :: setting content_id");
-        } 
+        }
 
-        if (window.location.origin.indexOf('cdvfile') > -1){
+        if (Utils.getAbsoluteUrl().indexOf('cdvfile') > -1){
             var stargateInitConf = {
                 "modules": [
                     "game"
@@ -389,9 +389,9 @@ var GamefiveSDK = new function() {
             };
             Stargate.initialize(stargateInitConf).then(function(){
 
-                document.addEventListener('pause', function(){ 
+                document.addEventListener('pause', function(){
                     Utils.log("Pause event triggered :: persisting offline data");
-                    GamifiveSDKOffline.persist(); 
+                    GamifiveSDKOffline.persist();
                 });
 
                 Utils.log("GamifiveSDK :: Stargate initialized");
@@ -424,7 +424,7 @@ var GamefiveSDK = new function() {
                         // save config keys
                         var configResp = results[1];
                         var configKeysToSave = [
-                            'SERVICE_TITLE', 
+                            'SERVICE_TITLE',
                             'ALL_FREE_FOR_GUEST',
                             'CAT_TRACKING_URL',
                             'NEWTON_APPID',
@@ -459,7 +459,7 @@ var GamefiveSDK = new function() {
 
                         window.guestDataVar = tempConfig.COOKIE_GUESTUSER_DATA;
                         delete tempConfig.COOKIE_GUESTUSER_DATA;
-                        
+
                         window.MOA_API_APPLICATION_OBJECTS_GET = tempConfig.MOA_API_APPLICATION_OBJECTS_GET;
                         delete tempConfig.MOA_API_APPLICATION_OBJECTS_GET;
 
@@ -524,8 +524,8 @@ var GamefiveSDK = new function() {
                 });
 
             });
-        } else {   
-            doInit(param); 
+        } else {
+            doInit(param);
         }
     }
 
@@ -565,8 +565,8 @@ var GamefiveSDK = new function() {
 
 		if(!config.lite){
 
-            if (window.location.origin.indexOf('cdvfile') < 0){
-                // branch: offline and online mode  
+            if (Utils.getAbsoluteUrl().indexOf('cdvfile') < 0){
+                // branch: offline and online mode
                 Utils.xhr('GET', API('canDownload'), function(resp, req){
                     Utils.log("GamifiveSDK", "startSession", "canDownload", resp, req);
 
@@ -615,23 +615,23 @@ var GamefiveSDK = new function() {
 			}
 		}
 
-		console.log("gamestart", { 
-			category: 'Play', 
-			action: 'GameStart', 
+		console.log("gamestart", {
+			category: 'Play',
+			action: 'GameStart',
 			game_title: config.game.title,
-			label: config.contentId, 
-			valuable_cd: 'Yes', 
-			action_cd: 'Yes' 
+			label: config.contentId,
+			valuable_cd: 'Yes',
+			action_cd: 'Yes'
 		})
 		// TRACKING
 		tryAnalyticsTrackEvent('Play', 'GameStart', config.contentId, { game_title: config.game.title, valuable_cd: 'Yes', action_cd: 'Yes' });
-		tryNewtonTrackEvent({ 
-			category: 'Play', 
-			action: 'GameStart', 
+		tryNewtonTrackEvent({
+			category: 'Play',
+			action: 'GameStart',
 			game_title: config.game.title,
-			label: config.contentId, 
-			valuable_cd: 'Yes', 
-			action_cd: 'Yes' 
+			label: config.contentId,
+			valuable_cd: 'Yes',
+			action_cd: 'Yes'
 		});
 	}
 
@@ -647,7 +647,7 @@ var GamefiveSDK = new function() {
 
 		// show it ONLY if it was previously created
 		if (moreGamesLink){
-			sdkInstance.showMoreGamesButton(customStyle);	
+			sdkInstance.showMoreGamesButton(customStyle);
 		}
 
 		// set time end
@@ -666,7 +666,7 @@ var GamefiveSDK = new function() {
 		}
 
 		if(!config.lite){
-			
+
 			var queryParams = {
 				'start': config.timestart,
 				'duration': config.timeend - config.timestart,
@@ -676,14 +676,14 @@ var GamefiveSDK = new function() {
 			// get challenge id
 			if(!!config.challenge && !!config.challenge.id){
 				queryParams.challenge_id = config.challenge.id;
-			} 
+			}
 
 			if (typeof config.user.level != 'undefined'){
 				queryParams.level = config.user.level;
 			}
 
 			// call gameover API
-			if (window.location.origin.indexOf('cdvfile') === -1){
+			if (Utils.getAbsoluteUrl().indexOf('cdvfile') === -1){
                 Utils.xhr('GET', API('gameover', queryParams), function (resp, req) {
     				// render page with resp
     				sdkElement.create(resp);
@@ -697,7 +697,7 @@ var GamefiveSDK = new function() {
                     .then(function(data){
                         console.log("Build gameover with Stargate", data);
                         sdkElement.create(data);
-                        var homeBtn = document.querySelectorAll('.logo')[0]; 
+                        var homeBtn = document.querySelectorAll('.logo')[0];
                         homeBtn.addEventListener('touchend',GamifiveSDK.goToHome);
                     });
             }
@@ -719,7 +719,7 @@ var GamefiveSDK = new function() {
 			}
 
             var leaderboardCallUrl = API('leaderboard', queryParams);
-            if (window.location.origin.indexOf('cdvfile') === -1){
+            if (Utils.getAbsoluteUrl().indexOf('cdvfile') === -1){
     			Utils.xhr('GET', leaderboardCallUrl);
             } else {
                 GamifiveSDKOffline.enqueue(GamifiveSDKOffline.XHR_QUEUE, {method: 'GET', url: leaderboardCallUrl})
@@ -739,24 +739,24 @@ var GamefiveSDK = new function() {
 			} else {
 				Utils.error("GamifiveSDK", "ERROR", "illegal score value type");
 			}
-		}	
+		}
 
 		config.timestart = null;
 
 		// TRACKING
-		tryAnalyticsTrackEvent('Play', 'GameEnd', config.contentId, { game_title: config.game.title, valuable_cd: 'No', action_cd: 'No' });	
-		tryNewtonTrackEvent({ 
-			category: 'Play', 
-			action: 'GameEnd', 
+		tryAnalyticsTrackEvent('Play', 'GameEnd', config.contentId, { game_title: config.game.title, valuable_cd: 'No', action_cd: 'No' });
+		tryNewtonTrackEvent({
+			category: 'Play',
+			action: 'GameEnd',
 			game_title: config.game.title,
-			label: config.contentId, 
-			valuable_cd: 'No', 
-			action_cd: 'No' 
+			label: config.contentId,
+			valuable_cd: 'No',
+			action_cd: 'No'
 		});
 	}
 
 	/**
-	* Go to Homepage and track this event on Newton and Analytics 
+	* Go to Homepage and track this event on Newton and Analytics
 	*/
 	this.goToHome = function(e){
 
@@ -765,14 +765,14 @@ var GamefiveSDK = new function() {
         }
 
     	Utils.log("GamifiveSDK", "Go To Homepage", document.location.origin);
-    	tryAnalyticsTrackEvent('Behavior', 'MoreGames', config.contentId, 
-    		{ 
-    			game_title: config.game.title, 
-    			valuable_cd: 'No', 
-    			action_cd: 'yes' 
+    	tryAnalyticsTrackEvent('Behavior', 'MoreGames', config.contentId,
+    		{
+    			game_title: config.game.title,
+    			valuable_cd: 'No',
+    			action_cd: 'yes'
     		}
-    	);	
-    	tryNewtonTrackEvent({ 
+    	);
+    	tryNewtonTrackEvent({
 			category: 'Behavior',
 			action: 'MoreGames',
 			game_title: config.game.title,
@@ -781,18 +781,18 @@ var GamefiveSDK = new function() {
 			action_cd: 'Yes'
 		});
 
-        if (window.location.origin.indexOf('cdvfile') < 0){
-            document.location.href = window.location.origin;
+        if (Utils.getAbsoluteUrl().indexOf('cdvfile') < 0){
+            document.location.href = Utils.getAbsoluteUrl();
         } else {
             GamifiveSDKOffline.persist(function(){
                Stargate.goToLocalIndex();
             });
         }
-    	
+
     };
 
 	/**
-	* Shows the "More Games" icon. 
+	* Shows the "More Games" icon.
 	* By clicking on this button the user will be redirected to the homepage.
 	*/
 	var customStyle;
@@ -804,7 +804,7 @@ var GamefiveSDK = new function() {
         if (!moreGamesLink){
         	moreGamesLink = document.createElement('a');
 
-	        // assign the outgoing click     
+	        // assign the outgoing click
 	        moreGamesLink.addEventListener('touchend', sdkInstance.goToHome, false);
 	        moreGamesLink.addEventListener("click", sdkInstance.goToHome, false);
 	        moreGamesLink.setAttribute("id", "gfsdk-more-games");
@@ -886,7 +886,7 @@ var GamefiveSDK = new function() {
 
 	/********************************************
 	*****      EXTERNAL METHODS FOR US      *****
-	********************************************/ 
+	********************************************/
 
 	/**
 	* Control if user is fb connected
@@ -957,7 +957,7 @@ var GamefiveSDK = new function() {
 
 			}
 		});
-		
+
 	}
 
 	/**
@@ -1090,7 +1090,7 @@ var GamefiveSDK = new function() {
 
 	/********************************************
 	*****          INTERNAL METHODS         *****
-	********************************************/ 
+	********************************************/
 
 	/**
 	* Throw an event
@@ -1118,9 +1118,9 @@ var GamefiveSDK = new function() {
 	var API = function(name, param){
 		// set host
 		var host = (!config.debug) ? Utils.getAbsoluteUrl() : 'http://www2.giochissimo.it';
-		
+
 		// set door (/v01/ or /mock/)
-		var door = (!config.debug) ? '/v01/' : '/mock01/';
+		var door = (!config.debug) ? 'v01/' : 'mock01/';
 
 		// set url core
 		var urlCore = {
@@ -1131,7 +1131,7 @@ var GamefiveSDK = new function() {
 			mipConnect: 'mipuser.fbconnect',
 			leaderboard: 'leaderboard',
 			gamifiveinfo: 'gamifiveinfo',
-			gameplay: 'gameplay', 
+			gameplay: 'gameplay',
 
             gameplay_proxy: 'gameplay_proxy'
 		};

@@ -57,8 +57,8 @@ var GamifiveSDKUtils = new function() {
 	this.cookie = {
 		get: function (sKey) {
 			var regex = new RegExp(
-				"(?:(?:^|.*;)\\s*" 
-				+ encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") 
+				"(?:(?:^|.*;)\\s*"
+				+ encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&")
 				+ "\\s*\\=\\s*([^;]*).*$)|^.*$"
 			)
 			var documentCookie = document.cookie.replace(regex, "$1")
@@ -70,53 +70,59 @@ var GamifiveSDKUtils = new function() {
 			if (vEnd) {
 				switch (vEnd.constructor) {
 					case Number:
-						sExpires = vEnd === Infinity ? "; expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + vEnd; 
+						sExpires = vEnd === Infinity ? "; expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + vEnd;
 						break;
-					case String: 
-						sExpires = "; expires=" + vEnd; 
+					case String:
+						sExpires = "; expires=" + vEnd;
 						break;
-					case Date: 
-						sExpires = "; expires=" + vEnd.toUTCString(); 
+					case Date:
+						sExpires = "; expires=" + vEnd.toUTCString();
 						break;
 				}
 			}
-			document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires 
-								+ (sDomain ? "; domain=" + sDomain : "") 
-								+ (sPath ? "; path=" + sPath : "") 
+			document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires
+								+ (sDomain ? "; domain=" + sDomain : "")
+								+ (sPath ? "; path=" + sPath : "")
 								+ (bSecure ? "; secure" : "");
 			return true;
 		},
 		remove: function (sKey, sPath, sDomain) {
-			if (!sKey || !this.has(sKey)) return false; 
-			document.cookie = encodeURIComponent(sKey) 
-								+ "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" 
-								+ ( sDomain ? "; domain=" + sDomain : "") 
+			if (!sKey || !this.has(sKey)) return false;
+			document.cookie = encodeURIComponent(sKey)
+								+ "=; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+								+ ( sDomain ? "; domain=" + sDomain : "")
 								+ ( sPath ? "; path=" + sPath : "");
 			return true;
 		},
 		has: function (sKey) {
-			var regex = "(?:^|;\\s*)" 
-						+ encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") 
+			var regex = "(?:^|;\\s*)"
+						+ encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&")
 						+ "\\s*\\=";
 			return new RegExp(regex).test(document.cookie);
 		}
 	};
 
 	/**
-	* Get only domain name (window.location.origin)
+	* Get domain name and localization
 	* @function getAbsoluteUrl
 	* @memberof GamifiveSDKUtils
 	*/
 	this.getAbsoluteUrl = function() {
-		if (typeof Stargate !== 'undefined' 
+		if (typeof Stargate !== 'undefined'
 			&& typeof Stargate.conf !== 'undefined'
 			&& typeof Stargate.conf.getWebappOrigin === 'function'){
 			return Stargate.conf.getWebappOrigin();
 		}
-		if (!window.location.origin) {
-		  window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
+
+		if(!!GamifiveInfo.dest_domain){
+			return GamifiveInfo.dest_domain;
 		}
-		return window.location.origin;
+		else if (!window.location.origin) {
+			var pathName=GamifiveInfo.split("/")[1];
+			return window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '')+(pathName != '' ? '/'+pathName+'/':'/');
+		}
+		else
+			return window.location.origin+"/";
 	}
 
 	/**
@@ -124,7 +130,7 @@ var GamifiveSDKUtils = new function() {
 	* @function xhr
 	* @param {string} method - method of request (GET, POST...)
 	* @param {string} url - url of request
-	* @param {function} callback - callback called when request finished and response is ready 
+	* @param {function} callback - callback called when request finished and response is ready
 	* @memberof GamifiveSDKUtils
 	*/
 	var doXhr = function(method, url, callback, data){
@@ -136,7 +142,7 @@ var GamifiveSDKUtils = new function() {
 	        xhr.onreadystatechange = function() {
 	            if ( xhr.readyState === 4 ) {
 	            	var resp;
-	            	try { 
+	            	try {
 	            		resp = xhr.response.replace(/(\n|\r)/gm,"");
 	            		resp = JSON.parse(resp);
 	            	} catch(e) {}
@@ -147,7 +153,7 @@ var GamifiveSDKUtils = new function() {
 	        xhr.open(method, url);
 
 		    xhr.send();
-	        
+
 	        return xhr;
 		} else {
 			var script = document.createElement('script');
@@ -197,7 +203,7 @@ var GamifiveSDKUtils = new function() {
 
 		query = query.replace('?', '');
 		var pairs = query.split(/[;&]/);
-		
+
 		for (var i=0; i<pairs.length; i++) {
 			var keyVal = pairs[i].split('=');
 			if (!keyVal || keyVal.length != 2) continue;

@@ -16,7 +16,7 @@ var FBConnector = new function() {
 	*/
 	this.start = function() {
 		if (parseInt(localStorage.getItem('hybrid')) !== 1){
-			var d = document, s = 'script', id = 'facebook-jssdk'; 
+			var d = document, s = 'script', id = 'facebook-jssdk';
 			var js, fjs = d.getElementsByTagName(s)[0];
 			if (d.getElementById(id)) return;
 			js = d.createElement(s); js.id = id;
@@ -51,9 +51,9 @@ var FBConnector = new function() {
 	* @param {function} callback - callback function after FB.ui
 	*/
 	this.invite = function(options, callback) {
-		FB.ui({method: 'apprequests',                                               
-        	message: options.message,                                           
-        	data: JSON.stringify(options)                                       
+		FB.ui({method: 'apprequests',
+        	message: options.message,
+        	data: JSON.stringify(options)
         }, callback);
 	}
 
@@ -93,7 +93,7 @@ var FBConnector = new function() {
 				'http://www.facebook.com/dialog/send',
 	  			'?app_id=' + config.appId,
 				'&link=' + url,
-				'&redirect_uri=' + window.location.origin
+				'&redirect_uri=' + Utils.getAbsoluteUrl()
 			].join('');
 			// fallback for mobile devices
 			window.open(targetUrl, '_parent'); //'_blank');
@@ -116,7 +116,7 @@ var FBConnector = new function() {
 	* @param {string} key
 	* @param {string} value
 	*/
-	this.setConfig = function(key, value) { 
+	this.setConfig = function(key, value) {
 		if(config[key] != undefined) {
 			config[key] = value;
 		}
@@ -125,9 +125,9 @@ var FBConnector = new function() {
 	window.fbAsyncInit = function() {
 		FB.init({
 			appId      : config.appId,
-			cookie     : true,  // enable cookies to allow the server to access 
+			cookie     : true,  // enable cookies to allow the server to access
 			xfbml      : false,  // parse social plugins on this page
 			version    : 'v2.4' // use version 2.1
 		});
 	};
-}; 
+};
