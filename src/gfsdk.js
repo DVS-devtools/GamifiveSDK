@@ -98,7 +98,7 @@ var GamefiveSDK = new function() {
         } else {
             var toReturn = window.storage.get(userStatusKey);
             if (typeof callback == 'function'){
-                callback();
+                callback(toReturn);
             }
             return toReturn;
         }
