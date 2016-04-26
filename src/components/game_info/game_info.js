@@ -19,21 +19,13 @@ var GameInfo = new function(){
     });
 
     /**
-    * loads the necessary information about the game
-    * @function load
+    * resets the information about the game
+    * @function reset
     * @memberof GameInfo
     */
-    this.load = function(callback){
-        Logger.log('GamifiveSDK', 'GameInfo', 'load');
-
-        gameInfo = {};
-        
-        Network.xhr('GET', gameInfoUrl, function(resp){
-            gameInfo = resp;
-            if (typeof callback === 'function'){
-                callback();
-            }
-        });
+    this.reset = function(){
+        Logger.log('GamifiveSDK', 'GameInfo', 'reset');
+        gameInfo = undefined;
     }
 
     /**
@@ -47,11 +39,40 @@ var GameInfo = new function(){
 
     /**
     * returns the necessary information about the game
-    * @function getInfo
+    * @function fetch
     * @memberof GameInfo
     */
-    this.getInfo = function(){
-        return gameInfo;
+    this.fetch = function(callback){
+        Logger.log('GamifiveSDK', 'GameInfo', 'fetch attempt');
+
+        Network.xhr('GET', gameInfoUrl, function(resp){
+            Logger.log('GamifiveSDK', 'GameInfo', 'fetch complete', resp);
+
+            if (typeof gameInfo === 'undefined'){
+                gameInfo = {};
+            }
+
+            // TODO: check this
+            if(!!resp && typeof resp.response !== 'undefined'){
+                for (var key in resp.response){
+                    gameInfo[key] = resp.response[key];
+                }
+            }
+
+            if (typeof callback === 'function'){
+                callback(gameInfo);
+            }
+        });
+         
+    }
+
+    /**
+    * returns a single value of gameInfo, given its key
+    * @function get
+    * @memberof GameInfo
+    */
+    this.get = function(key){
+        return gameInfo[key];
     }
 
 };

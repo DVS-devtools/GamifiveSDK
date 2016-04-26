@@ -26,10 +26,11 @@ describe("VHost",function(){
 
     });
 
-    it('load and get should work', function(){
+    it('load and get should work', function(done){
 
         VHost.afterLoad(function(){
             expect(VHost.get('test')).toEqual(1234);
+            done();
         });
 
         VHost.load();

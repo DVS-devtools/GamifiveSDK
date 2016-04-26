@@ -71,6 +71,16 @@ var Session = new function(){
 
             Menu.show();
 
+            Logger.log('GamifiveSDK', 'Session', 'init', 'fetching User data');
+            User.fetch(function(){
+
+                Logger.log('GamifiveSDK', 'Session', 'init', 'fetching GameInfo data');
+                GameInfo.fetch(function(){
+                    
+                    
+                });
+            });
+
         });
 
         VHost.load();

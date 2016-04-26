@@ -27,12 +27,16 @@ var VarCheck = new function(){
     */
     this.get = function(root, propList){
         var node = root;
+        var prop;
 
         for (var i=0; i<propList.length; i++){
-            if (typeof node[propList[i]] === undefined){
+            prop = propList[i];
+            var invalidNode = (prop === null) || (typeof node === 'undefined');
+            var missingProp = (typeof node[prop] === 'undefined');
+            if (invalidNode || missingProp){
                 return undefined;
             } else {
-                node = node[propList[i]];
+                node = node[prop];
             }
         }
 

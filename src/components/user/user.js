@@ -34,19 +34,48 @@ var User = new function(){
     }
 
     /**
-    * returns the necessary info about the User
-    * @function getInfo
+    * returns a single value of userInfo, given its key
+    * @function get
     * @memberof User
     */
-    this.getInfo = function(){
-        return userInfo;
+    this.get = function(key){
+        return userInfo[key];
     }
 
-    var doSaveUserData = function(data, callback){
+    /**
+    * fetches the necessary info about the User (usercheck)
+    * @function load
+    * @memberof User
+    */
+    this.fetch = function(callback){
+        Logger.log('GamifiveSDK', 'User', 'fetch attempt');
 
-        var contentId  = GameInfo.get('...');
-        var userId     = '...';
-        var userDataId = '...';
+        Network.xhr('GET', userInfoUrl, function(resp, req){
+            Logger.log('GamifiveSDK', 'User', 'fetch complete', resp);
+
+            if (typeof userInfo === 'undefined'){
+                userInfo = {};
+            }
+
+            // TODO: check this
+            if(!!resp && typeof resp.response !== 'undefined'){
+                for (var key in resp.response){
+                    userInfo[key] = resp.response[key];
+                }
+            }
+
+            if (typeof callback === 'function'){
+                callback(userInfo);
+            }
+            
+        });
+    }
+
+    // used both to save and clear user data
+    var doSaveUserData = function(data, callback){
+        var contentId  = GameInfo.get('contentId');
+        var userId     = userInfo.userId;
+        var userDataId = VarCheck.get(userInfo, ['gameInfo', '_id']) || '';
 
         var urlToCall = saveUserDataUrl
                             .replace(':QUERY', JSON.stringify({contentId: contentId}))
@@ -77,7 +106,18 @@ var User = new function(){
     */
     this.saveData = function(data, callback){
         Logger.info('GamifiveSDK', 'User', 'saveUserData', data);
+
         doSaveUserData(data, callback);
+    }
+
+    /**
+    * clear some user's data 
+    * @function clearData
+    * @memberof User
+    */
+    this.clearData = function(callback){
+        Logger.info('GamifiveSDK', 'User', 'clearUserData');
+        doSaveUserData(null, callback);
     }
 
     /**
@@ -104,7 +144,7 @@ var User = new function(){
         Network.xhr('GET', urlToCall, function(resp, req){
             
             // TODO: check
-            userInfo = resp.response;
+            userInfo.gameInfo = resp.response;
 
             if (typeof callback === 'function'){
                 callback(userInfo.gameInfo);
@@ -113,16 +153,6 @@ var User = new function(){
         });
 
         return userInfo.gameInfo;
-    }
-
-    /**
-    * clear some user's data 
-    * @function clearData
-    * @memberof User
-    */
-    this.clearData = function(callback){
-        Logger.info('GamifiveSDK', 'User', 'clearUserData');
-        doSaveUserData(null, callback);
     }
 
 };
