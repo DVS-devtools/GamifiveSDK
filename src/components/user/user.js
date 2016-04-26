@@ -19,19 +19,11 @@ var User = new function(){
     var loadUserDataUrl;
     var saveUserDataUrl;
 
-    /**
-    * initializes the User module
-    * @function init
-    * @memberof User
-    */
-    this.init = function(params){
-
-        VHost.afterLoad(function(){    
-            userInfoUrl     = VHost.get('USER_CHECK_URL');
-            loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
-            saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
-        });
-    }
+    VHost.afterLoad(function(){
+        userInfoUrl     = VHost.get('USER_CHECK_URL');
+        loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
+        saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
+    });
 
     /**
     * returns a single value of userInfo, given its key

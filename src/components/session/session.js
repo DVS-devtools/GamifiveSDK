@@ -6,6 +6,7 @@ var VHost    = require('../vhost/vhost');
 var Network  = require('../network/network');
 var Menu     = require('../menu/menu');
 var Location = require('../location/location');
+var Facebook = require('../fb/fb');
 
 /**
 * Session module
@@ -63,26 +64,9 @@ var Session = new function(){
         // allows starting a new session
         config.sessions = [];
 
-        VHost.afterLoad(function(){
-
-            Menu.init({
-                goToHomeCallback: sessionInstance.goToHome
-            });
-
-            Menu.show();
-
-            Logger.log('GamifiveSDK', 'Session', 'init', 'fetching User data');
-            User.fetch(function(){
-
-                Logger.log('GamifiveSDK', 'Session', 'init', 'fetching GameInfo data');
-                GameInfo.fetch(function(){
-                    
-                    
-                });
-            });
-
-        });
-
+        Menu.show();
+        
+        // let's dance
         VHost.load();
     }
 
@@ -108,6 +92,12 @@ var Session = new function(){
             throw 'GamifiveSDK :: Session :: start :: previous session not ended';     
         }
 
+        if (config.lite){
+            
+        } else {
+
+        }
+
         // ok, you can start a new session
         config.sessions.unshift({
             startTime: new Date(),
@@ -117,21 +107,15 @@ var Session = new function(){
         });
 
         config.sessions = config.sessions.slice(0, config.MAX_RECORDED_SESSIONS_NUMBER);
-
         
-
-        if (config.lite){
-
-        } else {
-
-        }
+        Menu.hide();
 
         if (typeof startCallback === 'function') {
             try {
-                Menu.hide();
                 startCallback();
             } catch (e){
                 Logger.error('GamifiveSDK', 'startSession', 'error while trying to start a session', e);
+                // restore menu, to be able to go back to main page
                 Menu.show();
             }
         }

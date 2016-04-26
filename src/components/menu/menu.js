@@ -1,7 +1,8 @@
-var Logger = require('../logger/logger');
-var Newton = require('../newton/newton');
-var GA     = require('../ga/ga');
-var VHost  = require('../vhost/vhost');
+var Logger  = require('../logger/logger');
+var Newton  = require('../newton/newton');
+var GA      = require('../ga/ga');
+var VHost   = require('../vhost/vhost');
+var Location = require('../location/location');
 
 /**
 * Gameplay page menu module (old "more games button")
@@ -16,41 +17,19 @@ var Menu = new function(){
     var menuStyle;
     var menuSprite;
 
-    /**
-    * sets the callback to be executed in order to perform a redirect to the main page of the app
-    * @function goToHomeCallback
-    * @memberof Menu
-    */
     var goToHomeCallback = function(){
-        Logger.warn('GamifiveSDK', 'Menu', 'goToHomeCallback not set');
+        window.location.href = Location.getOrigin();
     }
 
-    /**
-    * initializes the Menu
-    * @function init
-    * @memberof Menu
-    */
-    this.init = function(params){
-        Logger.log('GamifiveSDK', 'Menu', 'init', params);
+    VHost.afterLoad(function(){
 
         if (typeof moreGamesButtonSprite === 'undefined'){
-            VHost.afterLoad(function(){
-                menuSprite = VHost.get('MORE_GAMES_BUTTON_SPRITE');
-            });
+            menuSprite = VHost.get('MORE_GAMES_BUTTON_SPRITE');
         } else {
             menuSprite = moreGamesButtonSprite;
         }
-        
-        if (!!params && typeof params.goToHomeCallback !== 'undefined'){
 
-            if (typeof params.goToHomeCallback === 'function'){
-                goToHomeCallback = params.goToHomeCallback;
-            } else {
-                Logger.error('GamifiveSDK', 'Menu', 'reset', 'goToHomeCallback must be a function, got "' 
-                    + typeof params.goToHomeCallback + '"');
-            }
-        }
-    }
+    });
 
     /**
     * resets the style of the menu to its default value
@@ -93,7 +72,7 @@ var Menu = new function(){
     * @memberof Menu
     */
     this.show = function(customStyle){
-        Logger.info('GamifiveSDK', 'Menu', 'showMenu', customStyle);
+        Logger.info('GamifiveSDK', 'Menu', 'show', customStyle);
 
         // create DOM element if it doesn't exist
         if (!menuElement){
@@ -120,7 +99,7 @@ var Menu = new function(){
     * @memberof Menu
     */
     this.hide = function(){
-        Logger.info('GamifiveSDK', 'Menu', 'hideMenu');
+        Logger.info('GamifiveSDK', 'Menu', 'hide');
         menuInstance.close();
         if (menuElement){
             menuElement.style.display = 'none';

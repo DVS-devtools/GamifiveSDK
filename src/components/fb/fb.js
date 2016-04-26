@@ -2,8 +2,8 @@
 var Logger   = require('../logger/logger');
 var Newton   = require('../newton/newton');
 var GA       = require('../ga/ga');
-var VHost    = require('../vhost/vhost');
 var Location = require('../location/location');
+var VHost    = require('../vhost/vhost');
 
 /**
 * Facebook module
@@ -12,8 +12,10 @@ var Location = require('../location/location');
 */
 var Facebook = new function(){
 
+    var facebookInstance = this;
     var initialized = false;
     var isMobile = false;  // retrieve from stargate module
+    var config;
 
     /**
     * returns true iff the Facebook sdk has been successfully downloaded and initialized
@@ -25,20 +27,35 @@ var Facebook = new function(){
     }
 
     /**
+    * resets the Facebook sdk configuration
+    * @function reset
+    * @memberof Facebook
+    */
+    this.reset = function(){
+        config = {
+            fbVersion: "2.4"
+        }
+    }
+    facebookInstance.reset();
+
+    /**
     * downloads and initializes the Facebook sdk 
     * @function init
     * @memberof Facebook
     */
     this.init = function(params){
         Logger.log('GamifiveSDK', 'Facebook', 'init', params);
+        for (var key in params){
+            config[key] = params[key];
+        }
 
         if (parseInt(localStorage.getItem('hybrid')) !== 1){
-          var d = document, s = 'script', id = 'facebook-jssdk';
-          var js, fjs = d.getElementsByTagName(s)[0];
-          if (d.getElementById(id)) return;
-          js = d.createElement(s); js.id = id;
-          js.src = "http://connect.facebook.net/en_US/sdk.js";
-          fjs.parentNode.insertBefore(js, fjs);
+            var d = document, s = 'script', id = 'facebook-jssdk';
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = "http://connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
         }
 
         window.fbAsyncInit = function() {
@@ -46,10 +63,10 @@ var Facebook = new function(){
                 Logger.error('GamifiveSDK', 'FB', 'init', 'cannot download fb sdk');
             } else {
                 FB.init({
-                    appId      : VHost.get('appId'),
+                    appId      : config.fbAppId,
                     cookie     : true,    // enable cookies to allow the server to access
                     xfbml      : false,   // parse social plugins on this page
-                    version    : 'v2.4'   // use version 2.1
+                    version    : params.fbVersion   
                 });
             }
 
@@ -57,6 +74,10 @@ var Facebook = new function(){
         };
 
     }
+
+    VHost.afterLoad(function(){
+        facebookInstance.init({fbAppId: VHost.get('fbAppId')});
+    })
 
     /**
     * used to display a dialog for sharing on Facebook
@@ -102,7 +123,7 @@ var Facebook = new function(){
         if (isMobile){
 			var targetUrl = [
 				'http://www.facebook.com/dialog/send',
-	  			'?app_id=' + VHost.get('appId'),
+	  			'?app_id=' + config.fbAppId,
 				'&link=' + url,
 				'&redirect_uri=' + Location.getOrigin()
 			].join('');
