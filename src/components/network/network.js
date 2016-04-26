@@ -2,7 +2,7 @@ var Logger = require('../logger/logger');
 
 /**
 * Utility module for handling network functionalities
-* @class Network
+* @namespace Network
 * @version 0.9
 */
 var Network = new function(){

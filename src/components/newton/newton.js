@@ -4,7 +4,7 @@ var VHost  = require('../vhost/vhost');
 
 /**
 * Newton module
-* @class Newton
+* @namespace Newton
 * @version 0.9
 */
 var Newton = new function(){

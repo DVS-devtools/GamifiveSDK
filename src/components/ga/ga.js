@@ -4,7 +4,7 @@ var VHost  = require('../vhost/vhost');
 
 /**
 * Google Analytics module
-* @class GA
+* @namespace GA
 * @version 0.9
 */
 var GA = new function(){

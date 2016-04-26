@@ -8,6 +8,7 @@
     "url": "git@github.com:BuongiornoMIP/GamifiveSDK.git"
   },
   "scripts": {
+    "docs": "rm out -rf && node_modules/.bin/jsdoc src/components -r",
     "build:web": "browserify src/builders/build_web.js -o dist/gfsdk_web.js -s GamifiveSDK",
     "build:debug": "browserify src/builders/build_debug.js -o dist/gfsdk_debug.js -s GamifiveSDK",
     "build:hybrid": "browserify src/builders/build_hybrid.js -o dist/gfsdk_hybrid.js -s GamifiveSDK",
@@ -20,11 +21,12 @@
     "bower": "^1.7.9",
     "browserify": "^13.0.0",
     "browserify-istanbul": "^2.0.0",
+    "catharsis": "^0.8.7",
     "coveralls": "^2.11.9",
     "istanbul": "^0.4.3",
     "jasmine-ajax": "^3.2.0",
     "jasmine-core": "^2.4.1",
-    "jsdoc": "3.2.2",
+    "jsdoc": "^3.2.2",
     "karma": "^0.13.22",
     "karma-browserify": "^4.4.2",
     "karma-chrome-launcher": "^0.2.1",
@@ -42,6 +44,7 @@
     "phantomjs": "^2.1.7",
     "phantomjs-polyfill": "0.0.1",
     "phantomjs-prebuilt": "^2.1.7",
+    "taffydb": "^2.7.2",
     "watchify": "^3.7.0"
   }
 }

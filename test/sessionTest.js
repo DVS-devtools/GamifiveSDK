@@ -1,3 +1,4 @@
+
 var Session = require("../src/components/session/session");
 
 describe("GameInfo",function(){

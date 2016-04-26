@@ -2,7 +2,7 @@ var Logger  = require('../logger/logger');
 
 /**
 * Event manager module
-* @class Event
+* @namespace Event
 * @version 0.9
 */
 var Event = new function(){

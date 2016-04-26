@@ -4,7 +4,7 @@ var Event   = require('../event/event');
 
 /**
 * VHost module
-* @class VHost
+* @namespace VHost
 * @version 0.9
 */
 var VHost = new function(){

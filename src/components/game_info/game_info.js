@@ -4,7 +4,7 @@ var VHost   = require('../vhost/vhost');
 
 /**
 * GameInfo module
-* @class GameInfo
+* @namespace GameInfo
 * @version 0.9
 */
 var GameInfo = new function(){

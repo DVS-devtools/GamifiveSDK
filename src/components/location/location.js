@@ -2,7 +2,7 @@ var Logger = require('../logger/logger');
 
 /**
 * Utility module for managing locations
-* @class Location
+* @namespace Location
 * @version 0.9
 */
 var Location = new function(){
