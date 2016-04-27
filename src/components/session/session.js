@@ -7,6 +7,7 @@ var Network  = require('../network/network');
 var Menu     = require('../menu/menu');
 var Location = require('../location/location');
 var Facebook = require('../fb/fb');
+var Overlay = require('../overlay/overlay');
 
 /**
 * Session module
@@ -92,33 +93,55 @@ var Session = new function(){
             throw 'GamifiveSDK :: Session :: start :: previous session not ended';     
         }
 
-        if (config.lite){
+        var doStartSession = function(){
+            // ok, you can start a new session
+            config.sessions.unshift({
+                startTime: new Date(),
+                endTime: undefined,
+                score: undefined,
+                level: undefined
+            });
+
+            config.sessions = config.sessions.slice(0, config.MAX_RECORDED_SESSIONS_NUMBER);
             
-        } else {
+            Menu.hide();
 
-        }
+            // ADD TRACKING HERE
 
-        // ok, you can start a new session
-        config.sessions.unshift({
-            startTime: new Date(),
-            endTime: undefined,
-            score: undefined,
-            level: undefined
-        });
-
-        config.sessions = config.sessions.slice(0, config.MAX_RECORDED_SESSIONS_NUMBER);
-        
-        Menu.hide();
-
-        if (typeof startCallback === 'function') {
-            try {
-                startCallback();
-            } catch (e){
-                Logger.error('GamifiveSDK', 'startSession', 'error while trying to start a session', e);
-                // restore menu, to be able to go back to main page
-                Menu.show();
+            if (typeof startCallback === 'function') {
+                try {
+                    startCallback();
+                } catch (e){
+                    Logger.error('GamifiveSDK', 'startSession', 'error while trying to start a session', e);
+                    // restore menu, to be able to go back to main page
+                    Menu.show();
+                }
             }
         }
+
+        if (config.lite){
+            Network.xhr('GET', VHost.get('canDownloadUrl'), function(resp){
+                Utils.log('GamifiveSDK', 'Session', 'start', 'can play', resp);
+
+                if(VarCheck.get(resp, ['response', 'canDownload'])){
+                    // clear dom
+                    Overlay.delete();
+                    doStartSession();
+                } else {
+                    // call gameover API
+                    Network.xhr('GET', VHost.get('gameoverUrl'), function (resp) {
+                        // render page with resp
+                        Overlay.create(resp);
+
+                        // throw event 'user_no_credits'
+                        throwEvent('user_no_credits');
+                    });
+                }
+            });
+        } else {
+            doStartSession();
+        }
+        
     }
 
     /**
@@ -136,7 +159,7 @@ var Session = new function(){
             throw 'GamifiveSDK :: session :: onStart :: invalid value \
                     for callback: expected function, got "' + typeof callback + '"';
         }
-    }   
+    }
 
     /**
     * sets a callback function to be called when the game enters pause status

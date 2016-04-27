@@ -1,5 +1,3 @@
-var Logger = require('../logger/logger');
-
 /**
 * Utility module for managing locations
 * @namespace Location

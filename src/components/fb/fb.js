@@ -3,7 +3,6 @@ var Logger   = require('../logger/logger');
 var Newton   = require('../newton/newton');
 var GA       = require('../ga/ga');
 var Location = require('../location/location');
-var VHost    = require('../vhost/vhost');
 
 /**
 * Facebook module
@@ -49,7 +48,8 @@ var Facebook = new function(){
             config[key] = params[key];
         }
 
-        if (parseInt(localStorage.getItem('hybrid')) !== 1){
+
+        if (parseInt(localStorage.getItem('hybrid')) !== 1 && !config.noDownload){
             var d = document, s = 'script', id = 'facebook-jssdk';
             var js, fjs = d.getElementsByTagName(s)[0];
             if (d.getElementById(id)) return;
@@ -60,7 +60,7 @@ var Facebook = new function(){
 
         window.fbAsyncInit = function() {
             if (typeof FB === 'undefined') {
-                Logger.error('GamifiveSDK', 'FB', 'init', 'cannot download fb sdk');
+                Logger.error('GamifiveSDK', 'Facebook', 'init', 'cannot download fb sdk');
             } else {
                 FB.init({
                     appId      : config.fbAppId,
@@ -70,14 +70,11 @@ var Facebook = new function(){
                 });
             }
 
-           initialized = true;
+            initialized = true;
         };
+        Logger.log('GamifiveSDK', 'Facebook', 'defined fbAsyncInit', window.fbAsyncInit);
 
     }
-
-    VHost.afterLoad(function(){
-        facebookInstance.init({fbAppId: VHost.get('fbAppId')});
-    })
 
     /**
     * used to display a dialog for sharing on Facebook

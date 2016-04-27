@@ -1,8 +1,9 @@
 var GameInfo = require("../src/components/game_info/game_info");
 
-describe("GameInfo",function(){
+describe("GameInfo", function(){
     
     it("GameInfo TODO", function(){
-        expect(true).toEqual(true);
+        expect(GameInfo).toBeDefined();
     });
+
 });

@@ -3,18 +3,18 @@ var Facebook = require("../src/components/fb/fb");
 describe("FB",function(){
 
     it("FB must not be initialized", function(){
-        expect(Facebook.isInitialized()).toBe(false);
+        expect(Facebook.isInitialized()).toEqual(false);
     });
 
     it("FB async init is defined after FB.init", function(){
-        Facebook.init();
+        Facebook.init({fbAppId: 1234, noDownload: true});
         expect(window.fbAsyncInit).toBeDefined();
     });
 
     it("FB is initialized after fbAsyncInit is called", function(){
         window.fbAsyncInit();
 
-        expect(Facebook.isInitialized()).toBe(true);
+        expect(Facebook.isInitialized()).toEqual(true);
     });
 
 });
