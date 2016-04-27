@@ -7,7 +7,7 @@ describe("FB",function(){
     });
 
     it("FB async init is defined after FB.init", function(){
-        Facebook.init({fbAppId: 1234, noDownload: true});
+        Facebook.init({fbAppId: 1234});
         expect(window.fbAsyncInit).toBeDefined();
     });
 

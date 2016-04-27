@@ -1,9 +1,8 @@
-
-var Logger    = require('../logger/logger');
-var Newton    = require('../newton/newton');
+var Constants = require('../constants/constants');
 var GA        = require('../ga/ga');
 var Location  = require('../location/location');
-var Constants = require('../constants/constants');
+var Logger    = require('../logger/logger');
+var Newton    = require('../newton/newton');
 
 /**
 * Facebook module
@@ -49,7 +48,7 @@ var Facebook = new function(){
             config[key] = params[key];
         }
 
-        if (parseInt(localStorage.getItem('hybrid')) !== 1 && !config.noDownload){
+        if (parseInt(localStorage.getItem('hybrid')) !== 1){
             var d = document, s = 'script', id = 'facebook-jssdk';
             var js, fjs = d.getElementsByTagName(s)[0];
             if (d.getElementById(id)) return;

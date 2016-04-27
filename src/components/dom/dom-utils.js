@@ -1,5 +1,6 @@
-var Logger    = require('../logger/logger');
 var Constants = require('../constants/constants');
+var Logger    = require('../logger/logger');
+
 /**
 * DOMUtils module
 * @namespace DOMUtils

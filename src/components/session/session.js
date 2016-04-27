@@ -1,14 +1,13 @@
-
-var Logger    = require('../logger/logger');
-var Newton    = require('../newton/newton');
-var GA        = require('../ga/ga');
-var VHost     = require('../vhost/vhost');
-var Network   = require('../network/network');
-var Menu      = require('../menu/menu');
-var Location  = require('../location/location');
-var Facebook  = require('../fb/fb');
-var DOMUtils  = require('../dom/dom-utils');
 var Constants = require('../constants/constants');
+var DOMUtils  = require('../dom/dom-utils');
+var Facebook  = require('../fb/fb');
+var GA        = require('../ga/ga');
+var Location  = require('../location/location');
+var Logger    = require('../logger/logger');
+var Menu      = require('../menu/menu');
+var Network   = require('../network/network');
+var Newton    = require('../newton/newton');
+var VHost     = require('../vhost/vhost');
 
 /**
 * Session module
@@ -189,7 +188,7 @@ var Session = new function(){
     this.end = function(data){
         Logger.info('GamifiveSDK', 'Session', 'end', data);
 
-        if (config.sessions.length < 1){
+        if (typeof config.sessions !== typeof [] || config.sessions.length < 1){
             throw 'GamifiveSDK :: Session :: end :: no sessions started';
         }
 

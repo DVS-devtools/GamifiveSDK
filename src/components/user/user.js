@@ -1,8 +1,8 @@
-var Logger  = require('../logger/logger');
-var Newton  = require('../newton/newton');
 var GA      = require('../ga/ga');
-var VHost   = require('../vhost/vhost');
+var Logger  = require('../logger/logger');
 var Network = require('../network/network');
+var Newton  = require('../newton/newton');
+var VHost   = require('../vhost/vhost');
 
 /**
 * User module
