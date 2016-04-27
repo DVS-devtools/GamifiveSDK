@@ -28,6 +28,35 @@ describe("Session",function(){
         });
 
         expect(Session.getConfig().sessions).toBeDefined();
+
+    });
+
+    it("Sessions can't be started two times", function(){
+        Session.init({});
+
+        var request = jasmine.Ajax.requests.mostRecent();
+
+        request.respondWith({
+            status: 200, 
+            contentType: 'application/json',
+            response: { test: 'Session' },
+            readyState: 4
+        });
+
+        expect(typeof Session.getConfig().sessions).toEqual(typeof []);
+
+        Session.start();
+
+        expect(Session.getConfig().sessions.length).toEqual(1);
+
+        var errorStartSession;
+        try {
+            Session.start();
+        } catch (e){
+            errorStartSession = e;
+        }
+
+        expect(errorStartSession).toEqual('GamifiveSDK :: Session :: start :: previous session not ended');
     });
 
 

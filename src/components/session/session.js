@@ -1,13 +1,14 @@
 
-var Logger   = require('../logger/logger');
-var Newton   = require('../newton/newton');
-var GA       = require('../ga/ga');
-var VHost    = require('../vhost/vhost');
-var Network  = require('../network/network');
-var Menu     = require('../menu/menu');
-var Location = require('../location/location');
-var Facebook = require('../fb/fb');
-var Overlay = require('../overlay/overlay');
+var Logger    = require('../logger/logger');
+var Newton    = require('../newton/newton');
+var GA        = require('../ga/ga');
+var VHost     = require('../vhost/vhost');
+var Network   = require('../network/network');
+var Menu      = require('../menu/menu');
+var Location  = require('../location/location');
+var Facebook  = require('../fb/fb');
+var DOMUtils  = require('../dom/dom-utils');
+var Constants = require('../constants/constants');
 
 /**
 * Session module
@@ -28,9 +29,7 @@ var Session = new function(){
     * @memberof Session
     */
     this.reset = function(){
-        config = {
-            MAX_RECORDED_SESSIONS_NUMBER: 2
-        };
+        config = {};
     }
     // apply default configuration
     sessionInstance.reset();
@@ -88,9 +87,11 @@ var Session = new function(){
             throw 'GamifiveSDK :: Session :: start :: init not called';
         }
 
+        Logger.log('GamifiveSDK', 'Session', 'init has been called correctly');
+
         // if a previous session exists, it must have been ended
-        if (config.sessions.length > 0 & typeof getLastSession().endTime === 'undefined'){
-            throw 'GamifiveSDK :: Session :: start :: previous session not ended';     
+        if (config.sessions.length > 0 && typeof getLastSession().endTime === 'undefined'){
+            throw 'GamifiveSDK :: Session :: start :: previous session not ended';
         }
 
         var doStartSession = function(){
@@ -102,7 +103,7 @@ var Session = new function(){
                 level: undefined
             });
 
-            config.sessions = config.sessions.slice(0, config.MAX_RECORDED_SESSIONS_NUMBER);
+            config.sessions = config.sessions.slice(0, Constants.MAX_RECORDED_SESSIONS_NUMBER);
             
             Menu.hide();
 
@@ -125,23 +126,19 @@ var Session = new function(){
 
                 if(VarCheck.get(resp, ['response', 'canDownload'])){
                     // clear dom
-                    Overlay.delete();
+                    DOMUtils.delete();
                     doStartSession();
                 } else {
                     // call gameover API
                     Network.xhr('GET', VHost.get('gameoverUrl'), function (resp) {
-                        // render page with resp
-                        Overlay.create(resp);
-
-                        // throw event 'user_no_credits'
-                        throwEvent('user_no_credits');
+                        DOMUtils.create(resp);
+                        DOMUtils.show(Constants.PAYWALL_ELEMENT_ID);
                     });
                 }
             });
         } else {
             doStartSession();
         }
-        
     }
 
     /**

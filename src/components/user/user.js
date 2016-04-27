@@ -29,9 +29,19 @@ var User = new function(){
     * returns a single value of userInfo, given its key
     * @function get
     * @memberof User
+    * @param {String} key the name of the value to be returned
     */
     this.get = function(key){
         return userInfo[key];
+    }
+
+    /**
+    * resets userInfo
+    * @function reset
+    * @memberof User
+    */
+    this.reset = function(){
+        userInfo = undefined;
     }
 
     /**
@@ -98,7 +108,6 @@ var User = new function(){
     */
     this.saveData = function(data, callback){
         Logger.info('GamifiveSDK', 'User', 'saveUserData', data);
-
         doSaveUserData(data, callback);
     }
 

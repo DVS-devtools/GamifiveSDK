@@ -1,8 +1,9 @@
 
-var Logger   = require('../logger/logger');
-var Newton   = require('../newton/newton');
-var GA       = require('../ga/ga');
-var Location = require('../location/location');
+var Logger    = require('../logger/logger');
+var Newton    = require('../newton/newton');
+var GA        = require('../ga/ga');
+var Location  = require('../location/location');
+var Constants = require('../constants/constants');
 
 /**
 * Facebook module
@@ -32,7 +33,7 @@ var Facebook = new function(){
     */
     this.reset = function(){
         config = {
-            fbVersion: "2.4"
+            fbVersion: Constants.FB_SDK_VERSION
         }
     }
     facebookInstance.reset();
@@ -47,7 +48,6 @@ var Facebook = new function(){
         for (var key in params){
             config[key] = params[key];
         }
-
 
         if (parseInt(localStorage.getItem('hybrid')) !== 1 && !config.noDownload){
             var d = document, s = 'script', id = 'facebook-jssdk';
@@ -66,7 +66,7 @@ var Facebook = new function(){
                     appId      : config.fbAppId,
                     cookie     : true,    // enable cookies to allow the server to access
                     xfbml      : false,   // parse social plugins on this page
-                    version    : params.fbVersion   
+                    version    : config.fbVersion   
                 });
             }
 
