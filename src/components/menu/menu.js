@@ -31,13 +31,17 @@ var Menu = new function(){
 
     });
 
-    /**
-    * resets the style of the menu to its default value
-    * @function resetStyle
-    * @memberof Menu
-    */
-    this.resetStyle = function(){
+    var applyCurrentStyle = function(){
+        if (menuElement){
+            for (var key in menuStyle){
+                menuElement.style[key] = menuStyle[key];
+            }
+        }
+    }
+
+    var setDefaultStyle = function(){
         menuStyle = {};
+
         menuStyle.left = '2px' ;
         menuStyle.height = '44px';
         menuStyle['background-position'] = '-22px -428px';
@@ -46,7 +50,16 @@ var Menu = new function(){
         menuStyle['z-index'] = "9";
         menuStyle.width = '43px';
         menuStyle.position = 'absolute';
-        menuStyle['background-image'] = 'url(' + menuSprite + ')';
+    }
+
+    /**
+    * resets the style of the menu to its default value
+    * @function resetStyle
+    * @memberof Menu
+    */
+    this.resetStyle = function(){
+        setDefaultStyle();
+        applyCurrentStyle();
     }
 
     /**
@@ -55,15 +68,14 @@ var Menu = new function(){
     * @memberof Menu
     */
     this.setCustomStyle = function(customStyle){
-        if (!menuStyle){
-            menuInstance.resetStyle();
-        }
         // override menu style
         if (customStyle){
             for (var key in customStyle){
                 menuStyle[key] = customStyle[key];
             }   
         }
+
+        applyCurrentStyle();
     }
 
     /**
@@ -73,6 +85,13 @@ var Menu = new function(){
     */
     this.show = function(customStyle){
         Logger.info('GamifiveSDK', 'Menu', 'show', customStyle);
+
+        if (!menuStyle){
+            // create default
+            setDefaultStyle();
+            // set the following menu style properties only the first time 
+            menuStyle['background-image'] = 'url(' + menuSprite + ')'
+        }
 
         // create DOM element if it doesn't exist
         if (!menuElement){
@@ -84,12 +103,6 @@ var Menu = new function(){
         }
 
         menuInstance.setCustomStyle(customStyle);
-
-        // apply menu style to element
-        for (var key in menuStyle){
-            menuElement.style[key] = menuStyle[key];
-        }
-
         menuElement.style.display = 'block';
     }
 
