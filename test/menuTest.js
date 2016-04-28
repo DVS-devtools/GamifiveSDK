@@ -127,13 +127,14 @@ describe("Menu",function(){
             
             Menu.show();
 
-            Menu.setCustomStyle({top: '7px'});
+            Menu.setCustomStyle({top: '7px', 'background-image': 'anotherImage'});
 
             menuElement = document.getElementById('gfsdk-more-games');
 
             Menu.resetStyle();
             
             expect(menuElement.style['top']).toEqual('50%');
+            expect(menuElement.style['background-image']).not.toEqual('anotherImage');
 
             done();
             

@@ -1,8 +1,9 @@
-var Logger  = require('../logger/logger');
-var Newton  = require('../newton/newton');
-var GA      = require('../ga/ga');
-var VHost   = require('../vhost/vhost');
-var Location = require('../location/location');
+var Constants = require('../constants/constants');
+var GA        = require('../ga/ga');
+var Location  = require('../location/location');
+var Logger    = require('../logger/logger');
+var Newton    = require('../newton/newton');
+var VHost     = require('../vhost/vhost');
 
 /**
 * Gameplay page menu module (old "more games button")
@@ -41,15 +42,11 @@ var Menu = new function(){
 
     var setDefaultStyle = function(){
         menuStyle = {};
-
-        menuStyle.left = '2px' ;
-        menuStyle.height = '44px';
-        menuStyle['background-position'] = '-22px -428px';
-        menuStyle.top = '50%';
-        menuStyle['margin-top'] = '-22px';
-        menuStyle['z-index'] = "9";
-        menuStyle.width = '43px';
-        menuStyle.position = 'absolute';
+        
+        var defaultStyle = Constants.DEFAULT_MENU_STYLE;
+        for (var key in defaultStyle){
+            menuStyle[key] = defaultStyle[key];
+        }
     }
 
     /**
@@ -71,8 +68,10 @@ var Menu = new function(){
         // override menu style
         if (customStyle){
             for (var key in customStyle){
-                menuStyle[key] = customStyle[key];
-            }   
+                if (Constants.IMMUTABLE_MENU_STYLE_PROPERTIES.indexOf(key) < 0){
+                    menuStyle[key] = customStyle[key];
+                }
+            }
         }
 
         applyCurrentStyle();
@@ -90,7 +89,7 @@ var Menu = new function(){
             // create default
             setDefaultStyle();
             // set the following menu style properties only the first time 
-            menuStyle['background-image'] = 'url(' + menuSprite + ')'
+            menuStyle['background-image'] = 'url(' + menuSprite + ')';
         }
 
         // create DOM element if it doesn't exist
