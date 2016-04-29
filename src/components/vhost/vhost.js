@@ -1,6 +1,7 @@
-var Logger  = require('../logger/logger');
-var Network = require('../network/network');
-var Event   = require('../event/event');
+var Logger    = require('../logger/logger');
+var Network   = require('../network/network');
+var Event     = require('../event/event');
+var Constants = require('../constants/constants');
 
 /**
 * VHost module
@@ -13,8 +14,6 @@ var VHost = new function(){
 
     var vHost;
     var gameSDKVHostUrl = 'api/vhost';
-
-    var AFTER_LOAD_EVENT_KEY = 'VHOST_AFTER_LOAD';
 
     /**
     * resets VHost internal data
@@ -39,7 +38,7 @@ var VHost = new function(){
             }
             Logger.log('GamifiveSDK', 'VHost', 'load', vHost);
 
-            Event.trigger(AFTER_LOAD_EVENT_KEY);
+            Event.trigger(Constants.AFTER_LOAD_EVENT_KEY);
         });
     }
 
@@ -49,7 +48,7 @@ var VHost = new function(){
     * @memberof VHost
     */
     this.afterLoad = function(callback){
-        Event.bind(AFTER_LOAD_EVENT_KEY, callback);
+        Event.bind(Constants.AFTER_LOAD_EVENT_KEY, callback);
     }
 
     /**

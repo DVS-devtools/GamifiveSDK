@@ -20,6 +20,8 @@ module.exports = {
         'z-index',
         'width',
         'height'
-    ]
+    ],
+    AFTER_LOAD_EVENT_KEY: 'VHOST_AFTER_LOAD',
+    VHOST_API_URL: 'api/vhost'
     
 }

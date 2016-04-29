@@ -64,7 +64,7 @@ var Session = new function(){
         config.sessions = [];
 
         Menu.show();
-        
+
         // let's dance
         VHost.load();
     }
@@ -103,7 +103,7 @@ var Session = new function(){
             });
 
             config.sessions = config.sessions.slice(0, Constants.MAX_RECORDED_SESSIONS_NUMBER);
-            
+
             Menu.hide();
 
             // ADD TRACKING HERE
