@@ -2,6 +2,7 @@ var Logger    = require('../logger/logger');
 var Network   = require('../network/network');
 var Event     = require('../event/event');
 var Constants = require('../constants/constants');
+var VHostKeys = require('../../../gen/vhost/vhost-keys.js')
 
 /**
 * VHost module
