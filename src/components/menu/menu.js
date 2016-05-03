@@ -23,13 +23,7 @@ var Menu = new function(){
     }
 
     VHost.afterLoad(function(){
-
-        if (typeof moreGamesButtonSprite === 'undefined'){
-            menuSprite = VHost.get('MORE_GAMES_BUTTON_SPRITE');
-        } else {
-            menuSprite = moreGamesButtonSprite;
-        }
-
+        menuSprite = VHost.get('IMAGES_SPRITE_GAME');
     });
 
     var applyCurrentStyle = function(){
@@ -88,8 +82,10 @@ var Menu = new function(){
         if (!menuStyle){
             // create default
             setDefaultStyle();
-            // set the following menu style properties only the first time 
-            menuStyle['background-image'] = 'url(' + menuSprite + ')';
+        }
+
+        if (!!menuSprite){
+            menuStyle['background-image'] = 'url(\'' + menuSprite + '\')';
         }
 
         // create DOM element if it doesn't exist

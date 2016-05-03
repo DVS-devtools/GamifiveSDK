@@ -20,7 +20,7 @@ var User = new function(){
     var saveUserDataUrl;
 
     VHost.afterLoad(function(){
-        userInfoUrl     = VHost.get('USER_CHECK_URL');
+        userInfoUrl     = VHost.get('MOA_API_USER_CHECK');
         loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
         saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
     });

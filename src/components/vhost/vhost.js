@@ -3,6 +3,7 @@ var Network   = require('../network/network');
 var Event     = require('../event/event');
 var Constants = require('../constants/constants');
 var VHostKeys = require('../../../gen/vhost/vhost-keys.js')
+var Location  = require('../location/location');
 
 /**
 * VHost module
@@ -14,7 +15,7 @@ var VHost = new function(){
     var vHostInstance = this;
 
     var vHost;
-    var gameSDKVHostUrl = 'api/vhost';
+    var gameSDKVHostUrl = Constants.VHOST_API_URL;
 
     /**
     * resets VHost internal data
@@ -31,11 +32,17 @@ var VHost = new function(){
     * @memberof VHost
     */
     this.load = function(){
-        Network.xhr('GET', gameSDKVHostUrl, function(resp){
+
+        var urlToCall = gameSDKVHostUrl + VHostKeys.join(',');
+
+        Network.xhr('GET', urlToCall, function(resp){
 
             if (!!resp && typeof resp.response !== 'undefined'){
                 Logger.log('GamifiveSDK', 'VHost', 'load response', resp);
                 vHost = resp.response;
+                if (typeof vHost === typeof ''){
+                    vHost = JSON.parse(vHost);
+                }
             }
             Logger.log('GamifiveSDK', 'VHost', 'load', vHost);
 

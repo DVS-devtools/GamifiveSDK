@@ -22,6 +22,6 @@ module.exports = {
         'height'
     ],
     AFTER_LOAD_EVENT_KEY: 'VHOST_AFTER_LOAD',
-    VHOST_API_URL: 'api/vhost'
+    VHOST_API_URL: 'http://www2.gameasy.com/ww-it/v01/config.getvars?keys='
     
 }

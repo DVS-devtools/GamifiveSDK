@@ -63,7 +63,9 @@ var Session = new function(){
         // allows starting a new session
         config.sessions = [];
 
-        Menu.show();
+        VHost.afterLoad(function(){
+            Menu.show();
+        });
 
         // let's dance
         VHost.load();
@@ -120,7 +122,7 @@ var Session = new function(){
         }
 
         if (config.lite){
-            Network.xhr('GET', VHost.get('canDownloadUrl'), function(resp){
+            Network.xhr('GET', VHost.get('MOA_API_CANDOWNLOAD'), function(resp){
                 Utils.log('GamifiveSDK', 'Session', 'start', 'can play', resp);
 
                 if(VarCheck.get(resp, ['response', 'canDownload'])){
@@ -129,7 +131,7 @@ var Session = new function(){
                     doStartSession();
                 } else {
                     // call gameover API
-                    Network.xhr('GET', VHost.get('gameoverUrl'), function (resp) {
+                    Network.xhr('GET', VHost.get('MOA_API_GAMEOVER'), function (resp) {
                         DOMUtils.create(resp);
                         DOMUtils.show(Constants.PAYWALL_ELEMENT_ID);
                     });
