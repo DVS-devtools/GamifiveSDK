@@ -37,7 +37,7 @@ describe("Menu",function(){
         request.respondWith({
             status: 200, 
             contentType: 'application/json',
-            response: { MORE_GAMES_BUTTON_SPRITE: 'moreGamesSpriteTestValue' },
+            response: { IMAGES_SPRITE_GAME: 'moreGamesSpriteTestValue' },
             readyState: 4
         });
     });

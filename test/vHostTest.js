@@ -25,7 +25,7 @@ describe("VHost",function(){
 
         var request = jasmine.Ajax.requests.mostRecent();
 
-        expect(request.url).toEqual(Constants.VHOST_API_URL);
+        expect(request.url.indexOf(Constants.VHOST_API_URL)).toEqual(0);
 
     });
 
