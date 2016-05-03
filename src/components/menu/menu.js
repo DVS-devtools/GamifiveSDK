@@ -23,6 +23,7 @@ var Menu = new function(){
     VHost.afterLoad(function(){
         menuSprite = VHost.get('IMAGES_SPRITE_GAME');
         goToHomeCallback = Session.goToHome; 
+        menuInstance.show();
     });
 
     var applyCurrentStyle = function(){

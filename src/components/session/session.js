@@ -63,10 +63,6 @@ var Session = new function(){
         // allows starting a new session
         config.sessions = [];
 
-        VHost.afterLoad(function(){
-            Menu.show();
-        });
-
         // let's dance
         VHost.load();
     }
