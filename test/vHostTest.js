@@ -19,13 +19,14 @@ describe("VHost",function(){
         console.log("VHost.load is defined");
     });
 
-    it('VHost url correctly get from Constants', function(){
+    it('VHost url correctly get from Constants', function(done){
 
         VHost.load();
 
         var request = jasmine.Ajax.requests.mostRecent();
 
         expect(request.url.indexOf(Constants.VHOST_API_URL)).toEqual(0);
+        done();
 
     });
 

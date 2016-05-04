@@ -1,12 +1,16 @@
 var Constants = require('../constants/constants');
+var Barrier   = require('../barrier/barrier');
 var DOMUtils  = require('../dom/dom-utils');
+var Event     = require('../event/event');
 var Facebook  = require('../fb/fb');
 var GA        = require('../ga/ga');
+var GameInfo  = require('../game_info/game_info');
 var Location  = require('../location/location');
 var Logger    = require('../logger/logger');
 var Menu      = require('../menu/menu');
 var Network   = require('../network/network');
 var Newton    = require('../newton/newton');
+var User      = require('../user/user');
 var VHost     = require('../vhost/vhost');
 
 /**
@@ -21,6 +25,18 @@ var Session = new function(){
     var startCallback;
 
     var config;
+
+    var isInitializing = false;
+    var initBarrier = new Barrier('SessionInit', ['VHost.load', 'User.fetch', 'GameInfo.fetch']);
+
+    /**
+    * returns whether Session has already been initialized
+    * @function isInitialized
+    * @memberof Session
+    */
+    this.isInitialized = function(){
+        return initBarrier.isComplete();
+    }
 
     /**
     * resets the internal configuration to default value
@@ -43,13 +59,36 @@ var Session = new function(){
     }
 
     /**
+    * sets a callback to be fired after the VHost has been loaded
+    * @function afterLoad
+    * @memberof VHost
+    */
+    this.afterInit = function(callback){
+        if (typeof callback !== 'function'){
+            throw Constants.ERROR_AFTERINIT_CALLBACK_TYPE + typeof callback;
+        }
+
+        if (initBarrier.isComplete()){
+            callback();
+        } else {
+            initBarrier.onComplete(callback);
+        }
+    }
+
+    /**
     * initializes the module with custom parameters
     * @function init
     * @memberof Session
     * @param {Object} params can contain "lite" (boolean) attribute
     */
     this.init = function(params){
+        isInitializing = true;
+
         Logger.info('GamifiveSDK', 'Session', 'init', params);
+
+        if (!params){
+            params = {};
+        }
 
         // copy parameters into internal configuration
         for (var key in params){
@@ -60,8 +99,20 @@ var Session = new function(){
             Menu.setCustomStyle(config.moreGamesButtonStyle);
         }
 
-        // allows starting a new session
-        config.sessions = [];
+        VHost.afterLoad(function(){
+
+            initBarrier.setComplete('VHost.load');
+            
+            User.fetch(function(){
+                initBarrier.setComplete('User.fetch');
+            });
+
+            GameInfo.fetch(function(){
+                initBarrier.setComplete('GameInfo.fetch');
+            });
+            
+            config.sessions = [];
+        });
 
         // let's dance
         VHost.load();
@@ -91,33 +142,38 @@ var Session = new function(){
             throw Constants.ERROR_SESSION_ALREADY_STARTED;
         }
 
+        // ok, you can try to start a new session
+        config.sessions.unshift({
+            startTime: new Date(),
+            endTime: undefined,
+            score: undefined,
+            level: undefined
+        });
+
+        // cut out the older sessions
+        config.sessions = config.sessions.slice(0, Constants.MAX_RECORDED_SESSIONS_NUMBER);
+
+        Menu.hide();
+
         var doStartSession = function(){
-            // ok, you can start a new session
-            config.sessions.unshift({
-                startTime: new Date(),
-                endTime: undefined,
-                score: undefined,
-                level: undefined
-            });
+            
+            sessionInstance.afterInit(function(){
+                // ADD TRACKING HERE
 
-            config.sessions = config.sessions.slice(0, Constants.MAX_RECORDED_SESSIONS_NUMBER);
-
-            Menu.hide();
-
-            // ADD TRACKING HERE
-
-            if (typeof startCallback === 'function') {
-                try {
-                    startCallback();
-                } catch (e){
-                    Logger.error('GamifiveSDK', 'startSession', 'error while trying to start a session', e);
-                    // restore menu, to be able to go back to main page
-                    Menu.show();
+                if (typeof startCallback === 'function') {
+                    try {
+                        startCallback();
+                    } catch (e){
+                        Logger.error('GamifiveSDK', 'startSession', 'error while trying to start a session', e);
+                        // restore menu, to be able to go back to main page
+                        Menu.show();
+                    }
                 }
-            }
+            });
+            
         }
 
-        if (config.lite){
+        if (!config.lite){
             Network.xhr('GET', VHost.get('MOA_API_CANDOWNLOAD'), function(resp){
                 Utils.log('GamifiveSDK', 'Session', 'start', 'can play', resp);
 
