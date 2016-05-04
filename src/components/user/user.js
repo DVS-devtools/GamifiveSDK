@@ -1,8 +1,9 @@
-var GA      = require('../ga/ga');
-var Logger  = require('../logger/logger');
-var Network = require('../network/network');
-var Newton  = require('../newton/newton');
-var VHost   = require('../vhost/vhost');
+var Constants = require('../constants/constants');
+var GA        = require('../ga/ga');
+var Logger    = require('../logger/logger');
+var Network   = require('../network/network');
+var Newton    = require('../newton/newton');
+var VHost     = require('../vhost/vhost');
 
 /**
 * User module
@@ -32,6 +33,9 @@ var User = new function(){
     * @param {String} key the name of the value to be returned
     */
     this.get = function(key){
+        if (typeof userInfo === 'undefined'){
+            throw Constants.ERROR_USER_GET_BEFORE_FETCH;
+        }
         return userInfo[key];
     }
 

@@ -1,4 +1,5 @@
-var Session = require("../src/components/session/session");
+var Constants = require("../src/components/constants/constants");
+var Session   = require("../src/components/session/session");
 
 require('jasmine-ajax');
 
@@ -56,7 +57,7 @@ describe("Session",function(){
             errorStartSession = e;
         }
 
-        expect(errorStartSession).toEqual('GamifiveSDK :: Session :: start :: previous session not ended');
+        expect(errorStartSession).toEqual(Constants.ERROR_SESSION_ALREADY_STARTED);
     });
 
     it("Sessions are ended, but can't be ended two times", function(){
@@ -84,7 +85,7 @@ describe("Session",function(){
             errorEndSession = e;
         }
 
-        expect(errorEndSession).toEqual('GamifiveSDK :: Session :: end :: session already ended');
+        expect(errorEndSession).toEqual(Constants.ERROR_SESSION_ALREADY_ENDED);
     });
 
     it("Session cannot be started before init", function(){
@@ -96,7 +97,7 @@ describe("Session",function(){
             errorEndSession = e;
         }
 
-        expect(errorEndSession).toEqual('GamifiveSDK :: Session :: start :: init not called');
+        expect(errorEndSession).toEqual(Constants.ERROR_SESSION_INIT_NOT_CALLED);
     });
 
     it("Session cannot be ended before init", function(){
@@ -108,7 +109,7 @@ describe("Session",function(){
             errorEndSession = e;
         }
 
-        expect(errorEndSession).toEqual('GamifiveSDK :: Session :: end :: no sessions started');
+        expect(errorEndSession).toEqual(Constants.ERROR_SESSION_NO_SESSION_STARTED);
     });
 
     it("Session cannot be ended before being started", function(){
@@ -131,7 +132,7 @@ describe("Session",function(){
             errorEndSession = e;
         }
 
-        expect(errorEndSession).toEqual('GamifiveSDK :: Session :: end :: no sessions started');
+        expect(errorEndSession).toEqual(Constants.ERROR_SESSION_NO_SESSION_STARTED);
     });
 
     it("Score type check", function(){
@@ -164,8 +165,7 @@ describe("Session",function(){
             errorEndSession = e;
         }
 
-        expect(errorEndSession).toEqual('GamifiveSDK :: Session :: end :: invalid type of score: \
-                    expected number, got string');
+        expect(errorEndSession).toEqual(Constants.ERROR_SCORE_TYPE + 'string');
 
         /** CASE BOOLEAN **/
 
@@ -178,8 +178,7 @@ describe("Session",function(){
             errorEndSession = e;
         }
 
-        expect(errorEndSession).toEqual('GamifiveSDK :: Session :: end :: invalid type of score: \
-                    expected number, got boolean');
+        expect(errorEndSession).toEqual(Constants.ERROR_SCORE_TYPE + 'boolean');
 
         /** CASE NULL **/ 
 
@@ -192,8 +191,7 @@ describe("Session",function(){
             errorEndSession = e;
         }
 
-        expect(errorEndSession).toEqual('GamifiveSDK :: Session :: end :: invalid type of score: \
-                    expected number, got object');
+        expect(errorEndSession).toEqual(Constants.ERROR_SCORE_TYPE + 'object');
     });
 
 

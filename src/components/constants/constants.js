@@ -22,6 +22,17 @@ module.exports = {
         'height'
     ],
     AFTER_LOAD_EVENT_KEY: 'VHOST_AFTER_LOAD',
-    VHOST_API_URL: 'http://www2.gameasy.com/ww-it/v01/config.getvars?keys='
-    
-}
+    VHOST_API_URL: 'http://www2.gameasy.com/ww-it/v01/config.getvars?keys=',
+
+    // Constant error descriptions
+    ERROR_USER_GET_BEFORE_FETCH: 'GamifiveSDK :: User :: cannot get any value before fetching user info',
+
+    ERROR_SESSION_ALREADY_STARTED: 'GamifiveSDK :: Session :: start :: previous session not ended',
+    ERROR_SESSION_INIT_NOT_CALLED: 'GamifiveSDK :: Session :: start :: init not called',
+    ERROR_SESSION_ALREADY_ENDED: 'GamifiveSDK :: Session :: end :: session already ended',
+    ERROR_SESSION_NO_SESSION_STARTED: 'GamifiveSDK :: Session :: end :: no sessions started',
+
+    ERROR_SCORE_TYPE: 'GamifiveSDK :: Session :: end :: invalid type of score: expected number, got ',
+    ERROR_LEVEL_TYPE: 'GamifiveSDK :: Session :: end :: invalid type of level: expected number, got ',
+    ERROR_ONSTART_CALLBACK_TYPE: 'GamifiveSDK :: Session :: onStart :: invalid value for callback: expected function, got '
+}   

@@ -81,14 +81,14 @@ var Session = new function(){
 
         // if init has been called, then config.session will be []
         if (typeof config.sessions !== typeof []){
-            throw 'GamifiveSDK :: Session :: start :: init not called';
+            throw Constants.ERROR_SESSION_INIT_NOT_CALLED;
         }
 
         Logger.log('GamifiveSDK', 'Session', 'init has been called correctly');
 
         // if a previous session exists, it must have been ended
         if (config.sessions.length > 0 && typeof getLastSession().endTime === 'undefined'){
-            throw 'GamifiveSDK :: Session :: start :: previous session not ended';
+            throw Constants.ERROR_SESSION_ALREADY_STARTED;
         }
 
         var doStartSession = function(){
@@ -150,8 +150,7 @@ var Session = new function(){
         if (typeof callback === 'function'){
             startCallback = callback;
         } else {
-            throw 'GamifiveSDK :: session :: onStart :: invalid value \
-                    for callback: expected function, got "' + typeof callback + '"';
+            throw Constants.ERROR_ONSTART_CALLBACK_TYPE + typeof callback;
         }
     }
 
@@ -187,11 +186,11 @@ var Session = new function(){
         Logger.info('GamifiveSDK', 'Session', 'end', data);
 
         if (typeof config.sessions !== typeof [] || config.sessions.length < 1){
-            throw 'GamifiveSDK :: Session :: end :: no sessions started';
+            throw Constants.ERROR_SESSION_NO_SESSION_STARTED;
         }
 
         if (typeof getLastSession().endTime !== 'undefined'){
-            throw 'GamifiveSDK :: Session :: end :: session already ended';
+            throw Constants.ERROR_SESSION_ALREADY_ENDED;
         }
 
         getLastSession().endTime = new Date();
@@ -200,8 +199,7 @@ var Session = new function(){
             if (typeof data.score === 'number'){
                 getLastSession().score = data.score;
             } else {
-                throw 'GamifiveSDK :: Session :: end :: invalid type of score: \
-                    expected number, got ' + typeof data.score;
+                throw Constants.ERROR_SCORE_TYPE + typeof data.score;
             }
         }
 
@@ -209,8 +207,7 @@ var Session = new function(){
             if (typeof data.level === 'number'){
                getLastSession().level = data.level;
             } else {
-                throw 'GamifiveSDK :: Session :: end :: invalid type of level: \
-                    expected number, got ' + typeof data.level;
+                throw Constants.ERROR_LEVEL_TYPE + typeof data.level;
             }
         }
 
