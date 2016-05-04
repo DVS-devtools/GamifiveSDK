@@ -14,7 +14,7 @@ describe("Session",function(){
         jasmine.Ajax.uninstall();
     });
     
-    it("Sessions should be defined only after initialization", function(done){
+    it("Sessions should be defined only after initialization", function(){
         expect(Session.getConfig().sessions).toBeUndefined();
 
         Session.init({});
@@ -29,10 +29,9 @@ describe("Session",function(){
         });
 
         expect(Session.getConfig().sessions).toBeDefined();
-        done();
     });
 
-    it("Sessions are started, but can't be started two times", function(done){
+    it("Sessions are started, but can't be started two times", function(){
         Session.init({});
 
         var request = jasmine.Ajax.requests.mostRecent();
@@ -58,10 +57,9 @@ describe("Session",function(){
         }
 
         expect(errorStartSession).toEqual(Constants.ERROR_SESSION_ALREADY_STARTED);
-        done();
     });
 
-    it("Sessions are ended, but can't be ended two times", function(done){
+    it("Sessions are ended, but can't be ended two times", function(){
         Session.init({});
 
         var request = jasmine.Ajax.requests.mostRecent();
@@ -87,7 +85,6 @@ describe("Session",function(){
         }
 
         expect(errorEndSession).toEqual(Constants.ERROR_SESSION_ALREADY_ENDED);
-        done();
         
     });
 
@@ -115,7 +112,7 @@ describe("Session",function(){
         expect(errorEndSession).toEqual(Constants.ERROR_SESSION_NO_SESSION_STARTED);
     });
 
-    it("Session cannot be ended before being started", function(done){
+    it("Session cannot be ended before being started", function(){
 
         Session.init({});
 
@@ -136,10 +133,9 @@ describe("Session",function(){
         }
 
         expect(errorEndSession).toEqual(Constants.ERROR_SESSION_NO_SESSION_STARTED);
-        done();
     });
 
-    it("Score type check", function(done){
+    it("Score type check", function(){
 
         Session.init({});
 
@@ -197,7 +193,6 @@ describe("Session",function(){
 
         expect(errorEndSession).toEqual(Constants.ERROR_SCORE_TYPE + 'object');
 
-        done();
     });
 
 

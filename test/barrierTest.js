@@ -1,9 +1,11 @@
 var Barrier   = require("../src/components/barrier/barrier");
 var Constants = require("../src/components/constants/constants");
 
-require('jasmine-ajax');
+describe("Barrier",function(){   
 
-fdescribe("Barrier",function(){    
+    it("should be defined", function(){
+        expect(Barrier).toBeDefined();
+    }); 
 
     it("should detect when it's complete", function(){
         var b = new Barrier('test', ['event1']);
@@ -76,6 +78,23 @@ fdescribe("Barrier",function(){
         
     });
 
+    it("should throw error when setting a wrong onComplete callback", function(){
+        var error;
+        var b = new Barrier('test', ['testKey']);
+
+        var wrongValues = [ null, undefined, 'wrong', 666];
+
+        for (var i=0; i<wrongValues.length; i++){
+            try {
+                b.onComplete(wrongValues[i])
+            } catch (e){
+                error = e.toString();
+            }
+            expect(error.indexOf(Constants.ERROR_BARRIER_CALLBACK_TYPE) > -1).toEqual(true);   
+        }
+        
+    });
+
     it("should throw error when setting or completing a key of invalid type", function(){
         var error;
         
@@ -93,24 +112,6 @@ fdescribe("Barrier",function(){
             error = e.toString();
         }
         expect(error.indexOf(Constants.ERROR_BARRIER_INVALID_KEY_TYPE) > -1).toEqual(true);   
-        
-    });
-
-    
-    it("should throw error when setting a wrong onComplete callback", function(){
-        var error;
-        var b = new Barrier('test', ['testKey']);
-
-        var wrongValues = [ null, undefined, 'wrong', 666];
-
-        for (var i=0; i<wrongValues.length; i++){
-            try {
-                b.onComplete(wrongValues[i])
-            } catch (e){
-                error = e.toString();
-            }
-            expect(error.indexOf(Constants.ERROR_BARRIER_CALLBACK_TYPE) > -1).toEqual(true);   
-        }
         
     });
     

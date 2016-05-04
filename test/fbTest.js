@@ -6,9 +6,10 @@ describe("FB",function(){
         expect(Facebook.isInitialized()).toEqual(false);
     });
 
-    it("FB async init is defined after FB.init", function(){
+    it("FB async init is defined after FB.init", function(done){
         Facebook.init({fbAppId: 1234});
         expect(window.fbAsyncInit).toBeDefined();
+        done();
     });
 
     it("FB is initialized after fbAsyncInit is called", function(){
