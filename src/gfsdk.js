@@ -71,7 +71,7 @@ var GamefiveSDK = new function() {
     this.loadUserData = function(callback){
         if (!config.debug && MOA_API_APPLICATION_OBJECTS_GET.length > 0){
 
-            if (Utils.getAbsoluteUrl().indexOf('cdvfile') < 0){
+            if (window.location.href.indexOf('cdvfile') < 0){
                  getUserData(callback);
             }
 
@@ -131,7 +131,7 @@ var GamefiveSDK = new function() {
                                 + "&contentId=" + config.contentId;
         }
 
-        if (Utils.getAbsoluteUrl().indexOf('cdvfile') < 0){
+        if (window.location.href.indexOf('cdvfile') < 0){
 
             getUserData(function(){
                 setUserDataParams();
@@ -200,7 +200,7 @@ var GamefiveSDK = new function() {
     var getGamifiveInfoAPI = function(callback){
         var gpparams = {content_id: config.content_id};
 
-        if (Utils.getAbsoluteUrl().indexOf('cdvfile') > -1){
+        if (window.location.href.indexOf('cdvfile') > -1){
 
             var connectionTest = Stargate.checkConnection();
 
@@ -371,14 +371,14 @@ var GamefiveSDK = new function() {
 
     this.init = function(param){
 
-        if (Utils.getAbsoluteUrl().indexOf('cdvfile') > -1){
+        if (window.location.href.indexOf('cdvfile') > -1){
             var gameplayDirPrefix = 'games';
             var rx = new RegExp('<PREFIX>/([a-z0-9]+)/'.replace('<PREFIX>', gameplayDirPrefix));
             config.content_id = window.location.pathname.match(rx)[1];
             console.log("GamifiveSDK :: setting content_id");
         }
 
-        if (Utils.getAbsoluteUrl().indexOf('cdvfile') > -1){
+        if (window.location.href.indexOf('cdvfile') > -1){
             var stargateInitConf = {
                 "modules": [
                     "game"
@@ -565,7 +565,7 @@ var GamefiveSDK = new function() {
 
 		if(!config.lite){
 
-            if (Utils.getAbsoluteUrl().indexOf('cdvfile') < 0){
+            if (window.location.href.indexOf('cdvfile') < 0){
                 // branch: offline and online mode
                 Utils.xhr('GET', API('canDownload'), function(resp, req){
                     Utils.log("GamifiveSDK", "startSession", "canDownload", resp, req);
@@ -683,7 +683,7 @@ var GamefiveSDK = new function() {
 			}
 
 			// call gameover API
-			if (Utils.getAbsoluteUrl().indexOf('cdvfile') === -1){
+			if (window.location.href.indexOf('cdvfile') === -1){
                 Utils.xhr('GET', API('gameover', queryParams), function (resp, req) {
     				// render page with resp
     				sdkElement.create(resp);
@@ -719,7 +719,7 @@ var GamefiveSDK = new function() {
 			}
 
             var leaderboardCallUrl = API('leaderboard', queryParams);
-            if (Utils.getAbsoluteUrl().indexOf('cdvfile') === -1){
+            if (window.location.href.indexOf('cdvfile') === -1){
     			Utils.xhr('GET', leaderboardCallUrl);
             } else {
                 GamifiveSDKOffline.enqueue(GamifiveSDKOffline.XHR_QUEUE, {method: 'GET', url: leaderboardCallUrl})
@@ -781,7 +781,7 @@ var GamefiveSDK = new function() {
 			action_cd: 'Yes'
 		});
 
-        if (Utils.getAbsoluteUrl().indexOf('cdvfile') < 0){
+        if (window.location.href.indexOf('cdvfile') < 0){
             document.location.href = Utils.getAbsoluteUrl();
         } else {
             GamifiveSDKOffline.persist(function(){
@@ -1120,7 +1120,7 @@ var GamefiveSDK = new function() {
 		var host = (!config.debug) ? Utils.getAbsoluteUrl() : 'http://www2.giochissimo.it';
 
 		// set door (/v01/ or /mock/)
-		var door = (!config.debug) ? 'v01/' : 'mock01/';
+		var door = (!config.debug) ? '/v01/' : 'mock01/';
 
 		// set url core
 		var urlCore = {

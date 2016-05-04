@@ -109,20 +109,34 @@ var GamifiveSDKUtils = new function() {
 	*/
 	this.getAbsoluteUrl = function() {
 		if (typeof Stargate !== 'undefined'
+			&& Stargate.isInitialized() 
 			&& typeof Stargate.conf !== 'undefined'
 			&& typeof Stargate.conf.getWebappOrigin === 'function'){
 			return Stargate.conf.getWebappOrigin();
 		}
 
-		if(!!GamifiveInfo.dest_domain){
+		if(typeof GamifiveInfo !== 'undefined' && 
+			!!GamifiveInfo.dest_domain){
 			return GamifiveInfo.dest_domain;
 		}
 		else if (!window.location.origin) {
-			var pathName=GamifiveInfo.split("/")[1];
-			return window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '')+(pathName != '' ? '/'+pathName+'/':'/');
+			var pathName = '';
+			if (typeof GamifiveInfo !== 'undefined') {
+				pathName = GamifiveInfo.dest_domain.split("/")[1];
+			}
+			var toReturn = window.location.protocol + "//" + window.location.hostname;
+			if (window.location.port){
+				toReturn += ':' + window.location.port;
+			}  
+			if (pathName != ''){
+				toReturn += '/' + pathName;
+			}
+			toReturn += '/';
+			return toReturn;
 		}
-		else
-			return window.location.origin+"/";
+		else {
+			return window.location.origin + "/";
+		}
 	}
 
 	/**
