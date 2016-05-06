@@ -1,6 +1,7 @@
 var Constants = require('../constants/constants');
 var GA        = require('../ga/ga');
 var GameInfo  = require('../game_info/game_info');
+var Location  = require('../location/location');
 var Logger    = require('../logger/logger');
 var Network   = require('../network/network');
 var Newton    = require('../newton/newton');
@@ -79,7 +80,9 @@ var User = new function(){
             }
 
             if (typeof callback === 'function'){
-                callback(userInfo);
+                userInstance.loadData(function(){
+                    callback(userInfo);
+                });
             }
             
         });
@@ -91,6 +94,11 @@ var User = new function(){
         var userId     = userInstance.getUserId();
         var userDataId = VarCheck.get(userInfo, ['gameInfo', '_id']) || '';
 
+        if (typeof userInfo.gameInfo === 'undefined'){
+            userInfo.gameInfo = {};
+        }
+        userInfo.gameInfo.info = data;
+
         var urlToCall = saveUserDataUrl
                             .replace(':QUERY', JSON.stringify({contentId: contentId}))
                             .replace(':ID', userDataId)
@@ -98,17 +106,15 @@ var User = new function(){
                             .replace(':EXTERNAL_TOKEN', userId)
                             .replace(':COLLECTION', 'gameInfo');
 
-        // unique parameter in qs to avoid cache 
-        urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random()*1000);
+        urlToCall += "&info=" + encodeURIComponent(JSON.stringify(data))
+                                + "&domain=" + encodeURIComponent(Location.getOrigin())
+                                + "&contentId=" + GameInfo.getContentId();
             
         Network.xhr('GET', urlToCall, function(resp, req){
             Logger.log('GamifiveSDK', 'User', 'set data', resp);
-
-            // TODO: check
-            userInfo.gameInfo = data;
             
             if (typeof callback === 'function'){
-                callback(userInfo.gameInfo);
+                callback(userInfo.gameInfo.info);
             }
             
         });
@@ -159,10 +165,17 @@ var User = new function(){
         Network.xhr('GET', urlToCall, function(resp, req){
             
             // TODO: check
-            userInfo.gameInfo = resp.response;
+            var responseData = resp.response;
+
+            if (typeof responseData === typeof ''){
+                responseData = JSON.parse(responseData);
+            }
+
+            userInfo.gameInfo = VarCheck.get(responseData, ['response', 'data', 0]);
+            Logger.log('GamifiveSDK', 'User', 'loadData', 'response data', userInfo.gameInfo)
 
             if (typeof callback === 'function'){
-                callback(userInfo.gameInfo);
+                callback(userInfo.gameInfo.info);
             }
 
         });
