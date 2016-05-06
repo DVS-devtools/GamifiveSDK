@@ -2,6 +2,7 @@ var Constants     = require('../src/components/constants/constants');
 var User          = require("../src/components/user/user");
 var UserCheckMock = require("./mocks/userCheck.js");
 var VHost         = require("../src/components/vhost/vhost");
+var VHostMock     = require("./mocks/vHost.js");
 
 require('jasmine-ajax');
 
@@ -38,6 +39,7 @@ describe("User",function(){
                 response: UserCheckMock,
                 readyState: 4
             });
+
         });
 
         VHost.load();
@@ -66,5 +68,25 @@ describe("User",function(){
 
         expect(error).toEqual(Constants.ERROR_USER_GET_BEFORE_FETCH);
     });
+
+    /*it('save user data is called properly', function(done){
+        VHost.afterLoad(function(){
+
+            User.saveData()
+            
+        });
+
+        VHost.load();
+
+        var request = jasmine.Ajax.requests.mostRecent();
+
+        request.respondWith({
+            status: 200, 
+            contentType: 'application/json',
+            response: VHostMock,
+            readyState: 4
+        });
+    });*/
+
 
 });

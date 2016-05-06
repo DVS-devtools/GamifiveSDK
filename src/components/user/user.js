@@ -1,5 +1,6 @@
 var Constants = require('../constants/constants');
 var GA        = require('../ga/ga');
+var GameInfo  = require('../game_info/game_info');
 var Logger    = require('../logger/logger');
 var Network   = require('../network/network');
 var Newton    = require('../newton/newton');
@@ -79,7 +80,7 @@ var User = new function(){
 
     // used both to save and clear user data
     var doSaveUserData = function(data, callback){
-        var contentId  = GameInfo.get('contentId');
+        var contentId  = GameInfo.getContentId();
         var userId     = userInfo.userId;
         var userDataId = VarCheck.get(userInfo, ['gameInfo', '_id']) || '';
 
@@ -92,6 +93,7 @@ var User = new function(){
 
         // unique parameter in qs to avoid cache 
         urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random()*1000);
+        Logger.log('GamifiveSDK', 'User', 'set data', 'url to call', urlToCall);
             
         Network.xhr('GET', urlToCall, function(resp, req){
 
@@ -111,7 +113,7 @@ var User = new function(){
     * @memberof User
     */
     this.saveData = function(data, callback){
-        Logger.info('GamifiveSDK', 'User', 'saveUserData', data);
+        Logger.info('GamifiveSDK', 'User', 'saveData', data);
         doSaveUserData(data, callback);
     }
 
@@ -121,7 +123,7 @@ var User = new function(){
     * @memberof User
     */
     this.clearData = function(callback){
-        Logger.info('GamifiveSDK', 'User', 'clearUserData');
+        Logger.info('GamifiveSDK', 'User', 'clearData');
         doSaveUserData(null, callback);
     }
 
@@ -131,9 +133,9 @@ var User = new function(){
     * @memberof User
     */
     this.loadData = function(callback){
-        Logger.info('GamifiveSDK', 'User', 'loadUserData');
+        Logger.info('GamifiveSDK', 'User', 'loadData');
 
-        var contentId = GameInfo.get('contentId');
+        var contentId = GameInfo.getContentId();
         var userId    = userInfo.userId;
 
         var urlToCall = loadUserDataUrl
@@ -145,6 +147,7 @@ var User = new function(){
 
         // unique parameter in qs to avoid cache 
         urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random()*1000);
+        Logger.log('GamifiveSDK', 'User', 'loadData', 'url to call', urlToCall);
         
         Network.xhr('GET', urlToCall, function(resp, req){
             

@@ -90,6 +90,10 @@ var Session = new function(){
             params = {};
         }
 
+        if (typeof params.lite != 'undefined' && typeof params.lite != 'boolean'){
+            throw Constants.ERROR_LITE_TYPE + typeof params.lite;
+        }
+
         // copy parameters into internal configuration
         for (var key in params){
             config[key] = params[key];

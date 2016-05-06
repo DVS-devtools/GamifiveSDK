@@ -1,3 +1,5 @@
+var Logger = require('../logger/logger');
+
 /**
 * Utility module for managing locations
 * @namespace Location
@@ -13,19 +15,32 @@ var Location = new function(){
     * @memberof Location
     */
     this.getOrigin = function(){
-        var stargateWebappOriginIsDefined = typeof Stargate !== 'undefined' 
-                                            && typeof Stargate.conf !== 'undefined'
-                                            && typeof Stargate.conf.getWebappOrigin === 'function';
-        if (stargateWebappOriginIsDefined){
-            return Stargate.conf.getWebappOrigin();
-        }
 
         if (!window.location.origin) {
           window.location.origin = window.location.protocol + "//" 
                                     + window.location.hostname 
                                     + (window.location.port ? ':' + window.location.port: '');
         }
-        return window.location.origin;
+        
+        // VHost not loaded yet or missing variable
+        var isGameasyRegex = new RegExp('http://www.gameasy.com/([a-zA-Z0-9-_]*)');
+        var isGameasyMatch = window.location.href.match(isGameasyRegex);
+
+        var gameasyCountryCode = '';
+        if (isGameasyMatch !== null){
+            gameasyCountryCode = isGameasyMatch[1];
+        }
+
+        return window.location.origin + '/' + gameasyCountryCode;
+    }
+
+    /**
+    * returns the current window.location.href
+    * @function getCurrentHref
+    * @memberof Location
+    */
+    this.getCurrentHref = function(){
+        return window.location.href;
     }
 };
 

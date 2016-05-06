@@ -82,7 +82,7 @@ var Barrier = function(name, keysToWait){
         }
 
         if (typeof toWait[key] === 'undefined'){
-            throw Constants.BARRIER_KEY_UNKNOWN + key;
+            throw Constants.ERROR_BARRIER_KEY_UNKNOWN + key;
         }
         toWait[key] = true;
 

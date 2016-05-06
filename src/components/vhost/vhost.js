@@ -3,7 +3,6 @@ var Network   = require('../network/network');
 var Event     = require('../event/event');
 var Constants = require('../constants/constants');
 var VHostKeys = require('../../../gen/vhost/vhost-keys.js')
-var Location  = require('../location/location');
 
 /**
 * VHost module
@@ -34,6 +33,7 @@ var VHost = new function(){
     this.load = function(){
 
         var urlToCall = gameSDKVHostUrl + VHostKeys.join(',');
+        Logger.log('GamifiveSDK', 'VHost', 'load url');
 
         Network.xhr('GET', urlToCall, function(resp){
 

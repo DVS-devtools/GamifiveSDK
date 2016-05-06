@@ -74,7 +74,7 @@ describe("Barrier",function(){
         } catch (e){
             error = e.toString();
         }
-        expect(error.indexOf(Constants.BARRIER_KEY_UNKNOWN) > -1).toEqual(true);   
+        expect(error.indexOf(Constants.ERROR_BARRIER_KEY_UNKNOWN) > -1).toEqual(true);   
         
     });
 

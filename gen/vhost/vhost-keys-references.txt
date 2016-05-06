@@ -1,8 +1,6 @@
-src/components/game_info/game_info.js:18:GAME_INFO_URL
 src/components/menu/menu.js:24:IMAGES_SPRITE_GAME
-src/components/session/session.js:121:MOA_API_CANDOWNLOAD
-src/components/session/session.js:130:MOA_API_GAMEOVER
-src/components/user/user.js:23:MOA_API_USER_CHECK
-src/components/user/user.js:24:MOA_API_APPLICATION_OBJECTS_GET
-src/components/user/user.js:25:MOA_API_APPLICATION_OBJECTS_SET
-test/vHostTest.js:35:test
+src/components/session/session.js:181:MOA_API_CANDOWNLOAD
+src/components/session/session.js:190:MOA_API_GAMEOVER
+src/components/user/user.js:25:MOA_API_USER_CHECK
+src/components/user/user.js:26:MOA_API_APPLICATION_OBJECTS_GET
+src/components/user/user.js:27:MOA_API_APPLICATION_OBJECTS_SET
