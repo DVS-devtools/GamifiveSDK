@@ -10,5 +10,4 @@ describe("Logger is enabled at level " + logLevel,function(){
         
     });
 
-    
 });

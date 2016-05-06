@@ -2,7 +2,6 @@ var Constants  = require('../constants/constants');
 var Logger     = require('../logger/logger');
 var Location   = require('../location/location');
 var Network    = require('../network/network');
-var VHost      = require('../vhost/vhost');
 
 /**
 * GameInfo module
@@ -14,11 +13,7 @@ var GameInfo = new function(){
     var gameInfoInstance = this;
 
     var gameInfo;
-    var gameInfoUrl;
-
-    VHost.afterLoad(function(){
-        gameInfoUrl = Constants.GAME_INFO_API_URL;
-    });
+    var gameInfoUrl = Constants.GAME_INFO_API_URL;
 
     /**
     * resets the information about the game

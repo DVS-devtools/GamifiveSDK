@@ -11,7 +11,7 @@ describe("Menu",function(){
         Menu = require("../src/components/menu/menu");
     });
 
-    afterEach(function() {
+    afterEach(function(){
         jasmine.Ajax.uninstall();
         delete Menu;
         delete menuElement;
@@ -104,7 +104,7 @@ describe("Menu",function(){
 
             menuElement = document.getElementById('gfsdk-more-games');
         
-            expect(menuElement.style.top).toBe('14px');
+            expect(menuElement.style.top).toEqual('14px');
 
             done();
 

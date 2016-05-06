@@ -1,6 +1,6 @@
 src/components/menu/menu.js:24:IMAGES_SPRITE_GAME
 src/components/session/session.js:181:MOA_API_CANDOWNLOAD
 src/components/session/session.js:190:MOA_API_GAMEOVER
-src/components/user/user.js:25:MOA_API_USER_CHECK
-src/components/user/user.js:26:MOA_API_APPLICATION_OBJECTS_GET
-src/components/user/user.js:27:MOA_API_APPLICATION_OBJECTS_SET
+src/components/user/user.js:26:MOA_API_USER_CHECK
+src/components/user/user.js:27:MOA_API_APPLICATION_OBJECTS_GET
+src/components/user/user.js:28:MOA_API_APPLICATION_OBJECTS_SET

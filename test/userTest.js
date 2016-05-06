@@ -23,12 +23,11 @@ describe("User",function(){
         VHost.afterLoad(function(){
 
             User.fetch(function(){
+                done();
 
                 for (var key in UserCheckMock){
                     expect(User.get(key)).toEqual(UserCheckMock[key]);
                 }
-
-                done();
             });
 
             var userCheckReq = jasmine.Ajax.requests.mostRecent();
@@ -56,17 +55,6 @@ describe("User",function(){
             },
             readyState: 4
         });
-    });
-
-    it('get before fetch raises exception', function(){
-        var error;
-        try {
-            User.get('user');
-        } catch (e){
-            error = e;
-        }
-
-        expect(error).toEqual(Constants.ERROR_USER_GET_BEFORE_FETCH);
     });
 
     /*it('save user data is called properly', function(done){

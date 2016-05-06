@@ -1,23 +1,50 @@
 var Constants = require("../src/components/constants/constants");
+var GameInfo  = require("../src/components/game_info/game_info");
 var Location  = require("../src/components/location/location");
 var Session   = require("../src/components/session/session");
+var User      = require("../src/components/user/user");
 
 require('jasmine-ajax');
 
-describe("Session",function(){    
+describe("Session",function(){ 
 
-    beforeEach(function() {
+    var originalUserFetch = null, originalGameInfoFetch = null;
+
+    beforeEach(function(done) {
         Session.reset();
+
+        originalUserFetch = User.fetch;
+        User.fetch = function(callback){
+            console.log("Mock User.fetch");
+            if (typeof callback === 'function'){
+                callback();
+            }
+        }
+
+        originalGameInfoFetch = GameInfo.fetch;
+        GameInfo.fetch = function(callback){
+            console.log("Mock GameInfo.fetch");
+            if (typeof callback === 'function'){
+                callback();
+            }
+        }
+
         jasmine.Ajax.install();
 
         // Mock Location.getCurrentHref for function GameInfo.getContentId
         Location.getCurrentHref = function(){
             return 'http://www.giochissimo.it/html5gameplay/4de756a55ac71f45c5b7b4211b71219e/game/fruit-slicer';
-        }
+        };
+        done();
     });
 
-    afterEach(function() {
+    afterEach(function(done) {
+
+        User.fetch = originalUserFetch;
+        GameInfo.fetch = originalGameInfoFetch;
+
         jasmine.Ajax.uninstall();
+        done();
     });
     
     it("Sessions should be defined only after initialization", function(done){
@@ -95,9 +122,10 @@ describe("Session",function(){
 
         expect(errorEndSession).toEqual(Constants.ERROR_SESSION_ALREADY_ENDED);
         done();
+        
     });
 
-    it("Session cannot be started before init", function(){
+    it("Session cannot be started before init", function(done){
 
         var errorStartSession;
         try {
@@ -107,9 +135,10 @@ describe("Session",function(){
         }
 
         expect(errorEndSession).toEqual(Constants.ERROR_SESSION_INIT_NOT_CALLED);
+        done();
     });
 
-    it("Session cannot be ended before init", function(){
+    it("Session cannot be ended before init", function(done){
 
         var errorStartSession;
         try {
@@ -119,6 +148,7 @@ describe("Session",function(){
         }
 
         expect(errorEndSession).toEqual(Constants.ERROR_SESSION_NO_SESSION_STARTED);
+        done();
     });
 
     it("Session cannot be ended before being started", function(done){
@@ -204,8 +234,5 @@ describe("Session",function(){
         expect(errorEndSession).toEqual(Constants.ERROR_SCORE_TYPE + 'object');
         done();
     });
-
-
-
 
 });

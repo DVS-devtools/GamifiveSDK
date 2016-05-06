@@ -52,6 +52,9 @@ module.exports = {
 
     ERROR_GAME_INFO_NO_CONTENTID: 'GamifiveSDK :: GameInfo :: getContentId :: cannot match any content id on url ',
 
+    ERROR_USER_FETCH_FAIL: 'GamifiveSDK :: User :: couldn\'t retrieve user profile: ',
+
+
     CONTENT_ID_REGEX: 'html5gameplay\/([a-zA-Z0-9]+)',
 
     // API

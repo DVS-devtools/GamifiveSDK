@@ -16,7 +16,7 @@
     "build:offline": "npm run vhost:keys && browserify src/builders/build_offline.js -o dist/gfsdk_offline.js -s GamifiveSDK",
     "build:offlineutils": "npm run vhost:keys && browserify src/builders/build_offline_utils.js -o dist/gfsdk_offline_utils.js -s GamifiveSDK",
     "test:develop": "karma start",
-    "test": "karma start --no-auto-watch --browsers PhantomJS --single-run"
+    "test": "karma start --no-auto-watch --browsers Chrome --single-run"
   },
   "devDependencies": {
     "bower": "^1.7.9",
