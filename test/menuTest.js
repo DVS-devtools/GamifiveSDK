@@ -17,31 +17,6 @@ describe("Menu",function(){
         delete menuElement;
     });
 
-    it('gets sprite from VHost', function(done){
-
-        VHost.afterLoad(function(){
-            Menu.show();
-            menuElement = document.getElementById('gfsdk-more-games');
-
-            var spriteNameRx = new RegExp(/moreGamesSpriteTestValue/g);
-            var backgroundUrl = menuElement.style['background-image'];
-            var spriteNameInBackgroundUrl = spriteNameRx.exec(backgroundUrl).length > 0;
-            expect(spriteNameInBackgroundUrl).toEqual(true);
-            done();
-        });
-
-        VHost.load();
-
-        var request = jasmine.Ajax.requests.mostRecent();
-
-        request.respondWith({
-            status: 200, 
-            contentType: 'application/json',
-            response: { IMAGES_SPRITE_GAME: 'moreGamesSpriteTestValue' },
-            readyState: 4
-        });
-    });
-
     it('show and hide work', function(done){
         VHost.afterLoad(function(){
             

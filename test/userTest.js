@@ -1,10 +1,14 @@
 var Constants     = require('../src/components/constants/constants');
+var Location      = require("../src/components/location/location");
 var User          = require("../src/components/user/user");
 var UserCheckMock = require("./mocks/userCheck.js");
 var VHost         = require("../src/components/vhost/vhost");
 var VHostMock     = require("./mocks/vHost.js");
 
+
 require('jasmine-ajax');
+
+var originalGetCurrentHref;
 
 describe("User",function(){    
 
@@ -12,22 +16,37 @@ describe("User",function(){
         jasmine.Ajax.install();
         VHost.reset();
         User.reset();
+
+        originalGetCurrentHref = Location.getCurrentHref;
+        // Mock Location.getCurrentHref for function GameInfo.getContentId
+        Location.getCurrentHref = function(){
+            return 'http://www.giochissimo.it/html5gameplay/4de756a55ac71f45c5b7b4211b71219e/game/fruit-slicer';
+        };
     });
 
     afterEach(function() {
         jasmine.Ajax.uninstall();
+        Location.getCurrentHref = originalGetCurrentHref;
     });
 
     it('fetch then get should work', function(done){
 
+        var originalLoadData = User.loadData;
+
+        User.loadData = function(callback){
+            if (typeof callback === 'function'){
+                callback();   
+            }
+        }
+
         VHost.afterLoad(function(){
-
+            
             User.fetch(function(){
-                done();
-
                 for (var key in UserCheckMock){
                     expect(User.get(key)).toEqual(UserCheckMock[key]);
                 }
+                done();
+
             });
 
             var userCheckReq = jasmine.Ajax.requests.mostRecent();
@@ -48,33 +67,10 @@ describe("User",function(){
         request.respondWith({
             status: 200, 
             contentType: 'application/json',
-            response: { 
-                'MOA_API_USER_CHECK': 'userCheckMockUrl',
-                'MOA_API_APPLICATION_OBJECTS_GET': 'loadUserDataMockUrl',
-                'MOA_API_APPLICATION_OBJECTS_SET': 'saveUserDataMockUrl'
-            },
-            readyState: 4
-        });
-    });
-
-    /*it('save user data is called properly', function(done){
-        VHost.afterLoad(function(){
-
-            User.saveData()
-            
-        });
-
-        VHost.load();
-
-        var request = jasmine.Ajax.requests.mostRecent();
-
-        request.respondWith({
-            status: 200, 
-            contentType: 'application/json',
             response: VHostMock,
             readyState: 4
         });
-    });*/
+    });
 
 
 });

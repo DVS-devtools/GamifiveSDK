@@ -60,23 +60,31 @@ var GameInfo = new function(){
         Logger.log('GamifiveSDK', 'GameInfo', 'fetch attempt');
         var urlToCall = gameInfoUrl + gameInfoInstance.getContentId();
 
-        Network.xhr('GET', urlToCall, function(resp){
-            Logger.log('GamifiveSDK', 'GameInfo', 'fetch complete', resp);
+        Network.xhr('GET', urlToCall, function(resp, req){
 
-            if (typeof gameInfo === 'undefined'){
-                gameInfoInstance.reset();
-            }
+            if(!!resp && resp.success){
+                Logger.log('GamifiveSDK', 'GameInfo', 'fetch complete', responseData);
+                var responseData = resp.response;
 
-            // TODO: check this
-            if(!!resp && typeof resp.response !== 'undefined'){
-                for (var key in resp.response){
-                    gameInfo[key] = resp.response[key];
+                if (typeof responseData == typeof ''){
+                    responseData = JSON.parse(responseData);
                 }
+
+                if (typeof gameInfo === 'undefined'){
+                    gameInfoInstance.reset();
+                }
+
+                for (var key in responseData){
+                    gameInfo[key] = responseData[key];
+                }
+            } else {
+                Logger.warn(Constants.ERROR_GAMEINFO_FETCH_FAIL + resp.status + ' ' + resp.statusText + ' ');
             }
 
             if (typeof callback === 'function'){
                 callback(gameInfo);
             }
+            
         });
          
     }

@@ -232,6 +232,7 @@ describe("Session",function(){
         }
 
         expect(errorEndSession).toEqual(Constants.ERROR_SCORE_TYPE + 'object');
+
         done();
     });
 
