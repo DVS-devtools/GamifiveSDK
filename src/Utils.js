@@ -112,12 +112,20 @@ var GamifiveSDKUtils = new function() {
 			&& Stargate.isInitialized() 
 			&& typeof Stargate.conf !== 'undefined'
 			&& typeof Stargate.conf.getWebappOrigin === 'function'){
-			return Stargate.conf.getWebappOrigin();
+			var stargateUrl = Stargate.conf.getWebappOrigin();
+			if (stargateUrl[stargateUrl.length - 1] != '/'){
+				stargateUrl += '/';
+			}
+			return stargateUrl;
 		}
 
 		if(typeof GamifiveInfo !== 'undefined' && 
 			!!GamifiveInfo.dest_domain){
-			return GamifiveInfo.dest_domain;
+			var destDomain = GamifiveInfo.dest_domain;
+			if (destDomain[destDomain.length - 1] != '/'){
+				destDomain += '/';
+			}
+			return destDomain;
 		}
 		else if (!window.location.origin) {
 			var pathName = '';

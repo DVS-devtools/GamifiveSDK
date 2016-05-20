@@ -27,6 +27,20 @@ var GamefiveSDK = new function() {
         return STARGATE_BASE_DIR;
     }
 
+    // mocks for debug and hybrid-offline
+    if (typeof tryNewtonTrackEvent === 'undefined'){
+        // mock tryNewtonTrackEvent and tryAnalyticsTrackEvent
+        window.tryNewtonTrackEvent = function(){
+            Utils.log(arguments);
+        };
+    }
+
+    if (typeof tryAnalyticsTrackEvent === 'undefined'){
+        window.tryAnalyticsTrackEvent = function(){
+            Utils.log(arguments);
+        };
+    }
+
 	/********************************************
 	*****  EXTERNAL METHODS FOR DEVELOPERS  *****
 	********************************************/
@@ -276,20 +290,6 @@ var GamefiveSDK = new function() {
 				action_cd: 'Yes'
 			});
 		}
-
-        // mocks for debug and hybrid-offline
-        if (typeof tryNewtonTrackEvent === 'undefined'){
-            // mock tryNewtonTrackEvent and tryAnalyticsTrackEvent
-            window.tryNewtonTrackEvent = function(){
-                Utils.log(arguments);
-            };
-        }
-
-        if (typeof tryAnalyticsTrackEvent === 'undefined'){
-            window.tryAnalyticsTrackEvent = function(){
-                Utils.log(arguments);
-            };
-        }
 
 		// get window.GamifiveInfo
 		if(!config.debug){
@@ -1117,10 +1117,10 @@ var GamefiveSDK = new function() {
 	*/
 	var API = function(name, param){
 		// set host
-		var host = (!config.debug) ? Utils.getAbsoluteUrl() : 'http://www2.giochissimo.it';
+		var host = (!config.debug) ? Utils.getAbsoluteUrl() : 'http://www2.giochissimo.it/';
 
 		// set door (/v01/ or /mock/)
-		var door = (!config.debug) ? '/v01/' : 'mock01/';
+		var door = (!config.debug) ? 'v01/' : 'mock01/';
 
 		// set url core
 		var urlCore = {
