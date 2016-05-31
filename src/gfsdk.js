@@ -157,6 +157,9 @@ var GamefiveSDK = new function() {
             setUserDataParams();
 
             // local save in volatile variable
+            if (typeof config.user.gameInfo === 'undefined'){
+                config.user.gameInfo = {};
+            }
             config.user.gameInfo.info = dataToSave;
             var nowDate = new Date();
             config.user.gameInfo.UpdatedAt = nowDate;
