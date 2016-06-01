@@ -149,7 +149,7 @@ var GamefiveSDK = new function() {
 
             getUserData(function(){
                 setUserDataParams();
-                Utils.xhr('POST', setUserDataUrl, function(resp, req){
+                Utils.xhr('GET', setUserDataUrl, function(resp, req){
                     if (typeof callback === 'function') callback();
                 });
             });
@@ -169,7 +169,7 @@ var GamefiveSDK = new function() {
             for (var key in offlineGamifiveInfo){
                 window.GamifiveInfo[key] = offlineGamifiveInfo[key];
             }
-            GamifiveSDKOffline.enqueue(GamifiveSDKOffline.XHR_QUEUE, {method: 'POST', url: setUserDataUrl});
+            GamifiveSDKOffline.enqueue(GamifiveSDKOffline.XHR_QUEUE, {method: 'GET', url: setUserDataUrl});
             if (typeof callback === 'function') callback();
         }
 
