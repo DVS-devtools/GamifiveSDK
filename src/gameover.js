@@ -19,6 +19,8 @@ var GameOverCore = new function() {
 
 	var likeBtnId = "gameOverLikeBtn";
 	var heartIconId = "heartIcon";
+	var signinBtnId = "signin-btn";
+
 
 	var apiKey = "abcdef1234567890";
 
@@ -382,18 +384,31 @@ var GameOverCore = new function() {
 	}
 
 	this.toggleLike = function (){
-		var icon = document.getElementById(heartIconId);
 
-		var favorites_params = {
-			"apikey": apiKey
-		}
+			if (GamifiveSDK.getConfig().user.userGuest){
 
-		if (!this.getStatus(window.contentId)){
-			this.like(window.contentId);
-		}
-		else {
-			this.dislike(window.contentId);
-		}
+				var signinButtonElement = document.getElementById(signinBtnId);
+				if(typeof signinButtonElement != 'undefined')
+					signinButtonElement.style.display='block';
+
+				var likeButtonElement = document.getElementById(likeBtnId);
+				if(typeof likeButtonElement != 'undefined')
+					likeButtonElement.style.display='none';
+			}
+			else{
+				var icon = document.getElementById(heartIconId);
+
+				var favorites_params = {
+					"apikey": apiKey
+				}
+
+				if (!this.getStatus(window.contentId)){
+					this.like(window.contentId);
+				}
+				else {
+					this.dislike(window.contentId);
+				}
+			}
 	}
 
 	var likesList = undefined;
@@ -452,6 +467,13 @@ var GameOverCore = new function() {
 		}
 	}
 
+	// PAYWALL
+	this.goToPaywall = function(){
+		var _url = window.location.href;
+    _url += (_url.split('?')[1] ? '&':'?') + "show_paywall=1";
+		
+		window.location.href=_url;
+	};
 
 	// CLICK RELATED
 	this.clickRelated = function(index, type){
