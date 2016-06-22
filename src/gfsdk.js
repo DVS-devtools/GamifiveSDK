@@ -700,8 +700,12 @@ var GamefiveSDK = new function() {
                     .then(function(data){
                         console.log("Build gameover with Stargate", data);
                         sdkElement.create(data);
-                        var homeBtn = document.querySelectorAll('.logo')[0];
-                        homeBtn.addEventListener('touchend',GamifiveSDK.goToHome);
+                        var backBtn = document.querySelector('#backBtn');
+                        backBtn.addEventListener('touchend', function(){
+							GamifiveSDK.goToHome();
+							//remove it everytime to prevent memory leak
+							backBtn.removeEventListener(this);
+						});
                     });
             }
 
@@ -1165,11 +1169,23 @@ var GamefiveSDK = new function() {
 				var stopPropagation = function(e) {e.stopPropagation();}
 				element.addEventListener('touchmove', stopPropagation);
 				element.addEventListener('touchstart', stopPropagation);
-				element.addEventListener('touchend', stopPropagation);
+				element.addEventListener('touchend', stopPropagation);				
 				// fill html of element
 				element.innerHTML = html;
-
+				var buttons = element.querySelectorAll(".social .btn");
 				Utils.log("GamifiveSDK", "create", "element", html, element);
+				
+				// disabled false
+				var state = Stargate.checkConnection().type === "online" ? false : true;		
+				buttons = [].slice.call(buttons);
+				buttons.map(function(button){ button.disabled = state; });
+
+				Stargate.addListener("connectionchange", function(conn){
+					console.log("Toggle gameover Buttons", conn);
+					var state;
+					conn.type === "online" ? state = false : state = true;					
+					buttons.map(function(button){ button.disabled = state; })
+				});
 			}
 		},
 
