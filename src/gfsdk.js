@@ -28,9 +28,9 @@ var GamefiveSDK = new function() {
     }
 
     // mocks for debug and hybrid-offline
-    if (typeof tryNewtonTrackEvent === 'undefined'){
-        // mock tryNewtonTrackEvent and tryAnalyticsTrackEvent
-        window.tryNewtonTrackEvent = function(){
+    if (typeof newtonTrackEvent === 'undefined'){
+        // mock newtonTrackEvent and tryAnalyticsTrackEvent
+        window.newtonTrackEvent = function(){
             Utils.log(arguments);
         };
     }
@@ -110,7 +110,7 @@ var GamefiveSDK = new function() {
                 return null;
             }
         } else {
-            var toReturn = window.storage.get(userStatusKey);
+            var toReturn = window.storage.get(userStatusKey + ':' + config.content_id);
             if (typeof callback == 'function'){
                 callback(toReturn);
             }
@@ -156,10 +156,11 @@ var GamefiveSDK = new function() {
         } else {
             setUserDataParams();
 
-            // local save in volatile variable
-            if (typeof config.user.gameInfo === 'undefined'){
+            if ('undefined' === typeof config.user.gameInfo){
                 config.user.gameInfo = {};
+                Utils.log("initialized userData");
             }
+            // local save in volatile variable
             config.user.gameInfo.info = dataToSave;
             var nowDate = new Date();
             config.user.gameInfo.UpdatedAt = nowDate;
@@ -184,7 +185,7 @@ var GamefiveSDK = new function() {
         if (!config.debug && MOA_API_APPLICATION_OBJECTS_SET.length > 0){
             setUserData(obj, callback);
         } else {
-            window.storage.set(userStatusKey, obj);
+            window.storage.set(userStatusKey + ':' + config.content_id, obj);
             if (typeof callback == 'function'){
                 callback();
             }
@@ -200,7 +201,7 @@ var GamefiveSDK = new function() {
         if (!config.debug && MOA_API_APPLICATION_OBJECTS_SET.length > 0){
             setUserData(null);
         } else {
-            window.storage.set(userStatusKey, null);
+            window.storage.set(userStatusKey + ':' + config.content_id, null);
         }
     }
 
@@ -255,7 +256,7 @@ var GamefiveSDK = new function() {
 		if(localStorage.getItem('log') == 1){
 			Utils.enableLog(true);
 		} else {
-			Utils.enableLog(!!config.log);
+			Utils.enableLog(config.log !== false);
 		}
 
 		var initPost = function(){
@@ -284,7 +285,7 @@ var GamefiveSDK = new function() {
 			}
 
 			tryAnalyticsTrackEvent('Play', 'GameLoad', config.contentId, { game_title: gameTitle, valuable_cd: 'Yes', action_cd: 'Yes' });
-			tryNewtonTrackEvent({
+			newtonTrackEvent({
 				category: 'Play',
 				action: 'GameLoad',
 				game_title: gameTitle,
@@ -628,7 +629,7 @@ var GamefiveSDK = new function() {
 		})
 		// TRACKING
 		tryAnalyticsTrackEvent('Play', 'GameStart', config.contentId, { game_title: config.game.title, valuable_cd: 'Yes', action_cd: 'Yes' });
-		tryNewtonTrackEvent({
+		newtonTrackEvent({
 			category: 'Play',
 			action: 'GameStart',
 			game_title: config.game.title,
@@ -752,7 +753,7 @@ var GamefiveSDK = new function() {
 
 		// TRACKING
 		tryAnalyticsTrackEvent('Play', 'GameEnd', config.contentId, { game_title: config.game.title, valuable_cd: 'No', action_cd: 'No' });
-		tryNewtonTrackEvent({
+		newtonTrackEvent({
 			category: 'Play',
 			action: 'GameEnd',
 			game_title: config.game.title,
@@ -779,7 +780,7 @@ var GamefiveSDK = new function() {
     			action_cd: 'yes'
     		}
     	);
-    	tryNewtonTrackEvent({
+    	newtonTrackEvent({
 			category: 'Behavior',
 			action: 'MoreGames',
 			game_title: config.game.title,
