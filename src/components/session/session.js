@@ -1,13 +1,17 @@
-
-var Logger   = require('../logger/logger');
-var Newton   = require('../newton/newton');
-var GA       = require('../ga/ga');
-var VHost    = require('../vhost/vhost');
-var Network  = require('../network/network');
-var Menu     = require('../menu/menu');
-var Location = require('../location/location');
-var Facebook = require('../fb/fb');
-var Overlay = require('../overlay/overlay');
+var Constants = require('../constants/constants');
+var Barrier   = require('../barrier/barrier');
+var DOMUtils  = require('../dom/dom-utils');
+var Event     = require('../event/event');
+var Facebook  = require('../fb/fb');
+var GA        = require('../ga/ga');
+var GameInfo  = require('../game_info/game_info');
+var Location  = require('../location/location');
+var Logger    = require('../logger/logger');
+var Menu      = require('../menu/menu');
+var Network   = require('../network/network');
+var Newton    = require('../newton/newton');
+var User      = require('../user/user');
+var VHost     = require('../vhost/vhost');
 
 /**
 * Session module
@@ -22,15 +26,25 @@ var Session = new function(){
 
     var config;
 
+    var isInitializing = false;
+    var initBarrier = new Barrier('SessionInit', ['VHost.load', 'User.fetch', 'GameInfo.fetch']);
+
+    /**
+    * returns whether Session has already been initialized
+    * @function isInitialized
+    * @memberof Session
+    */
+    this.isInitialized = function(){
+        return initBarrier.isComplete();
+    }
+
     /**
     * resets the internal configuration to default value
     * @function reset
     * @memberof Session
     */
     this.reset = function(){
-        config = {
-            MAX_RECORDED_SESSIONS_NUMBER: 2
-        };
+        config = {};
     }
     // apply default configuration
     sessionInstance.reset();
@@ -45,13 +59,40 @@ var Session = new function(){
     }
 
     /**
+    * sets a callback to be fired after the VHost has been loaded
+    * @function afterLoad
+    * @memberof VHost
+    */
+    this.afterInit = function(callback){
+        if (typeof callback !== 'function'){
+            throw Constants.ERROR_AFTERINIT_CALLBACK_TYPE + typeof callback;
+        }
+
+        if (initBarrier.isComplete()){
+            callback();
+        } else {
+            initBarrier.onComplete(callback);
+        }
+    }
+
+    /**
     * initializes the module with custom parameters
     * @function init
     * @memberof Session
     * @param {Object} params can contain "lite" (boolean) attribute
     */
     this.init = function(params){
+        isInitializing = true;
+
         Logger.info('GamifiveSDK', 'Session', 'init', params);
+
+        if (!params){
+            params = {};
+        }
+
+        if (typeof params.lite != 'undefined' && typeof params.lite != 'boolean'){
+            throw Constants.ERROR_LITE_TYPE + typeof params.lite;
+        }
 
         // copy parameters into internal configuration
         for (var key in params){
@@ -62,11 +103,21 @@ var Session = new function(){
             Menu.setCustomStyle(config.moreGamesButtonStyle);
         }
 
-        // allows starting a new session
-        config.sessions = [];
+        VHost.afterLoad(function(){
 
-        Menu.show();
-        
+            initBarrier.setComplete('VHost.load');
+            
+            User.fetch(function(){
+                initBarrier.setComplete('User.fetch');
+            });
+
+            GameInfo.fetch(function(){
+                initBarrier.setComplete('GameInfo.fetch');
+            });
+            
+            config.sessions = [];
+        });
+
         // let's dance
         VHost.load();
     }
@@ -85,63 +136,66 @@ var Session = new function(){
 
         // if init has been called, then config.session will be []
         if (typeof config.sessions !== typeof []){
-            throw 'GamifiveSDK :: Session :: start :: init not called';
+            throw Constants.ERROR_SESSION_INIT_NOT_CALLED;
         }
+
+        Logger.log('GamifiveSDK', 'Session', 'init has been called correctly');
 
         // if a previous session exists, it must have been ended
-        if (config.sessions.length > 0 & typeof getLastSession().endTime === 'undefined'){
-            throw 'GamifiveSDK :: Session :: start :: previous session not ended';     
+        if (config.sessions.length > 0 && typeof getLastSession().endTime === 'undefined'){
+            throw Constants.ERROR_SESSION_ALREADY_STARTED;
         }
+
+        // ok, you can try to start a new session
+        config.sessions.unshift({
+            startTime: new Date(),
+            endTime: undefined,
+            score: undefined,
+            level: undefined
+        });
+
+        // cut out the older sessions
+        config.sessions = config.sessions.slice(0, Constants.MAX_RECORDED_SESSIONS_NUMBER);
+
+        Menu.hide();
 
         var doStartSession = function(){
-            // ok, you can start a new session
-            config.sessions.unshift({
-                startTime: new Date(),
-                endTime: undefined,
-                score: undefined,
-                level: undefined
-            });
-
-            config.sessions = config.sessions.slice(0, config.MAX_RECORDED_SESSIONS_NUMBER);
             
-            Menu.hide();
+            sessionInstance.afterInit(function(){
+                // ADD TRACKING HERE
 
-            // ADD TRACKING HERE
-
-            if (typeof startCallback === 'function') {
-                try {
-                    startCallback();
-                } catch (e){
-                    Logger.error('GamifiveSDK', 'startSession', 'error while trying to start a session', e);
-                    // restore menu, to be able to go back to main page
-                    Menu.show();
+                if (typeof startCallback === 'function') {
+                    try {
+                        startCallback();
+                    } catch (e){
+                        Logger.error('GamifiveSDK', 'startSession', 'error while trying to start a session', e);
+                        // restore menu, to be able to go back to main page
+                        Menu.show();
+                    }
                 }
-            }
+            });
+            
         }
 
-        if (config.lite){
-            Network.xhr('GET', VHost.get('canDownloadUrl'), function(resp){
+        if (!config.lite){
+            Network.xhr('GET', VHost.get('MOA_API_CANDOWNLOAD'), function(resp){
                 Utils.log('GamifiveSDK', 'Session', 'start', 'can play', resp);
 
                 if(VarCheck.get(resp, ['response', 'canDownload'])){
                     // clear dom
-                    Overlay.delete();
+                    DOMUtils.delete();
                     doStartSession();
                 } else {
                     // call gameover API
-                    Network.xhr('GET', VHost.get('gameoverUrl'), function (resp) {
-                        // render page with resp
-                        Overlay.create(resp);
-
-                        // throw event 'user_no_credits'
-                        throwEvent('user_no_credits');
+                    Network.xhr('GET', VHost.get('MOA_API_GAMEOVER'), function (resp) {
+                        DOMUtils.create(resp);
+                        DOMUtils.show(Constants.PAYWALL_ELEMENT_ID);
                     });
                 }
             });
         } else {
             doStartSession();
         }
-        
     }
 
     /**
@@ -156,8 +210,7 @@ var Session = new function(){
         if (typeof callback === 'function'){
             startCallback = callback;
         } else {
-            throw 'GamifiveSDK :: session :: onStart :: invalid value \
-                    for callback: expected function, got "' + typeof callback + '"';
+            throw Constants.ERROR_ONSTART_CALLBACK_TYPE + typeof callback;
         }
     }
 
@@ -192,12 +245,12 @@ var Session = new function(){
     this.end = function(data){
         Logger.info('GamifiveSDK', 'Session', 'end', data);
 
-        if (config.sessions.length < 1){
-            throw 'GamifiveSDK :: Session :: end :: no sessions started';
+        if (typeof config.sessions !== typeof [] || config.sessions.length < 1){
+            throw Constants.ERROR_SESSION_NO_SESSION_STARTED;
         }
 
         if (typeof getLastSession().endTime !== 'undefined'){
-            throw 'GamifiveSDK :: Session :: end :: session already ended';
+            throw Constants.ERROR_SESSION_ALREADY_ENDED;
         }
 
         getLastSession().endTime = new Date();
@@ -206,8 +259,7 @@ var Session = new function(){
             if (typeof data.score === 'number'){
                 getLastSession().score = data.score;
             } else {
-                throw 'GamifiveSDK :: Session :: end :: invalid type of score: \
-                    expected number, got ' + typeof data.score;
+                throw Constants.ERROR_SCORE_TYPE + typeof data.score;
             }
         }
 
@@ -215,8 +267,7 @@ var Session = new function(){
             if (typeof data.level === 'number'){
                getLastSession().level = data.level;
             } else {
-                throw 'GamifiveSDK :: Session :: end :: invalid type of level: \
-                    expected number, got ' + typeof data.level;
+                throw Constants.ERROR_LEVEL_TYPE + typeof data.level;
             }
         }
 

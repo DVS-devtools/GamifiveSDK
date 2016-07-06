@@ -8,14 +8,15 @@
     "url": "git@github.com:BuongiornoMIP/GamifiveSDK.git"
   },
   "scripts": {
+    "vhost:keys": "sh compile_vhost.sh",
     "docs": "rm out -rf && node_modules/.bin/jsdoc src/components -r",
-    "build:web": "browserify src/builders/build_web.js -o dist/gfsdk_web.js -s GamifiveSDK",
-    "build:debug": "browserify src/builders/build_debug.js -o dist/gfsdk_debug.js -s GamifiveSDK",
-    "build:hybrid": "browserify src/builders/build_hybrid.js -o dist/gfsdk_hybrid.js -s GamifiveSDK",
-    "build:offline": "browserify src/builders/build_offline.js -o dist/gfsdk_offline.js -s GamifiveSDK",
-    "build:offlineutils": "browserify src/builders/build_offline_utils.js -o dist/gfsdk_offline_utils.js -s GamifiveSDK",
+    "build:web": "npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk_web.js -s GamifiveSDK",
+    "build:debug": "npm run vhost:keys && browserify src/builders/build_debug.js -o dist/gfsdk_debug.js -s GamifiveSDK",
+    "build:hybrid": "npm run vhost:keys && browserify src/builders/build_hybrid.js -o dist/gfsdk_hybrid.js -s GamifiveSDK",
+    "build:offline": "npm run vhost:keys && browserify src/builders/build_offline.js -o dist/gfsdk_offline.js -s GamifiveSDK",
+    "build:offlineutils": "npm run vhost:keys && browserify src/builders/build_offline_utils.js -o dist/gfsdk_offline_utils.js -s GamifiveSDK",
     "test:develop": "karma start",
-    "test": "karma start --no-auto-watch --browsers PhantomJS --single-run"
+    "test": "karma start --no-auto-watch --browsers Chrome --single-run"
   },
   "devDependencies": {
     "babel-plugin-add-module-exports": "^0.2.1",

@@ -1,6 +1,7 @@
-var Logger  = require('../logger/logger');
-var Network = require('../network/network');
-var VHost   = require('../vhost/vhost');
+var Constants  = require('../constants/constants');
+var Logger     = require('../logger/logger');
+var Location   = require('../location/location');
+var Network    = require('../network/network');
 
 /**
 * GameInfo module
@@ -12,11 +13,7 @@ var GameInfo = new function(){
     var gameInfoInstance = this;
 
     var gameInfo;
-    var gameInfoUrl;
-
-    VHost.afterLoad(function(){
-        gameInfoUrl = VHost.get('GAME_INFO_URL');
-    });
+    var gameInfoUrl = Constants.GAME_INFO_API_URL;
 
     /**
     * resets the information about the game
@@ -25,7 +22,24 @@ var GameInfo = new function(){
     */
     this.reset = function(){
         Logger.log('GamifiveSDK', 'GameInfo', 'reset');
-        gameInfo = undefined;
+        gameInfo = {};
+    }
+
+    /**
+    * returns the contentId of the game executing a regex on the current url
+    * @function getContentId
+    * @memberof GameInfo
+    */
+    this.getContentId = function(){
+
+        var urlToMatch = Location.getCurrentHref();
+        var contentIdRegex = new RegExp(Constants.CONTENT_ID_REGEX);
+        var match = urlToMatch.match(contentIdRegex);
+
+        if (match !== null && match.length > 0){
+            return match[1];
+        }
+        throw Constants.ERROR_GAME_INFO_NO_CONTENTID + urlToMatch;
     }
 
     /**
@@ -34,7 +48,7 @@ var GameInfo = new function(){
     * @memberof GameInfo
     */
     this.persist = function(callback){
-        Logger.log('GamifiveSDK', 'GameInfo', 'persist');
+        Logger.warn('GamifiveSDK', 'GameInfo', 'persist', 'not implemented');
     }
 
     /**
@@ -44,24 +58,33 @@ var GameInfo = new function(){
     */
     this.fetch = function(callback){
         Logger.log('GamifiveSDK', 'GameInfo', 'fetch attempt');
+        var urlToCall = gameInfoUrl + gameInfoInstance.getContentId();
 
-        Network.xhr('GET', gameInfoUrl, function(resp){
-            Logger.log('GamifiveSDK', 'GameInfo', 'fetch complete', resp);
+        Network.xhr('GET', urlToCall, function(resp, req){
 
-            if (typeof gameInfo === 'undefined'){
-                gameInfo = {};
-            }
+            if(!!resp && resp.success){
+                Logger.log('GamifiveSDK', 'GameInfo', 'fetch complete', responseData);
+                var responseData = resp.response;
 
-            // TODO: check this
-            if(!!resp && typeof resp.response !== 'undefined'){
-                for (var key in resp.response){
-                    gameInfo[key] = resp.response[key];
+                if (typeof responseData == typeof ''){
+                    responseData = JSON.parse(responseData);
                 }
+
+                if (typeof gameInfo === 'undefined'){
+                    gameInfoInstance.reset();
+                }
+
+                for (var key in responseData){
+                    gameInfo[key] = responseData[key];
+                }
+            } else {
+                Logger.warn(Constants.ERROR_GAMEINFO_FETCH_FAIL + resp.status + ' ' + resp.statusText + ' ');
             }
 
             if (typeof callback === 'function'){
                 callback(gameInfo);
             }
+            
         });
          
     }

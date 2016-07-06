@@ -1,4 +1,5 @@
-var VHost = require("../src/components/vhost/vhost");
+var VHost     = require("../src/components/vhost/vhost");
+var Constants = require("../src/components/constants/constants");
 
 require('jasmine-ajax');
 
@@ -16,7 +17,18 @@ describe("VHost",function(){
     it("load should be defined", function(){
         expect(VHost.load).toBeDefined();
         console.log("VHost.load is defined");
-    }); 
+    });
+
+    it('VHost url correctly get from Constants', function(done){
+
+        VHost.load();
+
+        var request = jasmine.Ajax.requests.mostRecent();
+
+        expect(request.url.indexOf(Constants.VHOST_API_URL)).toEqual(0);
+        done();
+
+    });
 
     it('load and get should work', function(done){
 

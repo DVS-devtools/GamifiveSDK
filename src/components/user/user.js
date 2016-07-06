@@ -1,8 +1,12 @@
-var Logger  = require('../logger/logger');
-var Newton  = require('../newton/newton');
-var GA      = require('../ga/ga');
-var VHost   = require('../vhost/vhost');
-var Network = require('../network/network');
+var Constants = require('../constants/constants');
+var GA        = require('../ga/ga');
+var GameInfo  = require('../game_info/game_info');
+var Location  = require('../location/location');
+var Logger    = require('../logger/logger');
+var Network   = require('../network/network');
+var Newton    = require('../newton/newton');
+var VarCheck  = require('../varcheck/varcheck');
+var VHost     = require('../vhost/vhost');
 
 /**
 * User module
@@ -20,7 +24,7 @@ var User = new function(){
     var saveUserDataUrl;
 
     VHost.afterLoad(function(){
-        userInfoUrl     = VHost.get('USER_CHECK_URL');
+        userInfoUrl     = VHost.get('MOA_API_USER_CHECK');
         loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
         saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
     });
@@ -29,9 +33,24 @@ var User = new function(){
     * returns a single value of userInfo, given its key
     * @function get
     * @memberof User
+    * @param {String} key the name of the value to be returned
     */
     this.get = function(key){
         return userInfo[key];
+    }
+
+    /**
+    * resets userInfo
+    * @function reset
+    * @memberof User
+    */
+    this.reset = function(){
+        userInfo = {};
+    }
+    userInstance.reset();
+
+    this.getUserId = function(){
+        return userInfo.user;
     }
 
     /**
@@ -43,21 +62,27 @@ var User = new function(){
         Logger.log('GamifiveSDK', 'User', 'fetch attempt');
 
         Network.xhr('GET', userInfoUrl, function(resp, req){
-            Logger.log('GamifiveSDK', 'User', 'fetch complete', resp);
 
-            if (typeof userInfo === 'undefined'){
-                userInfo = {};
-            }
+            if(!!resp && resp.success){
+                var responseData = resp.response;
 
-            // TODO: check this
-            if(!!resp && typeof resp.response !== 'undefined'){
-                for (var key in resp.response){
-                    userInfo[key] = resp.response[key];
+                if (typeof responseData == typeof ''){
+                    responseData = JSON.parse(responseData);
                 }
+
+                Logger.log('GamifiveSDK', 'User', 'fetch complete', responseData);
+
+                for (var key in responseData){
+                    userInfo[key] = responseData[key];
+                }
+            } else {
+                Logger.warn(Constants.ERROR_USER_FETCH_FAIL + resp.status + ' ' + resp.statusText + ' ');
             }
 
             if (typeof callback === 'function'){
-                callback(userInfo);
+                userInstance.loadData(function(){
+                    callback(userInfo);
+                });
             }
             
         });
@@ -65,9 +90,14 @@ var User = new function(){
 
     // used both to save and clear user data
     var doSaveUserData = function(data, callback){
-        var contentId  = GameInfo.get('contentId');
-        var userId     = userInfo.userId;
+        var contentId  = GameInfo.getContentId();
+        var userId     = userInstance.getUserId();
         var userDataId = VarCheck.get(userInfo, ['gameInfo', '_id']) || '';
+
+        if (typeof userInfo.gameInfo === 'undefined'){
+            userInfo.gameInfo = {};
+        }
+        userInfo.gameInfo.info = data;
 
         var urlToCall = saveUserDataUrl
                             .replace(':QUERY', JSON.stringify({contentId: contentId}))
@@ -76,16 +106,15 @@ var User = new function(){
                             .replace(':EXTERNAL_TOKEN', userId)
                             .replace(':COLLECTION', 'gameInfo');
 
-        // unique parameter in qs to avoid cache 
-        urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random()*1000);
+        urlToCall += "&info=" + encodeURIComponent(JSON.stringify(data))
+                                + "&domain=" + encodeURIComponent(Location.getOrigin())
+                                + "&contentId=" + GameInfo.getContentId();
             
         Network.xhr('GET', urlToCall, function(resp, req){
-
-            // TODO: check
-            userInfo.gameInfo = data;
+            Logger.log('GamifiveSDK', 'User', 'set data', resp);
             
             if (typeof callback === 'function'){
-                callback(userInfo.gameInfo);
+                callback(userInfo.gameInfo.info);
             }
             
         });
@@ -97,8 +126,7 @@ var User = new function(){
     * @memberof User
     */
     this.saveData = function(data, callback){
-        Logger.info('GamifiveSDK', 'User', 'saveUserData', data);
-
+        Logger.info('GamifiveSDK', 'User', 'saveData', data);
         doSaveUserData(data, callback);
     }
 
@@ -108,7 +136,7 @@ var User = new function(){
     * @memberof User
     */
     this.clearData = function(callback){
-        Logger.info('GamifiveSDK', 'User', 'clearUserData');
+        Logger.info('GamifiveSDK', 'User', 'clearData');
         doSaveUserData(null, callback);
     }
 
@@ -118,10 +146,10 @@ var User = new function(){
     * @memberof User
     */
     this.loadData = function(callback){
-        Logger.info('GamifiveSDK', 'User', 'loadUserData');
+        Logger.info('GamifiveSDK', 'User', 'loadData');
 
-        var contentId = GameInfo.get('contentId');
-        var userId    = userInfo.userId;
+        var contentId = GameInfo.getContentId();
+        var userId    = userInstance.getUserId();
 
         var urlToCall = loadUserDataUrl
                             .replace(':QUERY', JSON.stringify({contentId: contentId}))
@@ -132,14 +160,22 @@ var User = new function(){
 
         // unique parameter in qs to avoid cache 
         urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random()*1000);
+        Logger.log('GamifiveSDK', 'User', 'loadData', 'url to call', urlToCall);
         
         Network.xhr('GET', urlToCall, function(resp, req){
             
             // TODO: check
-            userInfo.gameInfo = resp.response;
+            var responseData = resp.response;
+
+            if (typeof responseData === typeof ''){
+                responseData = JSON.parse(responseData);
+            }
+
+            userInfo.gameInfo = VarCheck.get(responseData, ['response', 'data', 0]);
+            Logger.log('GamifiveSDK', 'User', 'loadData', 'response data', userInfo.gameInfo)
 
             if (typeof callback === 'function'){
-                callback(userInfo.gameInfo);
+                callback(userInfo.gameInfo.info);
             }
 
         });

@@ -1,8 +1,8 @@
-
-var Logger   = require('../logger/logger');
-var Newton   = require('../newton/newton');
-var GA       = require('../ga/ga');
-var Location = require('../location/location');
+var Constants = require('../constants/constants');
+var GA        = require('../ga/ga');
+var Location  = require('../location/location');
+var Logger    = require('../logger/logger');
+var Newton    = require('../newton/newton');
 
 /**
 * Facebook module
@@ -32,7 +32,7 @@ var Facebook = new function(){
     */
     this.reset = function(){
         config = {
-            fbVersion: "2.4"
+            fbVersion: Constants.FB_SDK_VERSION
         }
     }
     facebookInstance.reset();
@@ -48,8 +48,7 @@ var Facebook = new function(){
             config[key] = params[key];
         }
 
-
-        if (parseInt(localStorage.getItem('hybrid')) !== 1 && !config.noDownload){
+        if (parseInt(localStorage.getItem('hybrid')) !== 1){
             var d = document, s = 'script', id = 'facebook-jssdk';
             var js, fjs = d.getElementsByTagName(s)[0];
             if (d.getElementById(id)) return;
@@ -66,7 +65,7 @@ var Facebook = new function(){
                     appId      : config.fbAppId,
                     cookie     : true,    // enable cookies to allow the server to access
                     xfbml      : false,   // parse social plugins on this page
-                    version    : params.fbVersion   
+                    version    : config.fbVersion   
                 });
             }
 
