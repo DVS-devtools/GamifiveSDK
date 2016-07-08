@@ -2,6 +2,7 @@ var Constants  = require('../constants/constants');
 var Logger     = require('../logger/logger');
 var Location   = require('../location/location');
 var Network    = require('../network/network');
+var Stargate   = require('../../../node_modules/stargate/src/index.js');
 
 /**
 * GameInfo module
@@ -59,7 +60,26 @@ var GameInfo = new function(){
     this.fetch = function(callback){
         Logger.log('GamifiveSDK', 'GameInfo', 'fetch attempt');
         var urlToCall = gameInfoUrl + gameInfoInstance.getContentId();
+        
+        if (Stargate.checkConnection().networkState === 'online'){
 
+            getGameInfoFromAPI(callback);
+
+        } else if (Stargate.checkConnection().networkState === 'offline' && Stargate.isHybrid()) {
+
+            Stargate.file.readFileAsJSON(Constants.GAMEINFO_JSON_FILENAME)
+               .then(function(responseData) {                   
+                    for (var key in responseData){
+                        gameInfo[key] = responseData[key];
+                    }
+                });
+        }
+    }
+
+    /**
+     * 
+     */
+    function getGameInfoFromAPI(callback){
         Network.xhr('GET', urlToCall, function(resp, req){
 
             if(!!resp && resp.success){
@@ -77,6 +97,10 @@ var GameInfo = new function(){
                 for (var key in responseData){
                     gameInfo[key] = responseData[key];
                 }
+                // TODO: Save gamifiveinfo
+                if (Stargate.isHybrid()) {
+                    // Stargate.file.write(Constants.GAMEINFO_JSON_FILENAME, JSON.stringify(gameInfo));
+                }
             } else {
                 Logger.warn(Constants.ERROR_GAMEINFO_FETCH_FAIL + resp.status + ' ' + resp.statusText + ' ');
             }
@@ -86,9 +110,8 @@ var GameInfo = new function(){
             }
             
         });
-         
     }
-
+    
     /**
     * returns a single value of gameInfo, given its key
     * @function get

@@ -2,7 +2,8 @@ var Logger    = require('../logger/logger');
 var Network   = require('../network/network');
 var Event     = require('../event/event');
 var Constants = require('../constants/constants');
-var VHostKeys = require('../../../gen/vhost/vhost-keys.js')
+var VHostKeys = require('../../../gen/vhost/vhost-keys.js');
+var Stargate  = require('../../../node_modules/stargate/src/index.js');
 
 /**
 * VHost module
@@ -16,6 +17,8 @@ var VHost = new function(){
     var vHost;
     var gameSDKVHostUrl = Constants.VHOST_API_URL;
 
+    var initSG = Stargate.initialize();
+    var VHOST_PATH = '';
     /**
     * resets VHost internal data
     * @function reset
@@ -32,6 +35,21 @@ var VHost = new function(){
     */
     this.load = function(){
 
+        if (Stargate.isHybrid() && Stargate.checkConnection().type === 'offline'){
+            // this.load waits the stargate initialize
+            VHOST_PATH = window.cordova.file.applicationStorageDirectory + 'vhost.json';
+            Stargate.file.fileExists(VHOST_PATH)
+                    .then(function(exists){
+                        if (exists){
+                            return Stargate.file.readFileAsJSON(VHOST_PATH);
+                        }
+                        return {};
+           }).then(function(json){
+               vHost = json;
+               Event.trigger(Constants.AFTER_LOAD_EVENT_KEY);
+           });
+        }
+
         var urlToCall = gameSDKVHostUrl + VHostKeys.join(',');
         Logger.log('GamifiveSDK', 'VHost', 'load url');
 
@@ -44,10 +62,22 @@ var VHost = new function(){
                     vHost = JSON.parse(vHost);
                 }
             }
-            Logger.log('GamifiveSDK', 'VHost', 'load', vHost);
 
+            Logger.log('GamifiveSDK', 'VHost', 'load', vHost);            
             Event.trigger(Constants.AFTER_LOAD_EVENT_KEY);
+            if (Stargate.isHybrid()){
+                vHostSave();
+            }
         });
+    }
+
+    /**
+     * Persist vhost on file or whatever
+     * returns {Promise}
+     */
+    function vHostSave(){
+        Logger.info('GamifiveSDK', 'VHost', 'save', vHost);
+        return Stargate.file.write(VHOST_PATH, JSON.stringify(vHost));
     }
 
     /**

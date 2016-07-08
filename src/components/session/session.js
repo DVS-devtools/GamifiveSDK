@@ -12,6 +12,7 @@ var Network   = require('../network/network');
 var Newton    = require('../newton/newton');
 var User      = require('../user/user');
 var VHost     = require('../vhost/vhost');
+var Stargate  = require('../../../node_modules/stargate/src/index.js');
 
 /**
 * Session module
@@ -24,7 +25,7 @@ var Session = new function(){
 
     var startCallback;
 
-    var config;
+    var config;    
 
     var isInitializing = false;
     var initBarrier = new Barrier('SessionInit', ['VHost.load', 'User.fetch', 'GameInfo.fetch']);
@@ -118,8 +119,9 @@ var Session = new function(){
             config.sessions = [];
         });
 
-        // let's dance
-        VHost.load();
+        // let's dance        
+        // Stargate.initialize().then(VHost.load);
+        VHost.load();       
     }
 
     var getLastSession = function(){
@@ -282,6 +284,13 @@ var Session = new function(){
     this.goToHome = function(){
         Logger.info('GamifiveSDK', 'Session', 'goToHome');
         window.location.href = Location.getOrigin();
+        if (Stargate.isHybrid()){
+            if (Stargate.checkConnection().networkState === "offline") {
+                Stargate.goToLocalIndex();
+            } else {
+                Stargate.goToWeblIndex();
+            }            
+        }
     }
 
 };

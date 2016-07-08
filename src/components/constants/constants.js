@@ -60,5 +60,8 @@ module.exports = {
     // API
     VHOST_API_URL: Location.getOrigin() + '/v01/config.getvars?keys=',
     GAME_INFO_API_URL: Location.getOrigin() + '/v01/gameplay?content_id=',
-    GAMEOVER_API_URL: Location.getOrigin() + '/v01/gameover'
+    GAMEOVER_API_URL: Location.getOrigin() + '/v01/gameover',
+
+    GAMEINFO_JSON_FILENAME:'gameinfo.json',
+    USER_JSON_FILENAME:'user.json'
 }   

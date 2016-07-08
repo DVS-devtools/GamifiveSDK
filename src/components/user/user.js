@@ -7,6 +7,7 @@ var Network   = require('../network/network');
 var Newton    = require('../newton/newton');
 var VarCheck  = require('../varcheck/varcheck');
 var VHost     = require('../vhost/vhost');
+var Stargate  = require('../../../node_modules/stargate/src/index.js');
 
 /**
 * User module
@@ -59,33 +60,50 @@ var User = new function(){
     * @memberof User
     */
     this.fetch = function(callback){
-        Logger.log('GamifiveSDK', 'User', 'fetch attempt');
+        Logger.log('GamifiveSDK', 'User', 'fetch attempt ---', Stargate.checkConnection());
 
-        Network.xhr('GET', userInfoUrl, function(resp, req){
+        // TODO: checkconnection: online ? xhr for user : read from file if any        
+        if (Stargate.checkConnection().networkState === 'online'){
+            Logger.warn('GamifiveSDK', 'User', 'online', Stargate.checkConnection());
+            Network.xhr('GET', userInfoUrl, function(resp, req){
 
-            if(!!resp && resp.success){
-                var responseData = resp.response;
+                if(!!resp && resp.success){
+                    var responseData = resp.response;
 
-                if (typeof responseData == typeof ''){
-                    responseData = JSON.parse(responseData);
+                    if (typeof responseData == typeof ''){
+                        responseData = JSON.parse(responseData);
+                    }
+
+                    Logger.log('GamifiveSDK', 'User', 'fetch complete', responseData);
+
+                    for (var key in responseData){
+                        userInfo[key] = responseData[key];
+                    }
+
+                    if(Stargate.isHybrid()){
+                        // Stargate.file.write(USER_JSON_FILENAME, userInfo);
+                    }
+                } else {
+                    Logger.warn(Constants.ERROR_USER_FETCH_FAIL + resp.status + ' ' + resp.statusText + ' ');
                 }
 
-                Logger.log('GamifiveSDK', 'User', 'fetch complete', responseData);
-
-                for (var key in responseData){
-                    userInfo[key] = responseData[key];
+                if (typeof callback === 'function'){
+                    userInstance.loadData(function(){
+                        callback(userInfo);
+                    });
                 }
-            } else {
-                Logger.warn(Constants.ERROR_USER_FETCH_FAIL + resp.status + ' ' + resp.statusText + ' ');
-            }
 
-            if (typeof callback === 'function'){
-                userInstance.loadData(function(){
-                    callback(userInfo);
-                });
-            }
+            });
             
-        });
+        } else if (Stargate.checkConnection().networkState === 'offline' && Stargate.isHybrid()) {
+            Logger.warn('GamifiveSDK', 'User', 'offline', Stargate.checkConnection());
+            Stargate.file.readFileAsJSON(Constants.USER_JSON_FILENAME)
+               .then((responseData) => {                   
+                    for (var key in responseData){
+                        userInfo[key] = responseData[key];
+                    }
+                });
+        }        
     }
 
     // used both to save and clear user data
@@ -162,9 +180,9 @@ var User = new function(){
         urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random()*1000);
         Logger.log('GamifiveSDK', 'User', 'loadData', 'url to call', urlToCall);
         
-        Network.xhr('GET', urlToCall, function(resp, req){
+        // TODO: checkconnection: online ? xhr : save on file
+        Network.xhr('GET', urlToCall, function(resp, req){            
             
-            // TODO: check
             var responseData = resp.response;
 
             if (typeof responseData === typeof ''){
