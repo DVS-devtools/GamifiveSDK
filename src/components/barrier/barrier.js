@@ -43,7 +43,7 @@ var Barrier = function(name, keysToWait){
         Logger.log('GamifiveSDK', 'Barrier', barrierId, 'added key', keyToAdd)
         toWait[keyToAdd] = false;
     }
-    delete keyToAdd;
+    keyToAdd = null;
 
     /**
     * returns whether the barrier is complete
