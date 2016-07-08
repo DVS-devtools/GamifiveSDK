@@ -10,13 +10,11 @@
   "scripts": {
     "vhost:keys": "sh compile_vhost.sh",
     "docs": "rm out -rf && node_modules/.bin/jsdoc src/components -r",
+    "build": "npm run build:web && npm run minify",
     "build:web": "npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk_web.js -s GamifiveSDK",
-    "build:debug": "npm run vhost:keys && browserify src/builders/build_debug.js -o dist/gfsdk_debug.js -s GamifiveSDK",
-    "build:hybrid": "npm run vhost:keys && browserify src/builders/build_hybrid.js -o dist/gfsdk_hybrid.js -s GamifiveSDK",
-    "build:offline": "npm run vhost:keys && browserify src/builders/build_offline.js -o dist/gfsdk_offline.js -s GamifiveSDK",
-    "build:offlineutils": "npm run vhost:keys && browserify src/builders/build_offline_utils.js -o dist/gfsdk_offline_utils.js -s GamifiveSDK",
+    "minify": "uglifyjs dist/gfsdk_web.js --compress --source-map dist/gfsdk_web.min.js.map --output dist/gfsdk_web.min.js",
     "test:develop": "karma start",
-    "test": "karma start --no-auto-watch --browsers Chrome --single-run"
+    "test": "karma start --no-auto-watch --single-run"
   },
   "devDependencies": {
     "babel-plugin-add-module-exports": "^0.2.1",
