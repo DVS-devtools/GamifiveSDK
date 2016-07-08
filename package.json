@@ -53,6 +53,7 @@
     "watchify": "^3.7.0"
   },
   "dependencies": {
+    "newton-adapter": "^1.2.0",
     "stargate": "file:///Users/pasqualemangialavori/projects/stargate"
   }
 }

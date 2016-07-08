@@ -1,6 +1,6 @@
 var Logger = require('../logger/logger');
 var VHost  = require('../vhost/vhost');
-
+var NewtonAdapter = require('newton-adapter');
 
 /**
 * Newton module
@@ -14,7 +14,14 @@ var Newton = new function(){
     * @function init
     * @memberof Newton
     */
-    this.init = function(initProperties){
+    this.init = function(){
+        var initProperties = { 
+            enable: true,
+            logger: Logger,
+            waitLogin: true,
+            secretId: ''
+        }
+        NewtonAdapter.init();
         Logger.log('GamifiveSDK', 'Newton', 'login', initProperties);
     }
 
@@ -35,7 +42,7 @@ var Newton = new function(){
     * @function trackEvent
     * @memberof Newton
     */
-    this.trackEvent = function(eventProperties){
+    this.trackEvent = function(eventProperties){        
         Logger.log('GamifiveSDK', 'Newton', 'trackEvent', eventProperties);
     }
 
