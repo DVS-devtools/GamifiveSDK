@@ -2,7 +2,7 @@ var Constants  = require('../constants/constants');
 var Logger     = require('../logger/logger');
 var Location   = require('../location/location');
 var Network    = require('../network/network');
-var Stargate   = require('../../../node_modules/stargate/src/index.js');
+var Stargate   = require('stargatejs');
 
 /**
 * GameInfo module
@@ -59,7 +59,6 @@ var GameInfo = new function(){
     */
     this.fetch = function(callback){
         Logger.log('GamifiveSDK', 'GameInfo', 'fetch attempt');
-        var urlToCall = gameInfoUrl + gameInfoInstance.getContentId();
         
         if (Stargate.checkConnection().networkState === 'online'){
 
@@ -80,6 +79,8 @@ var GameInfo = new function(){
      * 
      */
     function getGameInfoFromAPI(callback){
+        var urlToCall = gameInfoUrl + gameInfoInstance.getContentId();
+
         Network.xhr('GET', urlToCall, function(resp, req){
 
             if(!!resp && resp.success){

@@ -12,7 +12,8 @@ var Network   = require('../network/network');
 var Newton    = require('../newton/newton');
 var User      = require('../user/user');
 var VHost     = require('../vhost/vhost');
-var Stargate  = require('../../../node_modules/stargate/src/index.js');
+var Promise = require('promise-polyfill');
+var Stargate  = require('stargatejs');
 
 /**
 * Session module

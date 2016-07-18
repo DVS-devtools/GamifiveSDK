@@ -3,7 +3,8 @@ var Network   = require('../network/network');
 var Event     = require('../event/event');
 var Constants = require('../constants/constants');
 var VHostKeys = require('../../../gen/vhost/vhost-keys.js');
-var Stargate  = require('../../../node_modules/stargate/src/index.js');
+var Promise = require('promise-polyfill');
+var Stargate  = require('stargatejs');
 
 /**
 * VHost module
@@ -13,11 +14,10 @@ var Stargate  = require('../../../node_modules/stargate/src/index.js');
 var VHost = new function(){
 
     var vHostInstance = this;
-
+    var loadPromise = null;
     var vHost;
     var gameSDKVHostUrl = Constants.VHOST_API_URL;
-
-    var initSG = Stargate.initialize();
+    
     var VHOST_PATH = '';
     /**
     * resets VHost internal data
@@ -33,41 +33,42 @@ var VHost = new function(){
     * @function load
     * @memberof VHost
     */
-    this.load = function(){
-
+    this.load = function(){       
         if (Stargate.isHybrid() && Stargate.checkConnection().type === 'offline'){
             // this.load waits the stargate initialize
             VHOST_PATH = window.cordova.file.applicationStorageDirectory + 'vhost.json';
-            Stargate.file.fileExists(VHOST_PATH)
-                    .then(function(exists){
+            return Stargate.file.fileExists(VHOST_PATH)
+                .then(function(exists){
                         if (exists){
                             return Stargate.file.readFileAsJSON(VHOST_PATH);
                         }
-                        return {};
-           }).then(function(json){
-               vHost = json;
-               Event.trigger(Constants.AFTER_LOAD_EVENT_KEY);
-           });
+                        throw new Error(Constants.ERROR_VHOST_LOAD_FAIL + ' file not exists');
+                })
+                .then(function(json){
+                    vHost = json;                    
+                    Event.trigger(Constants.AFTER_LOAD_EVENT_KEY);
+                });
         }
 
         var urlToCall = gameSDKVHostUrl + VHostKeys.join(',');
-        Logger.log('GamifiveSDK', 'VHost', 'load url');
+        Logger.log('GamifiveSDK', 'VHost', 'load url', urlToCall);
+        
+        return Network.xhr('GET', urlToCall)
+            .then(function(resp){
 
-        Network.xhr('GET', urlToCall, function(resp){
-
-            if (!!resp && typeof resp.response !== 'undefined'){
-                Logger.log('GamifiveSDK', 'VHost', 'load response', resp);
-                vHost = resp.response;
-                if (typeof vHost === typeof ''){
-                    vHost = JSON.parse(vHost);
+                if (!!resp && typeof resp.response !== 'undefined'){
+                    Logger.log('GamifiveSDK', 'VHost', 'load response', resp);
+                    vHost = resp.response;
+                    if (typeof vHost === typeof ''){
+                        vHost = JSON.parse(vHost);
+                    }
                 }
-            }
 
-            Logger.log('GamifiveSDK', 'VHost', 'load', vHost);            
-            Event.trigger(Constants.AFTER_LOAD_EVENT_KEY);
-            if (Stargate.isHybrid()){
-                vHostSave();
-            }
+                Logger.log('GamifiveSDK', 'VHost', 'load', vHost);            
+                Event.trigger(Constants.AFTER_LOAD_EVENT_KEY);
+                if (Stargate.isHybrid()){
+                    return vHostSave();
+                }                
         });
     }
 

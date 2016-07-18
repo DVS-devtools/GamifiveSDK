@@ -7,7 +7,7 @@ var Network   = require('../network/network');
 var Newton    = require('../newton/newton');
 var VarCheck  = require('../varcheck/varcheck');
 var VHost     = require('../vhost/vhost');
-var Stargate  = require('../../../node_modules/stargate/src/index.js');
+var Stargate  = require('stargatejs');
 
 /**
 * User module
@@ -65,7 +65,7 @@ var User = new function(){
         // TODO: checkconnection: online ? xhr for user : read from file if any        
         if (Stargate.checkConnection().networkState === 'online'){
             Logger.warn('GamifiveSDK', 'User', 'online', Stargate.checkConnection());
-            Network.xhr('GET', userInfoUrl, function(resp, req){
+            return Network.xhr('GET', userInfoUrl).then(function(resp, req){
 
                 if(!!resp && resp.success){
                     var responseData = resp.response;
@@ -82,6 +82,7 @@ var User = new function(){
 
                     if(Stargate.isHybrid()){
                         // Stargate.file.write(USER_JSON_FILENAME, userInfo);
+                        // User.save();
                     }
                 } else {
                     Logger.warn(Constants.ERROR_USER_FETCH_FAIL + resp.status + ' ' + resp.statusText + ' ');
@@ -97,8 +98,8 @@ var User = new function(){
             
         } else if (Stargate.checkConnection().networkState === 'offline' && Stargate.isHybrid()) {
             Logger.warn('GamifiveSDK', 'User', 'offline', Stargate.checkConnection());
-            Stargate.file.readFileAsJSON(Constants.USER_JSON_FILENAME)
-               .then((responseData) => {                   
+            return Stargate.file.readFileAsJSON(Constants.USER_JSON_FILENAME)
+               .then(function(responseData) {                   
                     for (var key in responseData){
                         userInfo[key] = responseData[key];
                     }

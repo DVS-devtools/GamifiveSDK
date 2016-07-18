@@ -1,4 +1,5 @@
 var Logger = require('../logger/logger');
+var Promise = require('promise-polyfill');
 
 /**
 * Utility module for handling network functionalities
