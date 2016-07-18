@@ -54,13 +54,14 @@ module.exports = {
 
     ERROR_USER_FETCH_FAIL: 'GamifiveSDK :: User :: couldn\'t retrieve user profile: ',
     ERROR_GAMEINFO_FETCH_FAIL: 'GamifiveSDK :: GameInfo :: couldn\'t retrieve game info: ',
+    ERROR_VHOST_LOAD_FAIL: 'GamifiveSDK :: Vhost :: couldn\'t retrieve vhost: ',
 
     CONTENT_ID_REGEX: 'html5gameplay\/([a-zA-Z0-9]+)',
 
     // API
-    VHOST_API_URL: Location.getOrigin() + '/v01/config.getvars?keys=',
-    GAME_INFO_API_URL: Location.getOrigin() + '/v01/gameplay?content_id=',
-    GAMEOVER_API_URL: Location.getOrigin() + '/v01/gameover',
+    VHOST_API_URL: Location.getOrigin() + 'v01/config.getvars?keys=',
+    GAME_INFO_API_URL: Location.getOrigin() + 'v01/gameplay?content_id=',
+    GAMEOVER_API_URL: Location.getOrigin() + 'v01/gameover',
 
     GAMEINFO_JSON_FILENAME:'gameinfo.json',
     USER_JSON_FILENAME:'user.json'
