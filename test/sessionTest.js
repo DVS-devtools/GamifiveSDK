@@ -3,6 +3,7 @@ var GameInfo  = require("../src/components/game_info/game_info");
 var Location  = require("../src/components/location/location");
 var Session   = require("../src/components/session/session");
 var User      = require("../src/components/user/user");
+var vHostMock = require("./mocks/vHost.js");
 
 require('jasmine-ajax');
 
@@ -47,23 +48,39 @@ describe("Session",function(){
         done();
     });
     
-    it("Sessions should be defined only after initialization", function(done){
-        expect(Session.getConfig().sessions).toBeUndefined();
-
-        Session.init({});
-
-        var request = jasmine.Ajax.requests.mostRecent();
-
-        request.respondWith({
-            status: 200, 
-            contentType: 'application/json',
-            response: { test: 'Session' },
-            readyState: 4
+    it("Sessions: onStart should be called after init", function(done){
+        var url = Location.getOrigin() + 'v01/config.getvars?keys=';
+        
+        jasmine.Ajax.stubRequest(url).andReturn({            
+            'response': vHostMock,            
+            'status': 200,
+            'contentType': 'text/json'                    
         });
 
-        expect(Session.getConfig().sessions).toBeDefined();
+        expect(Session.getConfig().sessions).toBeUndefined();
 
-        done();
+        var initProm = Session.init({ lite: true });
+
+        // SETTING MOCK
+        var Spies = {
+            onstart:function(){ console.log("ONSTART"); }
+        };
+
+        spyOn(Spies, 'onstart');
+
+        // SET ON START CALLBACK
+        Session.onStart(Spies.onstart);
+
+        Session.start();
+
+        expect(Spies.onstart).not.toHaveBeenCalled();
+        initProm.then(function(){
+            expect(Spies.onstart).toHaveBeenCalled();
+            done();
+        }).catch(function(reason){
+            console.log("FAIL", reason);
+            done();
+        });
     });
 
     it("Sessions are started, but can't be started two times", function(done){

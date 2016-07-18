@@ -21,7 +21,9 @@ var Stargate  = require('stargatejs');
 * @version 0.9
 */
 var Session = new function(){
-
+    
+    var initPromise;
+    var initialized = false;
     var sessionInstance = this;
 
     var startCallback;
@@ -37,7 +39,7 @@ var Session = new function(){
     * @memberof Session
     */
     this.isInitialized = function(){
-        return initBarrier.isComplete();
+        return initialized;
     }
 
     /**
@@ -56,24 +58,32 @@ var Session = new function(){
     * @function getConfig
     * @memberof Session
     */
-    this.getConfig = function(){
+    this.getConfig = function(){        
         return config;
     }
 
     /**
     * sets a callback to be fired after the VHost has been loaded
     * @function afterLoad
+    * @private
     * @memberof VHost
     */
-    this.afterInit = function(callback){
+    var afterInit = function(callback){
         if (typeof callback !== 'function'){
             throw Constants.ERROR_AFTERINIT_CALLBACK_TYPE + typeof callback;
         }
 
+        /*
         if (initBarrier.isComplete()){
             callback();
         } else {
             initBarrier.onComplete(callback);
+        }
+        */
+        if (initPromise){
+            initPromise.then(callback)
+        } else {
+            throw new Error(Constants.ERROR_SESSION_INIT_NOT_CALLED);
         }
     }
 
@@ -84,9 +94,10 @@ var Session = new function(){
     * @param {Object} params can contain "lite" (boolean) attribute
     */
     this.init = function(params){
+        Logger.info('GamifiveSDK', 'Session', 'init', params);        
+        
         isInitializing = true;
-
-        Logger.info('GamifiveSDK', 'Session', 'init', params);
+        config.sessions = [];
 
         if (!params){
             params = {};
@@ -105,7 +116,7 @@ var Session = new function(){
             Menu.setCustomStyle(config.moreGamesButtonStyle);
         }
 
-        VHost.afterLoad(function(){
+        /*VHost.afterLoad(function(){
 
             initBarrier.setComplete('VHost.load');
             
@@ -118,11 +129,25 @@ var Session = new function(){
             });
             
             config.sessions = [];
-        });
+        });*/
 
-        // let's dance        
-        // Stargate.initialize().then(VHost.load);
-        VHost.load();       
+        // let's dance
+        initPromise = VHost.load().then(function(){
+            console.log("VHOST load");
+            return Promise.all([User.fetch(), GameInfo.fetch()])
+                .then(function(results){
+                    Logger.info('Init completed');
+                    initialized = true;
+                    isInitializing = false;
+                }).catch(function(reason){
+                    console.log("Init Catch", reason);
+                    Logger.error(reason);
+                    initialized = false;
+                    isInitializing = false;
+                    throw reason;
+                });            
+        });
+        return initPromise;
     }
 
     var getLastSession = function(){
@@ -163,11 +188,12 @@ var Session = new function(){
         Menu.hide();
 
         var doStartSession = function(){
-            
-            sessionInstance.afterInit(function(){
+            console.log("doStartSession");
+            initPromise.then(function(){
                 // ADD TRACKING HERE
-
+                
                 if (typeof startCallback === 'function') {
+                    console.log("START CALLBACK TYPE");
                     try {
                         startCallback();
                     } catch (e){
@@ -180,7 +206,7 @@ var Session = new function(){
             
         }
 
-        if (!config.lite){
+        if (!config.lite){            
             Network.xhr('GET', VHost.get('MOA_API_CANDOWNLOAD'), function(resp){
                 Utils.log('GamifiveSDK', 'Session', 'start', 'can play', resp);
 
@@ -196,7 +222,7 @@ var Session = new function(){
                     });
                 }
             });
-        } else {
+        } else {            
             doStartSession();
         }
     }
@@ -209,8 +235,8 @@ var Session = new function(){
     */
     this.onStart = function(callback){
         Logger.info('GamifiveSDK', 'Session', 'onStart');
-
-        if (typeof callback === 'function'){
+        
+        if (typeof callback === 'function'){            
             startCallback = callback;
         } else {
             throw Constants.ERROR_ONSTART_CALLBACK_TYPE + typeof callback;
