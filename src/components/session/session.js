@@ -12,7 +12,8 @@ var Network   = require('../network/network');
 var Newton    = require('../newton/newton');
 var User      = require('../user/user');
 var VHost     = require('../vhost/vhost');
-var Promise = require('promise-polyfill');
+var Promise   = require('promise-polyfill');
+var VarCheck  = require('../varcheck/varcheck'); 
 var Stargate  = require('stargatejs');
 
 /**
@@ -116,6 +117,8 @@ var Session = new function(){
             Menu.setCustomStyle(config.moreGamesButtonStyle);
         }
 
+        Menu.setGoToHomeCallback = sessionInstance.goToHome;
+
         /*VHost.afterLoad(function(){
 
             initBarrier.setComplete('VHost.load');
@@ -132,11 +135,14 @@ var Session = new function(){
         });*/
 
         // let's dance
+        var sgInit = Stargate.initialize();
+
         initPromise = VHost.load().then(function(){
-            console.log("VHOST load");
-            return Promise.all([User.fetch(), GameInfo.fetch()])
+            console.log("VHOST load");            
+
+            return Promise.all([User.fetch(), GameInfo.fetch(), ])
                 .then(function(results){
-                    Logger.info('Init completed');
+                    Logger.info('Init completed', results);
                     initialized = true;
                     isInitializing = false;
                 }).catch(function(reason){
@@ -147,7 +153,7 @@ var Session = new function(){
                     throw reason;
                 });            
         });
-        return initPromise;
+        return sgInit.then(initPromise);
     }
 
     var getLastSession = function(){
@@ -208,7 +214,7 @@ var Session = new function(){
 
         if (!config.lite){            
             Network.xhr('GET', VHost.get('MOA_API_CANDOWNLOAD'), function(resp){
-                Utils.log('GamifiveSDK', 'Session', 'start', 'can play', resp);
+                Logger.log('GamifiveSDK', 'Session', 'start', 'can play', resp);
 
                 if(VarCheck.get(resp, ['response', 'canDownload'])){
                     // clear dom
@@ -217,7 +223,7 @@ var Session = new function(){
                 } else {
                     // call gameover API
                     Network.xhr('GET', VHost.get('MOA_API_GAMEOVER'), function (resp) {
-                        DOMUtils.create(resp);
+                        DOMUtils.create(resp.response);
                         DOMUtils.show(Constants.PAYWALL_ELEMENT_ID);
                     });
                 }
@@ -266,13 +272,18 @@ var Session = new function(){
     }
 
     /**
-    * ends a session and (if not in lite mode) shows the platform's gameover screen
+    * ends a session and (if not in lite mode) shows the platform's gameover screen    
     * @function end
     * @memberof Session
     * @param {Object} data can contain a "score" and/or "level" attribute
+    * @param {Number} data.score - the score of the user in the sesssion
+    * @param {Number} data.level - the level
     */
     this.end = function(data){
         Logger.info('GamifiveSDK', 'Session', 'end', data);
+        
+        // set default object
+        data = data ? data : {};
 
         if (typeof config.sessions !== typeof [] || config.sessions.length < 1){
             throw Constants.ERROR_SESSION_NO_SESSION_STARTED;

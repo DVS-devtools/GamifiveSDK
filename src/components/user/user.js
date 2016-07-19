@@ -24,6 +24,10 @@ var User = new function(){
     var loadUserDataUrl;
     var saveUserDataUrl;
 
+    this.getInfo = function(){
+        return userInfo || {};
+    }
+
     VHost.afterLoad(function(){
         userInfoUrl     = VHost.get('MOA_API_USER_CHECK');
         loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
@@ -65,6 +69,11 @@ var User = new function(){
         // TODO: checkconnection: online ? xhr for user : read from file if any        
         if (Stargate.checkConnection().networkState === 'online'){
             Logger.warn('GamifiveSDK', 'User', 'online', Stargate.checkConnection());
+
+            if (Stargate.isHybrid()){
+                userInfoUrl.replace(":HYBRID", 1);
+            } 
+            
             return Network.xhr('GET', userInfoUrl).then(function(resp, req){
 
                 if(!!resp && resp.success){
@@ -103,6 +112,7 @@ var User = new function(){
                     for (var key in responseData){
                         userInfo[key] = responseData[key];
                     }
+                    callback(userInfo);
                 });
         }        
     }

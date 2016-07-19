@@ -26,6 +26,10 @@ var GameInfo = new function(){
         gameInfo = {};
     }
 
+    this.getInfo = function(){
+        return gameInfo || {};
+    }
+
     /**
     * returns the contentId of the game executing a regex on the current url
     * @function getContentId

@@ -3,7 +3,6 @@ var GA        = require('../ga/ga');
 var Location  = require('../location/location');
 var Logger    = require('../logger/logger');
 var Newton    = require('../newton/newton');
-var Session   = require('../session/session');
 var VHost     = require('../vhost/vhost');
 
 /**
@@ -20,9 +19,12 @@ var Menu = new function(){
     var menuSprite;
     var goToHomeCallback;
 
+    this.setGoToHomeCallback = function(callback){
+        goToHomeCallback = callback;
+    }
+
     VHost.afterLoad(function(){
         menuSprite = VHost.get('IMAGES_SPRITE_GAME');
-        goToHomeCallback = Session.goToHome; 
         menuInstance.show();
     });
 
