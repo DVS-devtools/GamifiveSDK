@@ -11,8 +11,8 @@
     "vhost:keys": "sh compile_vhost.sh",
     "docs": "rm out -rf && node_modules/.bin/jsdoc src/components -r",
     "build": "npm run build:web && npm run minify",
-    "build:web": "npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk_web.js -s GamifiveSDK",
-    "minify": "uglifyjs dist/gfsdk_web.js --compress --source-map dist/gfsdk_web.min.js.map --output dist/gfsdk_web.min.js",
+    "build:web": "npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk.js -s GamifiveSDK",
+    "minify": "uglifyjs dist/gfsdk.js --compress --source-map dist/gfsdk.min.js.map --output dist/gfsdk.min.js",
     "test:develop": "karma start",
     "test": "karma start --no-auto-watch --single-run"
   },
