@@ -2,7 +2,7 @@
 // Generated on Thu Apr 07 2016 16:48:56 GMT+0200 (CEST)
 
 module.exports = function(config) {
-  config.set({
+  var karmaConf = {
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
@@ -68,6 +68,19 @@ module.exports = function(config) {
 
     // Concurrency level
     // how many browser should be started simultaneous
-    concurrency: Infinity
-  })
+    concurrency: Infinity,
+    customLaunchers: {
+          Chrome_travis_ci: {
+              base: 'Chrome',
+              flags: ['--no-sandbox']
+          }
+      }
+  }
+
+  if (process.env.TRAVIS) {
+        console.log('TRAVIS!', process.env.TRAVIS);
+        console.log('Running Travis Chrome for tests');
+        karmaConf.browsers = ['Chrome_travis_ci'];
+  }  
+  config.set(karmaConf);
 };
