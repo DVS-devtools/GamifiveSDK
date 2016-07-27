@@ -42,22 +42,15 @@ var Facebook = new function(){
     * @function init
     * @memberof Facebook
     */
+    var i = 0;
     this.init = function(params){
         Logger.log('GamifiveSDK', 'Facebook', 'init', params);
         for (var key in params){
             config[key] = params[key];
         }
-
-        if (parseInt(localStorage.getItem('hybrid')) !== 1){
-            var d = document, s = 'script', id = 'facebook-jssdk';
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) return;
-            js = d.createElement(s); js.id = id;
-            js.src = Constants.FB_SDK_URL;
-            fjs.parentNode.insertBefore(js, fjs);
-        }
-
-        window.fbAsyncInit = function() {
+        
+         window.fbAsyncInit = function() {
+            i++;
             if (typeof FB === 'undefined') {
                 Logger.error('GamifiveSDK', 'Facebook', 'init', 'cannot download fb sdk');
             } else {
@@ -68,9 +61,20 @@ var Facebook = new function(){
                     version    : config.fbVersion   
                 });
             }
-
+            console.log(i);
             initialized = true;
         };
+
+        if (parseInt(localStorage.getItem('hybrid')) !== 1){
+            var d = document, s = 'script', id = 'facebook-jssdk';
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = window.location.protocol + "//" + Constants.FB_SDK_URL;
+            Logger.log("Getting facebook sdk", js.src)
+            fjs.parentNode.insertBefore(js, fjs);
+        }
+       
         Logger.log('GamifiveSDK', 'Facebook', 'defined fbAsyncInit', window.fbAsyncInit);
 
     }
@@ -124,8 +128,7 @@ var Facebook = new function(){
 				'&redirect_uri=' + Location.getOrigin()
 			].join('');
 			window.open(targetUrl, '_parent'); 
-		}
-		else {
+		} else {
             var shareParams = {
                 method: 'send',
                 display: 'iframe',
