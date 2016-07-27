@@ -1,3 +1,4 @@
+var API = require('../api/api');
 var Constants  = require('../constants/constants');
 var Logger     = require('../logger/logger');
 var Location   = require('../location/location');
@@ -13,9 +14,9 @@ var GameInfo = new function(){
 
     var gameInfoInstance = this;
 
-    var gameInfo;
-    var gameInfoUrl = Constants.GAME_INFO_API_URL;
-
+    var gameInfo = {};
+    var gameInfoUrl;
+    
     /**
     * resets the information about the game
     * @function reset
@@ -26,8 +27,15 @@ var GameInfo = new function(){
         gameInfo = {};
     }
 
+    /**
+     * getInfo 
+     * @public
+     * @function getContentId
+     * @memberof GameInfo
+     * @returns {object} [gameInfo={}]
+     */    
     this.getInfo = function(){
-        return gameInfo || {};
+        return gameInfo;
     }
 
     /**
@@ -36,13 +44,13 @@ var GameInfo = new function(){
     * @memberof GameInfo
     */
     this.getContentId = function(){
-
+        // TODO: hybrid match pattern
         var urlToMatch = Location.getCurrentHref();
         var contentIdRegex = new RegExp(Constants.CONTENT_ID_REGEX);
         var match = urlToMatch.match(contentIdRegex);
 
         if (match !== null && match.length > 0){
-            return match[1];
+            return match[2];
         }
         throw Constants.ERROR_GAME_INFO_NO_CONTENTID + urlToMatch;
     }
@@ -64,47 +72,63 @@ var GameInfo = new function(){
     this.fetch = function(callback){
         Logger.log('GamifiveSDK', 'GameInfo', 'fetch attempt');
         
-        if (Stargate.checkConnection().networkState === 'online'){
+        if (Stargate.checkConnection().type === 'online'){
 
-            getGameInfoFromAPI(callback);
+            return getGameInfoFromAPI(callback);
 
-        } else if (Stargate.checkConnection().networkState === 'offline' && Stargate.isHybrid()) {
+        } else if (Stargate.checkConnection().type === 'offline' && Stargate.isHybrid()) {
 
-            Stargate.file.readFileAsJSON(Constants.GAMEINFO_JSON_FILENAME)
+            return Stargate.file.readFileAsJSON(Constants.GAMEINFO_JSON_FILENAME)
                .then(function(responseData) {                   
                     for (var key in responseData){
                         gameInfo[key] = responseData[key];
                     }
+                    if (typeof callback === "function") { callback(gameInfo); }
+                    return gameInfo;                    
                 });
         }
     }
 
     /**
-     * 
+     * getGameInfoFromAPI
+     * @param {function} callback - filled with gameinfo {object} 
+     * @returns {promise}
      */
     function getGameInfoFromAPI(callback){
-        var urlToCall = gameInfoUrl + gameInfoInstance.getContentId();
+        gameInfoUrl = API.get('GAME_INFO_API_URL');
+        var urlToCall = [gameInfoUrl, gameInfoInstance.getContentId()].join("");
 
-        Network.xhr('GET', urlToCall, function(resp, req){
+        Logger.log("GameInfo", "getGameInfoFromAPI", "GET", urlToCall);
+        return Network.xhr('GET', urlToCall, function(resp, req){
 
             if(!!resp && resp.success){
-                Logger.log('GamifiveSDK', 'GameInfo', 'fetch complete', responseData);
+                
                 var responseData = resp.response;
 
                 if (typeof responseData == typeof ''){
-                    responseData = JSON.parse(responseData);
+                    try{
+                        responseData = JSON.parse(responseData);
+                    } catch(e) {
+                        Logger.error("GameInfo", "getGameInfoFromAPI", "GET", urlToCall, "error parsing gameinfo");
+                        throw e;
+                    }
+                    
                 }
 
-                if (typeof gameInfo === 'undefined'){
-                    gameInfoInstance.reset();
-                }
+                Logger.log('GamifiveSDK', 'GameInfo', 'fetch complete');
 
-                for (var key in responseData){
-                    gameInfo[key] = responseData[key];
+                if(responseData.game_info){
+                    for (var key in responseData.game_info){
+                        gameInfo[key] = responseData.game_info[key];
+                    }
+                } else {                    
+                    throw resp.status + " getting gameinfo";
                 }
+                
                 // TODO: Save gamifiveinfo
                 if (Stargate.isHybrid()) {
-                    // Stargate.file.write(Constants.GAMEINFO_JSON_FILENAME, JSON.stringify(gameInfo));
+                    var filePath = [Stargate.file.BASE_DIR, Constants.GAMEINFO_JSON_FILENAME].join("");
+                    Stargate.file.write(filePath, JSON.stringify(gameInfo));
                 }
             } else {
                 Logger.warn(Constants.ERROR_GAMEINFO_FETCH_FAIL + resp.status + ' ' + resp.statusText + ' ');
@@ -121,9 +145,22 @@ var GameInfo = new function(){
     * returns a single value of gameInfo, given its key
     * @function get
     * @memberof GameInfo
+    * @returns *|undefined
     */
     this.get = function(key){
         return gameInfo[key];
+    }
+
+    if(process.env.NODE_ENV === "testing"){        
+        var originalStargate;
+        this.setStargateMock = function(theMock){
+            originalStargate = Stargate;
+            Stargate = theMock;
+        }
+
+        this.unsetStargateMock = function(){
+            Stargate = originalStargate;
+        }
     }
 
 };

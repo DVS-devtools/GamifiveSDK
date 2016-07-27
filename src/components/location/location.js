@@ -6,32 +6,51 @@ var Logger = require('../logger/logger');
 * @version 0.9
 */
 var Location = new function(){
-
+    var theWindow;
     var locationInstance = this;
-    
+
+    function __setTestEnvIfAny__(){        
+        
+        if (process.env.NODE_ENV === "testing" && window.fakewindow){
+            
+            theWindow = window.fakewindow;
+            // Logger.log("TESTING ENV", theWindow);
+        } else {
+            theWindow = window;
+            // Logger.log("original:", theWindow.location.href);
+        }
+    }
+
     /**
     * returns the main page of the webapp
     * @function getOrigin
     * @memberof Location
     */
     this.getOrigin = function(){
+        __setTestEnvIfAny__();
 
-        if (!window.location.origin) {
-          window.location.origin = window.location.protocol + "//" 
-                                    + window.location.hostname 
-                                    + (window.location.port ? ':' + window.location.port: '');
+        if (!theWindow.location.origin) {
+            theWindow.location.origin = theWindow.location.protocol + "//" 
+                                    + theWindow.location.hostname 
+                                    + (theWindow.location.port ? ':' + theWindow.location.port: '');
         }
         
-        // VHost not loaded yet or missing variable
-        var isGameasyRegex = new RegExp('http://www.gameasy.com/([a-zA-Z0-9-_]*)');
-        var isGameasyMatch = window.location.href.match(isGameasyRegex);
+        var isGameasyRegex = new RegExp(/http:\/\/www2?\.gameasy\.com\/([a-zA-Z0-9-_]*)/);
+        var isGameasyMatch = theWindow.location.href.match(isGameasyRegex);
 
-        var gameasyCountryCode = '';
+        var gameasyCountryCode = '', 
+            toJoin = [];
+        // Logger.log(isGameasyMatch);
         if (isGameasyMatch !== null){
             gameasyCountryCode = isGameasyMatch[1];
         }
 
-        return window.location.origin + '/' + gameasyCountryCode;
+        toJoin.push(theWindow.location.origin);
+        if(gameasyCountryCode && gameasyCountryCode !== ''){
+            toJoin.push(gameasyCountryCode);
+        }        
+        // Logger.log("origin and country code:", theWindow.location.href, isGameasyMatch);
+        return toJoin.join("/");
     }
 
     /**
@@ -40,7 +59,8 @@ var Location = new function(){
     * @memberof Location
     */
     this.getCurrentHref = function(){
-        return window.location.href;
+         __setTestEnvIfAny__();
+        return theWindow.location.href;
     }
 };
 

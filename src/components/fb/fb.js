@@ -17,7 +17,7 @@ var Facebook = new function(){
     var config;
 
     /**
-    * returns true iff the Facebook sdk has been successfully downloaded and initialized
+    * returns true if the Facebook sdk has been successfully downloaded and initialized
     * @function isInitialized
     * @memberof Facebook
     */
@@ -53,7 +53,7 @@ var Facebook = new function(){
             var js, fjs = d.getElementsByTagName(s)[0];
             if (d.getElementById(id)) return;
             js = d.createElement(s); js.id = id;
-            js.src = "http://connect.facebook.net/en_US/sdk.js";
+            js.src = Constants.FB_SDK_URL;
             fjs.parentNode.insertBefore(js, fjs);
         }
 

@@ -1,10 +1,9 @@
-var Location = require('../location/location');
-
 module.exports = {
 
     PAYWALL_ELEMENT_ID: 'paywall',
     MAX_RECORDED_SESSIONS_NUMBER: 2,
     FB_SDK_VERSION: '2.4',
+    FB_SDK_URL: 'http://connect.facebook.net/en_US/sdk.js',
     OVERLAY_ELEMENT_ID: 'gfsdk_root',
     DEFAULT_MENU_STYLE: {
         'left': '2px',
@@ -56,13 +55,16 @@ module.exports = {
     ERROR_GAMEINFO_FETCH_FAIL: 'GamifiveSDK :: GameInfo :: couldn\'t retrieve game info: ',
     ERROR_VHOST_LOAD_FAIL: 'GamifiveSDK :: Vhost :: couldn\'t retrieve vhost: ',
 
-    CONTENT_ID_REGEX: 'html5gameplay\/([a-zA-Z0-9]+)',
+    CONTENT_ID_REGEX: '(html5gameplay|sdk_integration_test)\/([a-zA-Z0-9]+)',    
 
     // API
-    VHOST_API_URL: Location.getOrigin() + 'v01/config.getvars?keys=',
-    GAME_INFO_API_URL: Location.getOrigin() + 'v01/gameplay?content_id=',
-    GAMEOVER_API_URL: Location.getOrigin() + 'v01/gameover',
+    VHOST_API_URL: '/v01/config.getvars?keys=',
+    GAME_INFO_API_URL: '/v01/gameplay?content_id=',
+    GAMEOVER_API_URL: '/v01/gameover',
+    LEADERBOARD_API_URL: '/v01/leaderboard',
+    CAN_DOWNLOAD_API_URL: '/v01/user.candownload/:ID',
 
     GAMEINFO_JSON_FILENAME:'gameinfo.json',
-    USER_JSON_FILENAME:'user.json'
+    USER_JSON_FILENAME:'user.json',
+    VHOST_JSON_FILENAME:'vhost.json'
 }   

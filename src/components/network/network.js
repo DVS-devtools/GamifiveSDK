@@ -16,7 +16,7 @@ var Network = new function(){
     * @memberof Network
     */
     this.xhr = function(method, url, callback){
-        Logger.log('GamifiveSDK', 'Network', 'xhr', method, url);
+        Logger.log('GamifiveSDK', 'Network', method, url);
         
         var xhr = new XMLHttpRequest();
         return new Promise(function(resolve, reject){

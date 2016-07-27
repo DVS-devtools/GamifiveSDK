@@ -3,32 +3,32 @@ var GameInfo  = require("../src/components/game_info/game_info");
 var Location  = require("../src/components/location/location");
 var Session   = require("../src/components/session/session");
 var User      = require("../src/components/user/user");
+var vhostKeys = require("../gen/vhost/vhost-keys.js");
 var vHostMock = require("./mocks/vHost.js");
+var UserCheckMock = require("./mocks/userCheck.js");
+var GameInfoMock = require("./mocks/gameInfoMock.js");
+var StargateMockClass = require("./mocks/StargateMock");
+var MenuMockClass = require("./mocks/menuMock");
 
 require('jasmine-ajax');
 
 describe("Session",function(){ 
 
     var originalUserFetch = null, originalGameInfoFetch = null;
-
-    beforeEach(function(done) {
+    var StargateMock, MenuMock;
+    beforeEach(function() {
+        window.fakewindow = {
+            location:{
+                origin:"http://www.gameasy.com", 
+                hostname:"", 
+                port:"", 
+                protocol:"http:", 
+                href:"http://www.gameasy.com/ww-it/html5gameplay/c2701133414427fee732e051abdfe3e8/game/fruit-slicer"
+            }
+        }
+        StargateMock = new StargateMockClass();
+        MenuMock = new MenuMockClass();
         Session.reset();
-
-        originalUserFetch = User.fetch;
-        User.fetch = function(callback){
-            console.log("Mock User.fetch");
-            if (typeof callback === 'function'){
-                callback();
-            }
-        }
-
-        originalGameInfoFetch = GameInfo.fetch;
-        GameInfo.fetch = function(callback){
-            console.log("Mock GameInfo.fetch");
-            if (typeof callback === 'function'){
-                callback();
-            }
-        }
 
         jasmine.Ajax.install();
 
@@ -36,93 +36,177 @@ describe("Session",function(){
         Location.getCurrentHref = function(){
             return 'http://www.giochissimo.it/html5gameplay/4de756a55ac71f45c5b7b4211b71219e/game/fruit-slicer';
         };
-        done();
     });
 
-    afterEach(function(done) {
-
-        User.fetch = originalUserFetch;
-        GameInfo.fetch = originalGameInfoFetch;
-
+    afterEach(function() {
         jasmine.Ajax.uninstall();
-        done();
+        window.fakewindow = null;
+        Session.unsetMock("VHost");
+        Session.unsetMock("User");
+        Session.unsetMock("GameInfo");
+        Session.unsetMock("Stargate");
+        Session.unsetMock("Menu");       
     });
     
-    it("Sessions: onStart should be called after init", function(done){
-        var url = Location.getOrigin() + 'v01/config.getvars?keys=';
-        
-        jasmine.Ajax.stubRequest(url).andReturn({            
-            'response': vHostMock,            
+    it("Session: isInitialized return true after init", function(done){
+        // Mocking modules into session
+        var menuOpen = jasmine.createSpy("menuopen");
+        MenuMock.open = menuOpen;
+
+        Session.setMock("Stargate", StargateMock);
+        Session.setMock("Menu", MenuMock);
+        Session.setMock("VHost", {
+            load:function(){return Promise.resolve(true)},
+            get:function(key){
+                return vHostMock[key];
+            }
+        });
+        Session.setMock("User", {
+            fetch:function(){return Promise.resolve(true)},
+            loadData:function(){return Promise.resolve(true)}
+        });
+        Session.setMock("GameInfo", {
+            fetch:function(){return Promise.resolve(true)},
+            getContentId:function(){
+                return GameInfoMock.game_info.contentId;
+            }
+        });
+
+        var canDownloadMockURL = window.fakewindow.location.origin + "/ww-it" + Constants.CAN_DOWNLOAD_API_URL;
+        canDownloadMockURL = canDownloadMockURL.replace(":ID", GameInfoMock.game_info.contentId);
+        jasmine.Ajax.stubRequest(canDownloadMockURL).andReturn({            
+            'response': { canDownload:true },            
             'status': 200,
             'contentType': 'text/json'                    
         });
 
-        expect(Session.getConfig().sessions).toBeUndefined();
-
-        var initProm = Session.init({ lite: true });
-
-        // SETTING MOCK
-        var Spies = {
-            onstart:function(){ console.log("ONSTART"); }
-        };
-
-        spyOn(Spies, 'onstart');
-
-        // SET ON START CALLBACK
-        Session.onStart(Spies.onstart);
-
-        Session.start();
-
-        expect(Spies.onstart).not.toHaveBeenCalled();
-        initProm.then(function(){
-            expect(Spies.onstart).toHaveBeenCalled();
-            done();
-        }).catch(function(reason){
-            console.log("FAIL", reason);
+        Session.init({}).then(function(){
+            expect(Session.isInitialized()).toEqual(true);
+            expect(menuOpen).toHaveBeenCalled();           
             done();
         });
     });
 
-    it("Sessions are started, but can't be started two times", function(done){
-        Session.init({});
-
-        var request = jasmine.Ajax.requests.mostRecent();
-
-        request.respondWith({
-            status: 200, 
-            contentType: 'application/json',
-            response: { test: 'Session' },
-            readyState: 4
+    it("Session: should be started correctly", function(done){
+        // Mocking modules into session
+        Session.setMock("Stargate", StargateMock);
+        Session.setMock("Menu", MenuMock);
+        Session.setMock("VHost", {
+            load:function(){return Promise.resolve(true)},
+            get:function(key){
+                return vHostMock[key];
+            }
+        });
+        Session.setMock("User", {
+            fetch:function(){return Promise.resolve(true)},
+            loadData:function(){return Promise.resolve(true)}
+        });
+        Session.setMock("GameInfo", {
+            fetch:function(){return Promise.resolve(true)},
+            getContentId:function(){
+                return GameInfoMock.game_info.contentId;
+            }
         });
 
-        expect(typeof Session.getConfig().sessions).toEqual(typeof []);
+        var canDownloadMockURL = window.fakewindow.location.origin + "/ww-it" + Constants.CAN_DOWNLOAD_API_URL;
+        canDownloadMockURL = canDownloadMockURL.replace(":ID", GameInfoMock.game_info.contentId);
+        jasmine.Ajax.stubRequest(canDownloadMockURL).andReturn({            
+            'response': { canDownload:true },            
+            'status': 200,
+            'contentType': 'text/json'                    
+        });
+        
+        expect(Session.getConfig().sessions).toBeDefined();
+        expect(Session.getConfig().sessions.length).toEqual(0);
 
+        Session.onStart(function(){
+            expect(Session.isInitialized()).toEqual(true);            
+            expect(Session.getConfig().sessions.length).toEqual(1);
+            
+            expect(Session.getConfig().sessions[0].startTime).toBeDefined();            
+            done();
+        });
+
+        Session.init({lite: true});
         Session.start();
 
-        expect(Session.getConfig().sessions.length).toEqual(1);
+    });
 
-        var errorStartSession;
-        try {
-            Session.start();
-        } catch (e){
-            errorStartSession = e;
-        }
+    it("Session is started, but cannot start two times", function(done){
+        var canDownloadMockURL = window.fakewindow.location.origin + "/ww-it" + Constants.CAN_DOWNLOAD_API_URL;
+        canDownloadMockURL = canDownloadMockURL.replace(":ID", GameInfoMock.game_info.contentId);
+        console.log("CAN_DOWNLOAD_API_URL MOCK ", canDownloadMockURL);
+        jasmine.Ajax.stubRequest(canDownloadMockURL).andReturn({            
+            'response': JSON.stringify({ canDownload:true }),            
+            'status': 200,
+            'contentType': 'text/json'                    
+        });
+        // Mocking modules into session
+        Session.setMock("VHost", {
+            load:function(){return Promise.resolve(true)},
+            get:function(key){
+                return vHostMock[key];
+            }
+        });
+        Session.setMock("User", {
+            fetch:function(){return Promise.resolve(true)},
+            loadData:function(){return Promise.resolve(true)}
+        });
+        Session.setMock("GameInfo", {
+            fetch:function(){return Promise.resolve(true)},
+            getContentId:function(){                              
+                return GameInfoMock.game_info.contentId;
+            }
+        });
 
-        expect(errorStartSession).toEqual(Constants.ERROR_SESSION_ALREADY_STARTED);
-        done();
+        Session.onStart(function(){
+            console.log("onStart");
+        }); 
+
+        Session.init();
+        Session.start();
+        setTimeout(function(){
+            try{
+                Session.start();
+            } catch(e){                
+                expect(e).toEqual(Constants.ERROR_SESSION_ALREADY_STARTED);
+            }
+            
+            expect(Session.getConfig().sessions.length).toEqual(1);
+            done();
+        }, 100);
     });
 
     it("Sessions are ended, but can't be ended two times", function(done){
-        Session.init({});
+        // Mocking canDownload url
+        var canDownloadMockURL = window.fakewindow.location.origin + "/ww-it" + Constants.CAN_DOWNLOAD_API_URL;
+        canDownloadMockURL = canDownloadMockURL.replace(":ID", GameInfoMock.game_info.contentId);
 
-        var request = jasmine.Ajax.requests.mostRecent();
-
-        request.respondWith({
-            status: 200, 
-            contentType: 'application/json',
-            response: { test: 'Session' },
-            readyState: 4
+        jasmine.Ajax.stubRequest(canDownloadMockURL).andReturn({            
+            'response': JSON.stringify({ canDownload:true }),            
+            'status': 200,
+            'contentType': 'text/json'                    
         });
+
+        // Mocking modules into session
+        Session.setMock("VHost", {
+            load:function(){return Promise.resolve(true)},
+            get:function(key){
+                return vHostMock[key];
+            }
+        });
+        Session.setMock("User", {
+            fetch:function(){return Promise.resolve(true)},
+            loadData:function(){return Promise.resolve(true)}
+        });
+        Session.setMock("GameInfo", {
+            fetch:function(){return Promise.resolve(true)},
+            getContentId:function(){                              
+                return GameInfoMock.game_info.contentId;
+            }
+        });
+        
+        Session.init();
 
         Session.start();
         expect(Session.getConfig().sessions[0].endTime).toBeUndefined();
@@ -148,38 +232,27 @@ describe("Session",function(){
         try {
             Session.start();
         } catch (e){
+            errorStartSession = e;
+        }
+        expect(errorStartSession).toEqual(Constants.ERROR_SESSION_INIT_NOT_CALLED);
+        done();
+    });
+
+    it("Session cannot be ended before init was called", function(){
+
+        var errorEndSession;
+        try {
+            Session.end({});
+        } catch (e){
             errorEndSession = e;
         }
 
-        expect(errorEndSession).toEqual(Constants.ERROR_SESSION_INIT_NOT_CALLED);
-        done();
+        expect(errorEndSession).toEqual(Constants.ERROR_SESSION_INIT_NOT_CALLED);        
     });
 
     it("Session cannot be ended before init", function(done){
 
-        var errorStartSession;
-        try {
-            Session.end({});
-        } catch (e){
-            errorEndSession = e;
-        }
-
-        expect(errorEndSession).toEqual(Constants.ERROR_SESSION_NO_SESSION_STARTED);
-        done();
-    });
-
-    it("Session cannot be ended before being started", function(done){
-
-        Session.init({});
-
-        var request = jasmine.Ajax.requests.mostRecent();
-
-        request.respondWith({
-            status: 200, 
-            contentType: 'application/json',
-            response: { test: 'Session' },
-            readyState: 4
-        });
+        Session.init();
 
         var errorEndSession;
         try {
@@ -192,65 +265,92 @@ describe("Session",function(){
         done();
     });
 
-    it("Score type check", function(done){
+    it("Score type check:string should error", function(done){
+        // Mocking canDownload url
+        var canDownloadMockURL = window.fakewindow.location.origin + "/ww-it" + Constants.CAN_DOWNLOAD_API_URL;
+        canDownloadMockURL = canDownloadMockURL.replace(":ID", GameInfoMock.game_info.contentId);
 
-        Session.init({});
-
-        var request = jasmine.Ajax.requests.mostRecent();
-
-        request.respondWith({
-            status: 200, 
-            contentType: 'application/json',
-            response: { test: 'Session' },
-            readyState: 4
+        jasmine.Ajax.stubRequest(canDownloadMockURL).andReturn({            
+            'response': JSON.stringify({ canDownload:true }),            
+            'status': 200,
+            'contentType': 'text/json'                    
         });
 
+        // Mocking modules into session
+        Session.setMock("VHost", {
+            load:function(){return Promise.resolve(true)},
+            get:function(key){
+                return vHostMock[key];
+            }
+        });
+        Session.setMock("User", {
+            fetch:function(){return Promise.resolve(true)},
+            loadData:function(){return Promise.resolve(true)}
+        });
+        Session.setMock("GameInfo", {
+            fetch:function(){return Promise.resolve(true)},
+            getContentId:function(){                              
+                return GameInfoMock.game_info.contentId;
+            }
+        });
+
+        Session.onStart(function(){
+            done();
+        });
+        Session.init({});
+
         Session.start();
-
-        Session.end({score: 10});
-
-        // no exceptions expected
-
-        /** CASE STRING **/
-
-        Session.start();
-
-        var errorEndSession;
-        try {
+        try{
             Session.end({score: '10'});
-        } catch (e){
-            errorEndSession = e;
+        } catch(e){
+            expect(e).toEqual(Constants.ERROR_SCORE_TYPE + typeof '');
         }
-
-        expect(errorEndSession).toEqual(Constants.ERROR_SCORE_TYPE + 'string');
-
-        /** CASE BOOLEAN **/
-
-        Session.start();
-
-        var errorEndSession;
-        try {
-            Session.end({score: true});
-        } catch (e){
-            errorEndSession = e;
-        }
-
-        expect(errorEndSession).toEqual(Constants.ERROR_SCORE_TYPE + 'boolean');
-
-        /** CASE NULL **/ 
-
-        Session.start();
-
-        var errorEndSession;
-        try {
-            Session.end({score: null});
-        } catch (e){
-            errorEndSession = e;
-        }
-
-        expect(errorEndSession).toEqual(Constants.ERROR_SCORE_TYPE + 'object');
-
-        done();
+        
     });
 
+    it("Score type check:number should be ok", function(done){
+        // Mocking canDownload url
+        var canDownloadMockURL = window.fakewindow.location.origin + "/ww-it" + Constants.CAN_DOWNLOAD_API_URL;
+        canDownloadMockURL = canDownloadMockURL.replace(":ID", GameInfoMock.game_info.contentId);
+
+        jasmine.Ajax.stubRequest(canDownloadMockURL).andReturn({            
+            'response': JSON.stringify({ canDownload:true }),            
+            'status': 200,
+            'contentType': 'text/json'                    
+        });
+
+        // Mocking modules into session
+        Session.setMock("VHost", {
+            load:function(){return Promise.resolve(true)},
+            get:function(key){
+                return vHostMock[key];
+            }
+        });
+        Session.setMock("User", {
+            fetch:function(){return Promise.resolve(true)},
+            loadData:function(){return Promise.resolve(true)}
+        });        
+        Session.setMock("GameInfo", {
+            fetch:function(){return Promise.resolve(true)},
+            getContentId:function(){                              
+                return GameInfoMock.game_info.contentId;
+            }
+        });
+
+        var error;
+        Session.onStart(function(){            
+            expect(error).toBeUndefined();
+            expect(Session.getConfig().sessions[0].score).toEqual(10);
+            done();
+        });
+
+        Session.init({});
+        Session.start();
+        
+        try{
+            Session.end({score: 10});
+        } catch(e){
+            error = e;
+        }
+    });    
 });

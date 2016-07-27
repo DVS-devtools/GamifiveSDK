@@ -3,7 +3,6 @@ var GA        = require('../ga/ga');
 var Location  = require('../location/location');
 var Logger    = require('../logger/logger');
 var Newton    = require('../newton/newton');
-var VHost     = require('../vhost/vhost');
 
 /**
 * Gameplay page menu module (old "more games button")
@@ -23,10 +22,9 @@ var Menu = new function(){
         goToHomeCallback = callback;
     }
 
-    VHost.afterLoad(function(){
-        menuSprite = VHost.get('IMAGES_SPRITE_GAME');
-        menuInstance.show();
-    });
+    this.setSpriteImage = function(base64){
+        menuSprite = base64;
+    }
 
     var applyCurrentStyle = function(){
         if (menuElement){

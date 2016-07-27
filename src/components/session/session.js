@@ -1,3 +1,5 @@
+var Promise   = require('promise-polyfill');
+var API = require('../api/api');
 var Constants = require('../constants/constants');
 var Barrier   = require('../barrier/barrier');
 var DOMUtils  = require('../dom/dom-utils');
@@ -12,7 +14,6 @@ var Network   = require('../network/network');
 var Newton    = require('../newton/newton');
 var User      = require('../user/user');
 var VHost     = require('../vhost/vhost');
-var Promise   = require('promise-polyfill');
 var VarCheck  = require('../varcheck/varcheck'); 
 var Stargate  = require('stargatejs');
 
@@ -26,12 +27,10 @@ var Session = new function(){
     var initPromise;
     var initialized = false;
     var sessionInstance = this;
-
+    var menuIstance;
     var startCallback;
 
     var config;    
-
-    var isInitializing = false;
     var initBarrier = new Barrier('SessionInit', ['VHost.load', 'User.fetch', 'GameInfo.fetch']);
 
     /**
@@ -49,7 +48,10 @@ var Session = new function(){
     * @memberof Session
     */
     this.reset = function(){
-        config = {};
+        initPromise = null;
+        config = {
+            sessions:[]
+        };
     }
     // apply default configuration
     sessionInstance.reset();
@@ -95,16 +97,14 @@ var Session = new function(){
     * @param {Object} params can contain "lite" (boolean) attribute
     */
     this.init = function(params){
-        Logger.info('GamifiveSDK', 'Session', 'init', params);        
-        
-        isInitializing = true;
-        config.sessions = [];
 
         if (!params){
             params = {};
         }
 
-        if (typeof params.lite != 'undefined' && typeof params.lite != 'boolean'){
+        Logger.info('GamifiveSDK', 'Session', 'init', params);
+
+        if (typeof params.lite !== 'undefined' && typeof params.lite !== 'boolean'){
             throw Constants.ERROR_LITE_TYPE + typeof params.lite;
         }
 
@@ -118,42 +118,36 @@ var Session = new function(){
         }
 
         Menu.setGoToHomeCallback = sessionInstance.goToHome;
-
-        /*VHost.afterLoad(function(){
-
-            initBarrier.setComplete('VHost.load');
-            
-            User.fetch(function(){
-                initBarrier.setComplete('User.fetch');
-            });
-
-            GameInfo.fetch(function(){
-                initBarrier.setComplete('GameInfo.fetch');
-            });
-            
-            config.sessions = [];
-        });*/
-
-        // let's dance
-        var sgInit = Stargate.initialize();
-
-        initPromise = VHost.load().then(function(){
-            console.log("VHOST load");            
-
-            return Promise.all([User.fetch(), GameInfo.fetch(), ])
-                .then(function(results){
-                    Logger.info('Init completed', results);
+        
+        // let's dance        
+        initPromise = Stargate.initialize()
+               .then(function(){
+                   return VHost.load();
+               })
+               .then(function(){
+                   
+                    Menu.setSpriteImage(VHost.get('IMAGES_SPRITE_GAME'));
+                    Menu.open();                    
+                    
+                    Logger.info("User.fetch & GameInfo.fetch");                   
+                    return Promise.all([
+                        User.fetch(), 
+                        GameInfo.fetch()
+                    ]);
+               })
+               .then(function(){
+                   return User.loadData(null, true);
+               })
+               .then(function(){
                     initialized = true;
-                    isInitializing = false;
-                }).catch(function(reason){
-                    console.log("Init Catch", reason);
-                    Logger.error(reason);
+                    return true;
+               }).catch(function(reason){
+                    Logger.error("GamifiveSDK init error: ", reason);
                     initialized = false;
-                    isInitializing = false;
                     throw reason;
-                });            
-        });
-        return sgInit.then(initPromise);
+               });               
+
+        return initPromise; 
     }
 
     var getLastSession = function(){
@@ -163,20 +157,80 @@ var Session = new function(){
     /**
     * starts a new gameplay session
     * @function start
+    * @access private
+    * @memberof Session
+    */
+    function __start(){
+        Logger.info('GamifiveSDK', 'Session', 'start');
+        // cut out the older sessions
+        config.sessions = config.sessions.slice(0, Constants.MAX_RECORDED_SESSIONS_NUMBER);
+
+        Menu.hide();
+
+        function doStartSession(){
+            // ADD TRACKING HERE
+            if (typeof startCallback === 'function') {                
+                try {
+                    startCallback();
+                } catch (e){
+                    Logger.error('GamifiveSDK', 'startSession', 'error while trying to start a session', e);
+                    // restore menu, to be able to go back to main page
+                    Menu.show();
+                    // rethrow the error
+                    throw e;
+                }
+            }
+        }
+
+        if (!config.lite){     
+            var urlToCall = API.get('CAN_DOWNLOAD_API_URL')
+                               .replace(":ID", GameInfo.getContentId());                
+            
+            Logger.log('CAN_DOWNLOAD_API_URL', urlToCall);
+            Network.xhr('GET', urlToCall)
+                .then(function(response){
+                    Logger.log('GamifiveSDK', 'Session', 'start', 'can play', response.response);
+                    var canPlay = false;
+                    try {
+                        canPlay = JSON.parse(response.response).canDownload;
+                    } catch(e){
+                        Logger.error('GamifiveSDK', 'Session', 'error parsing response', urlToCall, e);
+                        throw e;
+                    }                    
+                    return canPlay;
+
+                })
+                .then(function(canPlay){
+                    if(canPlay){
+                        // clear dom
+                        DOMUtils.delete();
+                        doStartSession();
+                    } else {
+                        // call gameover API if he can't play
+                        Network.xhr('GET', API.get('GAMEOVER_API_URL')).then(function(resp) {
+                            DOMUtils.create(resp.response);
+                            DOMUtils.show(Constants.PAYWALL_ELEMENT_ID);
+                        });
+                    }
+                });
+        } else {            
+            doStartSession();
+        }
+    }
+
+    /**
+    * starts a new gameplay session
+    * @function start
+    * @access public
     * @memberof Session
     */
     this.start = function(){
-        Logger.info('GamifiveSDK', 'Session', 'start');
-
-        // if init has been called, then config.session will be []
-        if (typeof config.sessions !== typeof []){
+        if (!initPromise){
             throw Constants.ERROR_SESSION_INIT_NOT_CALLED;
         }
-
-        Logger.log('GamifiveSDK', 'Session', 'init has been called correctly');
-
+        
         // if a previous session exists, it must have been ended
-        if (config.sessions.length > 0 && typeof getLastSession().endTime === 'undefined'){
+        if (config.sessions && config.sessions.length > 0 && typeof getLastSession().endTime === 'undefined'){
             throw Constants.ERROR_SESSION_ALREADY_STARTED;
         }
 
@@ -188,49 +242,7 @@ var Session = new function(){
             level: undefined
         });
 
-        // cut out the older sessions
-        config.sessions = config.sessions.slice(0, Constants.MAX_RECORDED_SESSIONS_NUMBER);
-
-        Menu.hide();
-
-        var doStartSession = function(){
-            console.log("doStartSession");
-            initPromise.then(function(){
-                // ADD TRACKING HERE
-                
-                if (typeof startCallback === 'function') {
-                    console.log("START CALLBACK TYPE");
-                    try {
-                        startCallback();
-                    } catch (e){
-                        Logger.error('GamifiveSDK', 'startSession', 'error while trying to start a session', e);
-                        // restore menu, to be able to go back to main page
-                        Menu.show();
-                    }
-                }
-            });
-            
-        }
-
-        if (!config.lite){            
-            Network.xhr('GET', VHost.get('MOA_API_CANDOWNLOAD'), function(resp){
-                Logger.log('GamifiveSDK', 'Session', 'start', 'can play', resp);
-
-                if(VarCheck.get(resp, ['response', 'canDownload'])){
-                    // clear dom
-                    DOMUtils.delete();
-                    doStartSession();
-                } else {
-                    // call gameover API
-                    Network.xhr('GET', VHost.get('MOA_API_GAMEOVER'), function (resp) {
-                        DOMUtils.create(resp.response);
-                        DOMUtils.show(Constants.PAYWALL_ELEMENT_ID);
-                    });
-                }
-            });
-        } else {            
-            doStartSession();
-        }
+        return initPromise.then(__start);
     }
 
     /**
@@ -239,10 +251,10 @@ var Session = new function(){
     * @memberof Session
     * @param {function} callback the function to be called when the game starts
     */
-    this.onStart = function(callback){
-        Logger.info('GamifiveSDK', 'Session', 'onStart');
+    this.onStart = function(callback){       
         
-        if (typeof callback === 'function'){            
+        if (typeof callback === 'function'){
+            Logger.info('GamifiveSDK', 'Session', 'register onStart callback');
             startCallback = callback;
         } else {
             throw Constants.ERROR_ONSTART_CALLBACK_TYPE + typeof callback;
@@ -282,10 +294,13 @@ var Session = new function(){
     this.end = function(data){
         Logger.info('GamifiveSDK', 'Session', 'end', data);
         
+        if (!initPromise){
+            throw Constants.ERROR_SESSION_INIT_NOT_CALLED;
+        }
         // set default object
         data = data ? data : {};
 
-        if (typeof config.sessions !== typeof [] || config.sessions.length < 1){
+        if (config.sessions.length < 1){
             throw Constants.ERROR_SESSION_NO_SESSION_STARTED;
         }
 
@@ -311,6 +326,32 @@ var Session = new function(){
             }
         }
 
+        if(!config.lite){
+            // call gameover API if he can't play
+            Network.xhr('GET', API.get('GAMEOVER_API_URL')).then(function(resp) {
+                DOMUtils.create(resp.response);
+                DOMUtils.show(Constants.PAYWALL_ELEMENT_ID);
+            });
+        } else {
+            /**
+             * var queryParams = {
+				'start': config.timestart,
+				'duration': config.timeend - config.timestart,
+				'score': config.score,
+	      		'newapps': 1,
+	      		'appId': config.contentId,
+	      		'label': config.label,
+	      		'userId': config.userId
+			};
+             
+            Network.xhr('GET', API.get('LEADERBOARD_API_URL')).then(function(resp) {
+                DOMUtils.create(resp.response);
+                DOMUtils.show(Constants.PAYWALL_ELEMENT_ID);
+            });
+            * 
+            */
+        }
+
         Menu.show();
     }
 
@@ -321,13 +362,73 @@ var Session = new function(){
     */
     this.goToHome = function(){
         Logger.info('GamifiveSDK', 'Session', 'goToHome');
-        window.location.href = Location.getOrigin();
         if (Stargate.isHybrid()){
-            if (Stargate.checkConnection().networkState === "offline") {
+            if (Stargate.checkConnection().type === "offline") {
                 Stargate.goToLocalIndex();
             } else {
-                Stargate.goToWeblIndex();
-            }            
+                Stargate.goToWebIndex();
+            }
+        } else {
+            window.location.href = Location.getOrigin();
+        }
+    }
+
+    if (process.env.NODE_ENV === "testing"){
+        var original = {
+            Stargate:null,
+            User:null,
+            VHost:null,
+            GameInfo:null,
+            Menu:null
+        };
+
+        this.setMock = function(what, mock){            
+            switch(what){
+                case "User":
+                    original.User = require('../user/user');;
+                    User = mock;
+                    break;
+                case "Stargate":
+                    original.Stargate = require('stargatejs');;
+                    Stargate = mock;
+                    break;
+                case "VHost":
+                    original.VHost = require('../vhost/vhost');
+                    VHost = mock;
+                    break;
+                case "GameInfo":
+                    original.GameInfo = require('../game_info/game_info');
+                    GameInfo = mock
+                    break;
+                case "Menu":
+                    original.Menu = require('../menu/menu');
+                    Menu = mock;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        this.unsetMock = function(what){
+            if (!original[what]) return;
+            switch(what){
+                case "User":
+                    User = original.User;
+                    break;
+                case "Stargate":
+                    Stargate = original.Stargate;
+                    break;
+                case "VHost":
+                    VHost =  original.VHost;
+                case "GameInfo":
+                    GameInfo = original.GameInfo
+                    break;
+                case "Menu":
+                    Menu = original.Menu;
+                    break;
+                default:
+                    break;
+            }
         }
     }
 

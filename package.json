@@ -11,10 +11,12 @@
     "vhost:keys": "sh compile_vhost.sh",
     "docs": "rm out -rf && node_modules/.bin/jsdoc src/components -r",
     "build": "npm run build:web && npm run minify",
-    "build:web": "npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk.js -s GamifiveSDK",
-    "minify": "uglifyjs dist/gfsdk.js --compress --source-map dist/gfsdk.min.js.map --output dist/gfsdk.min.js",
-    "test:develop": "karma start",
-    "test": "karma start --no-auto-watch --single-run"
+    "build:dev": "export NODE_ENV=testing && npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk.js -s GamifiveSDK && npm run minify",
+    "build:prod": "export NODE_ENV=production && npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk.js -s GamifiveSDK && npm run minify",
+    "minify": "uglifyjs dist/gfsdk.js --compress --mangle --dead-code  --source-map dist/gfsdk.min.js.map --output dist/gfsdk.min.js",
+    "test:develop": "export NODE_ENV=testing && npm run vhost:keys && karma start",
+    "test": "export NODE_ENV=testing && npm run vhost:keys && karma start --no-auto-watch --single-run",
+    "upload":"scp -r dist/* super@192.168.124.3:/dadanet2/webstore2/htdocs/test/fabiof/sdk_integration_test/c2701133414427fee732e051abdfe3e8"
   },
   "devDependencies": {
     "babel-plugin-add-module-exports": "^0.2.1",
@@ -26,6 +28,7 @@
     "browserify-istanbul": "^2.0.0",
     "catharsis": "^0.8.7",
     "coveralls": "^2.11.9",
+    "envify": "^3.4.1",
     "istanbul": "^0.4.3",
     "jasmine-ajax": "^3.2.0",
     "jasmine-core": "^2.4.1",
@@ -54,6 +57,9 @@
     "http-francis": "^0.1.4",
     "newton-adapter": "^1.3.0",
     "promise-polyfill": "^5.0.0",
-    "stargatejs": "^0.1.3"
+    "stargatejs": "^0.1.6"
+  },
+  "browserify": {
+    "transform": ["envify"]
   }
 }

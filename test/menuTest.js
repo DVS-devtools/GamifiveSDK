@@ -1,4 +1,4 @@
-var VHost = require("../src/components/vhost/vhost");
+var VHostResponseMock = require("./mocks/vHost");
 var Menu, menuElement;
 
 require('jasmine-ajax');
@@ -6,125 +6,72 @@ require('jasmine-ajax');
 describe("Menu",function(){    
 
     beforeEach(function() {
-        jasmine.Ajax.install();
-        VHost.reset();
+        jasmine.Ajax.install();        
         Menu = require("../src/components/menu/menu");
     });
 
     afterEach(function(){
         jasmine.Ajax.uninstall();
-        delete Menu;
-        delete menuElement;
+        Menu = null;
+        menuElement = null;
     });
 
     it('show and hide work', function(done){
-        VHost.afterLoad(function(){
+        
+        Menu.setSpriteImage(VHostResponseMock.IMAGES_SPRITE_GAME);           
             
-            Menu.show();
+        Menu.show();
 
-            menuElement = document.getElementById('gfsdk-more-games');
-        
-            expect(menuElement.style.display).toBe('block');
+        menuElement = document.getElementById('gfsdk-more-games');
+    
+        expect(menuElement.style.display).toBe('block');
 
-            Menu.hide();
-        
-            expect(menuElement.style.display).toBe('none');
-            done();
+        Menu.hide();
+    
+        expect(menuElement.style.display).toBe('none');
+        done();
 
-        });
-
-        VHost.load();
-
-        var request = jasmine.Ajax.requests.mostRecent();
-
-        request.respondWith({
-            status: 200, 
-            contentType: 'application/json',
-            response: { MORE_GAMES_BUTTON_SPRITE: 'moreGamesSpriteTestValue' },
-            readyState: 4
-        });
     });
 
     it('set custom style before showing the button', function(done){
-        VHost.afterLoad(function(){
-            
-            Menu.setCustomStyle({top: '47px'});
-
-            Menu.show();
-
-            menuElement = document.getElementById('gfsdk-more-games');
         
-            expect(menuElement.style.top).toBe('47px');
-            done();
+        Menu.setCustomStyle({top: '47px'});
 
-        });
+        Menu.show();
 
-        VHost.load();
-
-        var request = jasmine.Ajax.requests.mostRecent();
-
-        request.respondWith({
-            status: 200, 
-            contentType: 'application/json',
-            response: { MORE_GAMES_BUTTON_SPRITE: 'moreGamesSpriteTestValue' },
-            readyState: 4
-        });
+        menuElement = document.getElementById('gfsdk-more-games');
+    
+        expect(menuElement.style.top).toBe('47px');
+        done();
     });
 
     it('set custom style after showing the button', function(done){
-        VHost.afterLoad(function(){
-            Menu.show();
 
-            Menu.setCustomStyle({top: '14px'});
+        Menu.show();
 
-            menuElement = document.getElementById('gfsdk-more-games');
-        
-            expect(menuElement.style.top).toEqual('14px');
+        Menu.setCustomStyle({top: '14px'});
 
-            done();
+        menuElement = document.getElementById('gfsdk-more-games');
+    
+        expect(menuElement.style.top).toEqual('14px');
 
-        });
-
-        VHost.load();
-
-        var request = jasmine.Ajax.requests.mostRecent();
-
-        request.respondWith({
-            status: 200, 
-            contentType: 'application/json',
-            response: { MORE_GAMES_BUTTON_SPRITE: 'moreGamesSpriteTestValue' },
-            readyState: 4
-        });
+        done();
     });
 
     it('reset style after showing the menu', function(done){
-        VHost.afterLoad(function(){
             
-            Menu.show();
+        Menu.show();
 
-            Menu.setCustomStyle({top: '7px', 'background-image': 'anotherImage'});
+        Menu.setCustomStyle({top: '7px', 'background-image': 'anotherImage'});
 
-            menuElement = document.getElementById('gfsdk-more-games');
+        menuElement = document.getElementById('gfsdk-more-games');
 
-            Menu.resetStyle();
-            
-            expect(menuElement.style['top']).toEqual('50%');
-            expect(menuElement.style['background-image']).not.toEqual('anotherImage');
+        Menu.resetStyle();
+        
+        expect(menuElement.style['top']).toEqual('50%');
+        expect(menuElement.style['background-image']).not.toEqual('anotherImage');
 
-            done();
-            
-        });
-
-        VHost.load();
-
-        var request = jasmine.Ajax.requests.mostRecent();
-
-        request.respondWith({
-            status: 200, 
-            contentType: 'application/json',
-            response: { MORE_GAMES_BUTTON_SPRITE: 'moreGamesSpriteTestValue' },
-            readyState: 4
-        });
+        done();   
     });
 
 });
