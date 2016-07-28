@@ -43,6 +43,8 @@ var Location = new function(){
         // Logger.log(isGameasyMatch);
         if (isGameasyMatch !== null){
             gameasyCountryCode = isGameasyMatch[1];
+            // if we are in testing integration mode we need this for url composition
+            gameasyCountryCode = gameasyCountryCode === 'test' ? 'ww-it' : gameasyCountryCode;
         }
 
         toJoin.push(theWindow.location.origin);

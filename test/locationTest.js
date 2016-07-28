@@ -61,6 +61,35 @@ describe("Location test", function(){
         var expected = window.fakewindow.location.protocol + "//" + window.fakewindow.location.hostname + "/ww-it";
 
         expect(Location.getOrigin()).toEqual(expected);
-    })
+    });
 
+    it("Location getOrigin should work when pattern is testing url", function(){
+        window.fakewindow = {
+            location:{
+                origin:null, 
+                hostname:"www.gameasy.com", 
+                port:"", 
+                protocol:"http:", 
+                href:"http://www.gameasy.com/test/fabiof/sdk_integration_test/c2701133414427fee732e051abdfe3e8/index.html"
+            }
+        }
+        var expected = window.fakewindow.location.protocol + "//" + window.fakewindow.location.hostname + "/ww-it";
+
+        expect(Location.getOrigin()).toEqual(expected);
+    });
+
+    it("Location getOrigin should work when pattern is testing url for gamifive", function(){
+        window.fakewindow = {
+            location:{
+                origin:null, 
+                hostname:"www.gamifive.it", 
+                port:"", 
+                protocol:"http:", 
+                href:"http://www.gamifive.it/test/fabiof/sdk_integration_test/c2701133414427fee732e051abdfe3e8/index.html"
+            }
+        }
+        var expected = window.fakewindow.location.protocol + "//" + window.fakewindow.location.hostname;
+
+        expect(Location.getOrigin()).toEqual(expected);
+    });
 });
