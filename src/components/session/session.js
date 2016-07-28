@@ -16,6 +16,11 @@ var User      = require('../user/user');
 var VHost     = require('../vhost/vhost');
 var VarCheck  = require('../varcheck/varcheck'); 
 var Stargate  = require('stargatejs');
+/**
+ * Utils is the same of stargate
+ * TODO: make a package.json and share as dep with stargate
+ */
+var Utils     = require('../utils/utils');
 
 /**
 * Session module
@@ -207,7 +212,10 @@ var Session = new function(){
                         doStartSession();
                     } else {
                         // call gameover API if he can't play
-                        Network.xhr('GET', API.get('GAMEOVER_API_URL')).then(function(resp) {
+                        var url = [API.get('GAMEOVER_API_URL'), GameInfo.getContentId()].join("/");
+                        
+                        Logger.log("Gameover ", url);
+                        Network.xhr('GET', url).then(function(resp) {
                             DOMUtils.create(resp.response);
                             DOMUtils.show(Constants.PAYWALL_ELEMENT_ID);
                         });
@@ -326,30 +334,49 @@ var Session = new function(){
             }
         }
 
-        if(!config.lite){
-            // call gameover API if he can't play
-            Network.xhr('GET', API.get('GAMEOVER_API_URL')).then(function(resp) {
-                DOMUtils.create(resp.response);
-                DOMUtils.show(Constants.PAYWALL_ELEMENT_ID);
-            });
-        } else {
-            /**
-             * var queryParams = {
-				'start': config.timestart,
-				'duration': config.timeend - config.timestart,
-				'score': config.score,
+        var lastSession = getLastSession();
+        if(config.lite){
+            // call only leaderboard
+            var leaderboardParams = {
+				'start': lastSession.startTime.getTime(),
+				'duration': lastSession.endTime - lastSession.startTime,
+				'score': lastSession.score,
 	      		'newapps': 1,
-	      		'appId': config.contentId,
-	      		'label': config.label,
-	      		'userId': config.userId
+	      		'appId': GameInfo.getContentId(),
+	      		'label': GameInfo.getInfo().label,
+	      		'userId': User.getUserId()
 			};
-             
-            Network.xhr('GET', API.get('LEADERBOARD_API_URL')).then(function(resp) {
+
+			if (typeof lastSession.level !== 'undefined'){
+				leaderboardParams.level = lastSession.level;
+			}            
+           
+            var leaderboardCallUrl = API.get('LEADERBOARD_API_URL');
+            leaderboardCallUrl = Utils.queryfy(leaderboardCallUrl, leaderboardParams);
+            
+            Logger.log("Leaderboard ", leaderboardCallUrl);
+            
+            // TODO: callback when finished here?
+            Network.xhr('GET', leaderboardCallUrl);
+
+        } else {           
+            // call gameover
+            var url = [API.get('GAMEOVER_API_URL'), GameInfo.getContentId()].join("/");
+            var gameoverParams = {
+                start: lastSession.startTime.getTime(),
+                duration: lastSession.endTime - lastSession.startTime,
+                score: lastSession.score || 'null'                           
+            };
+
+            if(lastSession.level){
+                gameoverParams.level = lastSession.level;
+            }
+
+            url = Utils.queryfy(url, gameoverParams);
+            Logger.log("Gameover ", url);
+            Network.xhr('GET', url).then(function(resp) {
                 DOMUtils.create(resp.response);
-                DOMUtils.show(Constants.PAYWALL_ELEMENT_ID);
             });
-            * 
-            */
         }
 
         Menu.show();

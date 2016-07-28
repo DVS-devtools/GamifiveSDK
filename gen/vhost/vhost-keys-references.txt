@@ -1,4 +1,4 @@
-src/components/session/session.js:129:IMAGES_SPRITE_GAME
+src/components/session/session.js:130:IMAGES_SPRITE_GAME
 src/components/user/user.js:127:MOA_API_APPLICATION_OBJECTS_SET
 src/components/user/user.js:188:MOA_API_APPLICATION_OBJECTS_GET
 src/components/user/user.js:62:MOA_API_USER_CHECK
