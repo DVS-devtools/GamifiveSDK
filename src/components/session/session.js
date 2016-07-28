@@ -127,7 +127,7 @@ var Session = new function(){
                .then(function(){
                    
                     Menu.setSpriteImage(VHost.get('IMAGES_SPRITE_GAME'));
-                    Menu.open();                    
+                    Menu.show();                    
                     
                     Logger.info("User.fetch & GameInfo.fetch");                   
                     return Promise.all([

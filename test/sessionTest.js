@@ -50,8 +50,8 @@ describe("Session",function(){
     
     it("Session: isInitialized return true after init", function(done){
         // Mocking modules into session
-        var menuOpen = jasmine.createSpy("menuopen");
-        MenuMock.open = menuOpen;
+        var menuShow = jasmine.createSpy("menushow");
+        MenuMock.show = menuShow;
 
         Session.setMock("Stargate", StargateMock);
         Session.setMock("Menu", MenuMock);
@@ -82,7 +82,7 @@ describe("Session",function(){
 
         Session.init({}).then(function(){
             expect(Session.isInitialized()).toEqual(true);
-            expect(menuOpen).toHaveBeenCalled();           
+            expect(menuShow).toHaveBeenCalled();           
             done();
         });
     });
