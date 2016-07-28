@@ -1,8 +1,8 @@
-
-var Logger   = require('../logger/logger');
-var Newton   = require('../newton/newton');
-var GA       = require('../ga/ga');
-var Location = require('../location/location');
+var Constants = require('../constants/constants');
+var GA        = require('../ga/ga');
+var Location  = require('../location/location');
+var Logger    = require('../logger/logger');
+var Newton    = require('../newton/newton');
 
 /**
 * Facebook module
@@ -17,7 +17,7 @@ var Facebook = new function(){
     var config;
 
     /**
-    * returns true iff the Facebook sdk has been successfully downloaded and initialized
+    * returns true if the Facebook sdk has been successfully downloaded and initialized
     * @function isInitialized
     * @memberof Facebook
     */
@@ -32,7 +32,7 @@ var Facebook = new function(){
     */
     this.reset = function(){
         config = {
-            fbVersion: "2.4"
+            fbVersion: Constants.FB_SDK_VERSION
         }
     }
     facebookInstance.reset();
@@ -42,23 +42,15 @@ var Facebook = new function(){
     * @function init
     * @memberof Facebook
     */
+    var i = 0;
     this.init = function(params){
         Logger.log('GamifiveSDK', 'Facebook', 'init', params);
         for (var key in params){
             config[key] = params[key];
         }
-
-
-        if (parseInt(localStorage.getItem('hybrid')) !== 1 && !config.noDownload){
-            var d = document, s = 'script', id = 'facebook-jssdk';
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) return;
-            js = d.createElement(s); js.id = id;
-            js.src = "http://connect.facebook.net/en_US/sdk.js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }
-
-        window.fbAsyncInit = function() {
+        
+         window.fbAsyncInit = function() {
+            i++;
             if (typeof FB === 'undefined') {
                 Logger.error('GamifiveSDK', 'Facebook', 'init', 'cannot download fb sdk');
             } else {
@@ -66,12 +58,23 @@ var Facebook = new function(){
                     appId      : config.fbAppId,
                     cookie     : true,    // enable cookies to allow the server to access
                     xfbml      : false,   // parse social plugins on this page
-                    version    : params.fbVersion   
+                    version    : config.fbVersion   
                 });
             }
-
+            console.log(i);
             initialized = true;
         };
+
+        if (parseInt(localStorage.getItem('hybrid')) !== 1){
+            var d = document, s = 'script', id = 'facebook-jssdk';
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = window.location.protocol + "//" + Constants.FB_SDK_URL;
+            Logger.log("Getting facebook sdk", js.src)
+            fjs.parentNode.insertBefore(js, fjs);
+        }
+       
         Logger.log('GamifiveSDK', 'Facebook', 'defined fbAsyncInit', window.fbAsyncInit);
 
     }
@@ -125,8 +128,7 @@ var Facebook = new function(){
 				'&redirect_uri=' + Location.getOrigin()
 			].join('');
 			window.open(targetUrl, '_parent'); 
-		}
-		else {
+		} else {
             var shareParams = {
                 method: 'send',
                 display: 'iframe',

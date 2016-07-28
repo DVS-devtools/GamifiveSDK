@@ -1,8 +1,8 @@
-var Logger  = require('../logger/logger');
-var Newton  = require('../newton/newton');
-var GA      = require('../ga/ga');
-var VHost   = require('../vhost/vhost');
-var Location = require('../location/location');
+var Constants = require('../constants/constants');
+var GA        = require('../ga/ga');
+var Location  = require('../location/location');
+var Logger    = require('../logger/logger');
+var Newton    = require('../newton/newton');
 
 /**
 * Gameplay page menu module (old "more games button")
@@ -16,20 +16,32 @@ var Menu = new function(){
     var menuElement;
     var menuStyle;
     var menuSprite;
+    var goToHomeCallback;
 
-    var goToHomeCallback = function(){
-        window.location.href = Location.getOrigin();
+    this.setGoToHomeCallback = function(callback){
+        goToHomeCallback = callback;
     }
 
-    VHost.afterLoad(function(){
+    this.setSpriteImage = function(base64){
+        menuSprite = base64;
+    }
 
-        if (typeof moreGamesButtonSprite === 'undefined'){
-            menuSprite = VHost.get('MORE_GAMES_BUTTON_SPRITE');
-        } else {
-            menuSprite = moreGamesButtonSprite;
+    var applyCurrentStyle = function(){
+        if (menuElement){
+            for (var key in menuStyle){
+                menuElement.style[key] = menuStyle[key];
+            }
         }
+    }
 
-    });
+    var setDefaultStyle = function(){
+        menuStyle = {};
+        
+        var defaultStyle = Constants.DEFAULT_MENU_STYLE;
+        for (var key in defaultStyle){
+            menuStyle[key] = defaultStyle[key];
+        }
+    }
 
     /**
     * resets the style of the menu to its default value
@@ -37,16 +49,8 @@ var Menu = new function(){
     * @memberof Menu
     */
     this.resetStyle = function(){
-        menuStyle = {};
-        menuStyle.left = '2px' ;
-        menuStyle.height = '44px';
-        menuStyle['background-position'] = '-22px -428px';
-        menuStyle.top = '50%';
-        menuStyle['margin-top'] = '-22px';
-        menuStyle['z-index'] = "9";
-        menuStyle.width = '43px';
-        menuStyle.position = 'absolute';
-        menuStyle['background-image'] = 'url(' + menuSprite + ')';
+        setDefaultStyle();
+        applyCurrentStyle();
     }
 
     /**
@@ -55,15 +59,16 @@ var Menu = new function(){
     * @memberof Menu
     */
     this.setCustomStyle = function(customStyle){
-        if (!menuStyle){
-            menuInstance.resetStyle();
-        }
         // override menu style
         if (customStyle){
             for (var key in customStyle){
-                menuStyle[key] = customStyle[key];
-            }   
+                if (Constants.IMMUTABLE_MENU_STYLE_PROPERTIES.indexOf(key) < 0){
+                    menuStyle[key] = customStyle[key];
+                }
+            }
         }
+
+        applyCurrentStyle();
     }
 
     /**
@@ -73,6 +78,15 @@ var Menu = new function(){
     */
     this.show = function(customStyle){
         Logger.info('GamifiveSDK', 'Menu', 'show', customStyle);
+
+        if (!menuStyle){
+            // create default
+            setDefaultStyle();
+        }
+
+        if (!!menuSprite){
+            menuStyle['background-image'] = 'url(\'' + menuSprite + '\')';
+        }
 
         // create DOM element if it doesn't exist
         if (!menuElement){
@@ -84,12 +98,6 @@ var Menu = new function(){
         }
 
         menuInstance.setCustomStyle(customStyle);
-
-        // apply menu style to element
-        for (var key in menuStyle){
-            menuElement.style[key] = menuStyle[key];
-        }
-
         menuElement.style.display = 'block';
     }
 

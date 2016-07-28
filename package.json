@@ -8,21 +8,27 @@
     "url": "git@github.com:BuongiornoMIP/GamifiveSDK.git"
   },
   "scripts": {
+    "vhost:keys": "sh compile_vhost.sh",
     "docs": "rm out -rf && node_modules/.bin/jsdoc src/components -r",
-    "build:web": "browserify src/builders/build_web.js -o dist/gfsdk_web.js -s GamifiveSDK",
-    "build:debug": "browserify src/builders/build_debug.js -o dist/gfsdk_debug.js -s GamifiveSDK",
-    "build:hybrid": "browserify src/builders/build_hybrid.js -o dist/gfsdk_hybrid.js -s GamifiveSDK",
-    "build:offline": "browserify src/builders/build_offline.js -o dist/gfsdk_offline.js -s GamifiveSDK",
-    "build:offlineutils": "browserify src/builders/build_offline_utils.js -o dist/gfsdk_offline_utils.js -s GamifiveSDK",
-    "test:develop": "karma start",
-    "test": "karma start --no-auto-watch --browsers PhantomJS --single-run"
+    "build": "npm run build:web && npm run minify",
+    "build:dev": "export NODE_ENV=testing && npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk.js -s GamifiveSDK && npm run minify",
+    "build:prod": "export NODE_ENV=production && npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk.js -s GamifiveSDK && npm run minify",
+    "minify": "uglifyjs dist/gfsdk.js --compress --mangle --dead-code  --source-map dist/gfsdk.min.js.map --output dist/gfsdk.min.js",
+    "test:develop": "export NODE_ENV=testing && npm run vhost:keys && karma start",
+    "test": "export NODE_ENV=testing && npm run vhost:keys && karma start --no-auto-watch --single-run",
+    "upload":"scp -r dist/* super@192.168.124.3:/dadanet2/webstore2/htdocs/test/fabiof/sdk_integration_test/c2701133414427fee732e051abdfe3e8"
   },
   "devDependencies": {
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-stage-0": "^6.5.0",
+    "babelify": "^7.3.0",
     "bower": "^1.7.9",
     "browserify": "^13.0.0",
     "browserify-istanbul": "^2.0.0",
     "catharsis": "^0.8.7",
     "coveralls": "^2.11.9",
+    "envify": "^3.4.1",
     "istanbul": "^0.4.3",
     "jasmine-ajax": "^3.2.0",
     "jasmine-core": "^2.4.1",
@@ -46,5 +52,14 @@
     "phantomjs-prebuilt": "^2.1.7",
     "taffydb": "^2.7.2",
     "watchify": "^3.7.0"
+  },
+  "dependencies": {
+    "http-francis": "^0.1.4",
+    "newton-adapter": "^1.3.0",
+    "promise-polyfill": "^5.0.0",
+    "stargatejs": "^0.1.6"
+  },
+  "browserify": {
+    "transform": ["envify"]
   }
 }

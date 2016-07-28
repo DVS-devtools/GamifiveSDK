@@ -1,4 +1,3 @@
-
 var addRetroInterface = function(build){
 
     build.showMoreGamesButton = build.Menu.show;
@@ -13,6 +12,9 @@ var addRetroInterface = function(build){
         var toReturn = build.Session.getConfig();
         toReturn.user = build.User.getInfo();
         toReturn.game = build.GameInfo.getInfo();
+        if (process.env.NODE_ENV !== "production") {
+            toReturn._vhost = require('../components/vhost/vhost');
+        }
         return toReturn;
     }
     
