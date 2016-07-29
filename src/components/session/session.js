@@ -130,7 +130,7 @@ var Session = new function(){
                    return VHost.load();
                })
                .then(function(){
-                   
+
                     Menu.setSpriteImage(VHost.get('IMAGES_SPRITE_GAME'));
                     Menu.show();                    
                     
@@ -178,7 +178,7 @@ var Session = new function(){
                      *  */
                     initialized = false;
                     throw reason;
-               });               
+               });
 
         return initPromise; 
     }
@@ -204,7 +204,7 @@ var Session = new function(){
             // ADD TRACKING HERE
             NewtonAdapter.trackEvent({name:"GameStart", properties:{}});
             if (typeof startCallback === 'function') {                
-                try {
+                try {                    
                     startCallback();
                 } catch (e){
                     Logger.error('GamifiveSDK', 'startSession', 'error while trying to start a session', e);
@@ -387,11 +387,14 @@ var Session = new function(){
             Logger.log("Leaderboard ", leaderboardCallUrl);
             
             // TODO: callback when finished here?
-            Network.xhr('GET', leaderboardCallUrl);
+            if (Stargate.checkConnection().type === "online"){
+                Network.xhr('GET', leaderboardCallUrl);
+            } else {
+                // saveForLater
+            }            
 
         } else {           
-            // call gameover
-            var url = [API.get('GAMEOVER_API_URL'), GameInfo.getContentId()].join("/");
+            // call gameover            
             var gameoverParams = {
                 start: lastSession.startTime.getTime(),
                 duration: lastSession.endTime - lastSession.startTime,
@@ -400,18 +403,44 @@ var Session = new function(){
 
             if(lastSession.level){
                 gameoverParams.level = lastSession.level;
-            }
-
-            url = Utils.queryfy(url, gameoverParams);
-            Logger.log("Gameover ", url);
-            Network.xhr('GET', url).then(function(resp) {
-                DOMUtils.create(resp.response);
-            });
+            }            
+            
+            gameOver(gameoverParams).then(function(htmlString){
+                DOMUtils.create(htmlString);
+            });            
         }
 
         Menu.show();
     }
 
+    /**
+     * Build the gameover if online or offline hybrid and returns it as a compiled html string
+     * @param {object} gameoverParams
+     * @param {number} gameoverParams.start
+     * @param {number} gameoverParams.duration
+     * @param {number} gameoverParams.score
+     * @param {number} [gameoverParams.level]
+     * @returns {Promise<string>} the html as string gameover
+     */
+    function gameOver(gameoverParams){
+        var url = [API.get('GAMEOVER_API_URL'), GameInfo.getContentId()].join("/");
+        url = Utils.queryfy(url, gameoverParams);
+        Logger.log("Gameover ", url);
+        
+        if (Stargate.checkConnection().type === "online"){
+            return Network.xhr('GET', url).then(function(resp) {
+                if(Stargate.isHybrid()){
+                    gameoverParams.content_id = GameInfo.getContentId();
+                    return Stargate.game.buildGameover(gameoverParams);
+                }
+                return resp.response;
+            });
+        } else if(Stargate.checkConnection().type === "offline" && Stargate.isHybrid()){
+            return Stargate.game.buildGameover(gameoverParams);
+        } else {
+            Logger.log("Fail build gameover, you are offline", Stargate.checkConnection());
+        }
+    }
     /**
     * returns to the main page of the webapp
     * @function goToHome
