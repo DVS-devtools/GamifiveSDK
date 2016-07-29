@@ -425,8 +425,8 @@ var Session = new function(){
     function gameOver(gameoverParams){
         var url = [API.get('GAMEOVER_API_URL'), GameInfo.getContentId()].join("/");
         url = Utils.queryfy(url, gameoverParams);
-        Logger.log("Gameover ", url);
-        
+        Logger.log("Gameover ", url);        
+
         if (Stargate.checkConnection().type === "online"){
             return Network.xhr('GET', url).then(function(resp) {
                 if(Stargate.isHybrid()){
@@ -436,6 +436,7 @@ var Session = new function(){
                 return resp.response;
             });
         } else if(Stargate.checkConnection().type === "offline" && Stargate.isHybrid()){
+            gameoverParams.content_id = GameInfo.getContentId();
             return Stargate.game.buildGameover(gameoverParams);
         } else {
             Logger.log("Fail build gameover, you are offline", Stargate.checkConnection());
