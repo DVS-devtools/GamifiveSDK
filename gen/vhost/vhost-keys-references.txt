@@ -1,4 +1,5 @@
-src/components/session/session.js:130:IMAGES_SPRITE_GAME
-src/components/user/user.js:127:MOA_API_APPLICATION_OBJECTS_SET
-src/components/user/user.js:188:MOA_API_APPLICATION_OBJECTS_GET
-src/components/user/user.js:62:MOA_API_USER_CHECK
+src/components/session/session.js:134:IMAGES_SPRITE_GAME
+src/components/session/session.js:150:NEWTON_SECRETID
+src/components/user/user.js:126:MOA_API_APPLICATION_OBJECTS_SET
+src/components/user/user.js:196:MOA_API_APPLICATION_OBJECTS_GET
+src/components/user/user.js:61:MOA_API_USER_CHECK

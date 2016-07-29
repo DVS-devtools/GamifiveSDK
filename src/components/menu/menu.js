@@ -2,7 +2,6 @@ var Constants = require('../constants/constants');
 var GA        = require('../ga/ga');
 var Location  = require('../location/location');
 var Logger    = require('../logger/logger');
-var Newton    = require('../newton/newton');
 
 /**
 * Gameplay page menu module (old "more games button")

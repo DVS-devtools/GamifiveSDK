@@ -11,7 +11,7 @@ var Location  = require('../location/location');
 var Logger    = require('../logger/logger');
 var Menu      = require('../menu/menu');
 var Network   = require('../network/network');
-var Newton    = require('../newton/newton');
+var NewtonAdapter = require('newton-adapter');
 var User      = require('../user/user');
 var VHost     = require('../vhost/vhost');
 var VarCheck  = require('../varcheck/varcheck'); 
@@ -145,9 +145,37 @@ var Session = new function(){
                })
                .then(function(){
                     initialized = true;
+                    var env = Stargate.isHybrid() ? "hybrid" : "webapp";
+                    NewtonAdapter.init({
+                           secretId: VHost.get('NEWTON_SECRETID'),
+                           enable: true,        // enable newton
+                           waitLogin: false,    // wait for login to have been completed (async)
+                           logger: Logger,
+                           properties: {
+                                environment: env,
+                                white_label_id: GameInfo.getInfo().label
+                           }
+                    });
+                    /**                         
+                    var gameloadEvent = { 
+                        name: 'GameLoad', 
+                        properties:{
+                            action:"Yes",
+                            category:"Play",
+                            game_title:GameInfo.getInfo().game.title,
+                            label: GameInfo.getContentId(),
+                            valuable:"Yes",
+                        }
+                    };
+                    NewtonAdapter.trackEvent(gameLoadEvent);
+                     */
                     return true;
                }).catch(function(reason){
                     Logger.error("GamifiveSDK init error: ", reason);
+                    /**
+                     * TODO:
+                     * do we want to track this?
+                     *  */
                     initialized = false;
                     throw reason;
                });               
@@ -174,6 +202,7 @@ var Session = new function(){
 
         function doStartSession(){
             // ADD TRACKING HERE
+            NewtonAdapter.trackEvent({name:"GameStart", properties:{}});
             if (typeof startCallback === 'function') {                
                 try {
                     startCallback();
@@ -300,6 +329,7 @@ var Session = new function(){
     * @param {Number} data.level - the level
     */
     this.end = function(data){
+        NewtonAdapter.trackEvent({name:"GameEnd", properties:{}});
         Logger.info('GamifiveSDK', 'Session', 'end', data);
         
         if (!initPromise){
@@ -431,6 +461,10 @@ var Session = new function(){
                     original.Menu = require('../menu/menu');
                     Menu = mock;
                     break;
+                case "NewtonAdapter":
+                    original.NewtonAdapter = require('newton-adapter');
+                    NewtonAdapter = mock;
+                    break;
                 default:
                     break;
             }
@@ -441,17 +475,26 @@ var Session = new function(){
             switch(what){
                 case "User":
                     User = original.User;
+                    original.User = null;
                     break;
                 case "Stargate":
                     Stargate = original.Stargate;
+                    original.Stargate = null;
                     break;
                 case "VHost":
                     VHost =  original.VHost;
+                    original.VHost = null;
                 case "GameInfo":
-                    GameInfo = original.GameInfo
+                    GameInfo = original.GameInfo;
+                    original.GameInfo = null;
                     break;
                 case "Menu":
                     Menu = original.Menu;
+                    original.Menu = null;
+                    break;
+                case "NewtonAdapter":
+                    NewtonAdapter = original.NewtonAdapter;
+                    original.NewtonAdapter = null;
                     break;
                 default:
                     break;

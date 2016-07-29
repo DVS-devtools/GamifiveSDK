@@ -4,7 +4,6 @@ var GameInfo  = require('../game_info/game_info');
 var Location  = require('../location/location');
 var Logger    = require('../logger/logger');
 var Network   = require('../network/network');
-var Newton    = require('../newton/newton');
 var VarCheck  = require('../varcheck/varcheck');
 var VHost     = require('../vhost/vhost');
 var Stargate  = require('stargatejs');

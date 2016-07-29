@@ -5,6 +5,7 @@ module.exports = {
    "MOA_API_APPLICATION_OBJECTS_SET":"http:\/\/resources2.buongiorno.com\/lapis\/apps\/application-object.set?external_token=:EXTERNAL_TOKEN&access_token=:ACCESS_TOKEN&collection=:COLLECTION&id=:ID&white_label=xx_gameasy&fw=gameasy&vh=ww.gameasy.com",
    "MOA_API_CANDOWNLOAD":null,
    "MOA_API_GAMEOVER":null,
-   "MOA_API_USER_CHECK":"http:\/\/www2.gameasy.com\/ww-it\/v01\/user.check?apikey=abcdef1234567890&country=xx-gameasy&content_id=:CONTENT_ID&hybrid=:HYBRID&ts=:TS"
+   "MOA_API_USER_CHECK":"http:\/\/www2.gameasy.com\/ww-it\/v01\/user.check?apikey=abcdef1234567890&country=xx-gameasy&content_id=:CONTENT_ID&hybrid=:HYBRID&ts=:TS",
+   "NEWTON_SECRETID":"f$pippo"
 }
 

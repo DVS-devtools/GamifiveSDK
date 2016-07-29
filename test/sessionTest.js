@@ -9,6 +9,7 @@ var UserCheckMock = require("./mocks/userCheck.js");
 var GameInfoMock = require("./mocks/gameInfoMock.js");
 var StargateMockClass = require("./mocks/StargateMock");
 var MenuMockClass = require("./mocks/menuMock");
+var NewtonAdapterMockClass = require("./mocks/newtonAdapterMock");
 
 require('jasmine-ajax');
 
@@ -28,7 +29,9 @@ describe("Session",function(){
         }
         StargateMock = new StargateMockClass();
         MenuMock = new MenuMockClass();
+        NewtonAdapterMock = new NewtonAdapterMockClass();
         Session.reset();
+        Session.setMock("NewtonAdapter", NewtonAdapterMock);
 
         jasmine.Ajax.install();
 
@@ -41,11 +44,12 @@ describe("Session",function(){
     afterEach(function() {
         jasmine.Ajax.uninstall();
         window.fakewindow = null;
+        Session.unsetMock("NewtonAdapter");        
         Session.unsetMock("VHost");
         Session.unsetMock("User");
         Session.unsetMock("GameInfo");
         Session.unsetMock("Stargate");
-        Session.unsetMock("Menu");       
+        Session.unsetMock("Menu");
     });
     
     it("Session: isInitialized return true after init", function(done){
@@ -69,6 +73,8 @@ describe("Session",function(){
             fetch:function(){return Promise.resolve(true)},
             getContentId:function(){
                 return GameInfoMock.game_info.contentId;
+            },getInfo:function(){
+                return GameInfoMock;
             }
         });
 
@@ -105,6 +111,8 @@ describe("Session",function(){
             fetch:function(){return Promise.resolve(true)},
             getContentId:function(){
                 return GameInfoMock.game_info.contentId;
+            },getInfo:function(){
+                return GameInfoMock;
             }
         });
 
@@ -156,6 +164,8 @@ describe("Session",function(){
             fetch:function(){return Promise.resolve(true)},
             getContentId:function(){                              
                 return GameInfoMock.game_info.contentId;
+            },getInfo:function(){
+                return GameInfoMock;
             }
         });
 
@@ -203,6 +213,8 @@ describe("Session",function(){
             fetch:function(){return Promise.resolve(true)},
             getContentId:function(){                              
                 return GameInfoMock.game_info.contentId;
+            },getInfo:function(){
+                return GameInfoMock;
             }
         });
         
@@ -291,6 +303,8 @@ describe("Session",function(){
             fetch:function(){return Promise.resolve(true)},
             getContentId:function(){                              
                 return GameInfoMock.game_info.contentId;
+            },getInfo:function(){
+                return GameInfoMock;
             }
         });
 
