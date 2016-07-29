@@ -2,7 +2,7 @@ module.exports = {
 
     PAYWALL_ELEMENT_ID: 'paywall',
     MAX_RECORDED_SESSIONS_NUMBER: 2,
-    FB_SDK_VERSION: '2.7',
+    FB_SDK_VERSION: '2.4',
     FB_SDK_URL: 'connect.facebook.net/en_US/all.js',
     OVERLAY_ELEMENT_ID: 'gfsdk_root',
     DEFAULT_MENU_STYLE: {
