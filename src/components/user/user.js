@@ -181,7 +181,16 @@ var User = new function(){
     */
     this.loadData = function(callback, async){
         Logger.info('GamifiveSDK', 'User', 'loadData');
-        
+        if (userInfo){ throw Constants.ERROR_USER_MISSING_INFO;}
+
+        if (!userInfo.logged){ 
+            if(async){
+                return Promise.resolve({});
+            } else {
+                return {};
+            }
+        }
+
         var contentId = GameInfo.getContentId();
         var userId    = userInstance.getUserId();
         var loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');

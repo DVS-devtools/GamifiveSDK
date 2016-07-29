@@ -52,6 +52,7 @@ module.exports = {
     ERROR_GAME_INFO_NO_CONTENTID: 'GamifiveSDK :: GameInfo :: getContentId :: cannot match any content id on url ',
 
     ERROR_USER_FETCH_FAIL: 'GamifiveSDK :: User :: couldn\'t retrieve user profile: ',
+    ERROR_USER_MISSING_INFO: 'GamifiveSDK :: User :: Missing userInfo ',
     ERROR_GAMEINFO_FETCH_FAIL: 'GamifiveSDK :: GameInfo :: couldn\'t retrieve game info: ',
     ERROR_VHOST_LOAD_FAIL: 'GamifiveSDK :: Vhost :: couldn\'t retrieve vhost: ',
 
