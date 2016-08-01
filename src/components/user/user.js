@@ -181,7 +181,7 @@ var User = new function(){
     */
     this.loadData = function(callback, async){
         Logger.info('GamifiveSDK', 'User', 'loadData');
-        if (userInfo){ throw Constants.ERROR_USER_MISSING_INFO;}
+        if (!userInfo){ throw new Error(Constants.ERROR_USER_MISSING_INFO); }
 
         if (!userInfo.logged){ 
             if(async){
