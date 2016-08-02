@@ -67,14 +67,15 @@ describe("Session",function(){
         });
         Session.setMock("User", {
             fetch:function(){return Promise.resolve(true)},
-            loadData:function(){return Promise.resolve(true)}
+            loadData:function(){return Promise.resolve(true)},
+             getUserType:function(){ return 'guest';}
         });
         Session.setMock("GameInfo", {
             fetch:function(){return Promise.resolve(true)},
             getContentId:function(){
                 return GameInfoMock.game_info.contentId;
             },getInfo:function(){
-                return GameInfoMock;
+                return GameInfoMock.game_info;
             }
         });
 
@@ -105,14 +106,15 @@ describe("Session",function(){
         });
         Session.setMock("User", {
             fetch:function(){return Promise.resolve(true)},
-            loadData:function(){return Promise.resolve(true)}
+            loadData:function(){return Promise.resolve(true)},
+            getUserType:function(){ return 'guest';}
         });
         Session.setMock("GameInfo", {
             fetch:function(){return Promise.resolve(true)},
             getContentId:function(){
                 return GameInfoMock.game_info.contentId;
             },getInfo:function(){
-                return GameInfoMock;
+                return GameInfoMock.game_info;
             }
         });
 
@@ -143,7 +145,6 @@ describe("Session",function(){
     it("Session is started, but cannot start two times", function(done){
         var canDownloadMockURL = window.fakewindow.location.origin + "/ww-it" + Constants.CAN_DOWNLOAD_API_URL;
         canDownloadMockURL = canDownloadMockURL.replace(":ID", GameInfoMock.game_info.contentId);
-        console.log("CAN_DOWNLOAD_API_URL MOCK ", canDownloadMockURL);
         jasmine.Ajax.stubRequest(canDownloadMockURL).andReturn({            
             'response': JSON.stringify({ canDownload:true }),            
             'status': 200,
@@ -158,14 +159,15 @@ describe("Session",function(){
         });
         Session.setMock("User", {
             fetch:function(){return Promise.resolve(true)},
-            loadData:function(){return Promise.resolve(true)}
+            loadData:function(){return Promise.resolve(true)},
+            getUserType:function(){ return 'guest';}
         });
         Session.setMock("GameInfo", {
             fetch:function(){return Promise.resolve(true)},
             getContentId:function(){                              
                 return GameInfoMock.game_info.contentId;
             },getInfo:function(){
-                return GameInfoMock;
+                return GameInfoMock.game_info;
             }
         });
 
@@ -207,14 +209,15 @@ describe("Session",function(){
         });
         Session.setMock("User", {
             fetch:function(){return Promise.resolve(true)},
-            loadData:function(){return Promise.resolve(true)}
+            loadData:function(){return Promise.resolve(true)},
+            getUserType:function(){ return 'guest';}
         });
         Session.setMock("GameInfo", {
             fetch:function(){return Promise.resolve(true)},
             getContentId:function(){                              
                 return GameInfoMock.game_info.contentId;
             },getInfo:function(){
-                return GameInfoMock;
+                return GameInfoMock.game_info;
             }
         });
         
@@ -297,14 +300,15 @@ describe("Session",function(){
         });
         Session.setMock("User", {
             fetch:function(){return Promise.resolve(true)},
-            loadData:function(){return Promise.resolve(true)}
+            loadData:function(){return Promise.resolve(true)},
+            getUserType:function(){ return 'guest';}
         });
         Session.setMock("GameInfo", {
             fetch:function(){return Promise.resolve(true)},
             getContentId:function(){                              
                 return GameInfoMock.game_info.contentId;
             },getInfo:function(){
-                return GameInfoMock;
+                return GameInfoMock.game_info;
             }
         });
 
@@ -342,12 +346,15 @@ describe("Session",function(){
         });
         Session.setMock("User", {
             fetch:function(){return Promise.resolve(true)},
-            loadData:function(){return Promise.resolve(true)}
+            loadData:function(){return Promise.resolve(true)},
+            getUserType:function(){ return 'guest';}
         });        
         Session.setMock("GameInfo", {
             fetch:function(){return Promise.resolve(true)},
             getContentId:function(){                              
                 return GameInfoMock.game_info.contentId;
+            },getInfo:function(){
+                return GameInfoMock.game_info;
             }
         });
 
@@ -366,5 +373,5 @@ describe("Session",function(){
         } catch(e){
             error = e;
         }
-    });    
+    });
 });

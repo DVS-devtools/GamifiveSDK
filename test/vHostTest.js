@@ -35,25 +35,27 @@ describe("VHost", function(){
         jasmine.Ajax.uninstall();
         window.fakewindow = null;
         window.cordova = null;
+        VHost.unsetMock("Stargate");
         StargateMock = null;
         // VHost.unsetStargateMock();
+        
         VHost.reset();
     });
 
     it('VHost url correctly get from Constants', function(done){
-        VHost.setStargateMock(StargateMock);
+        VHost.setMock("Stargate", StargateMock);
         VHost.load();
 
         var request = jasmine.Ajax.requests.mostRecent();
 
         expect(request.url.indexOf(API.get('VHOST_API_URL'))).toEqual(0);
-        VHost.unsetStargateMock();
+        VHost.unsetMock("Stargate");
         done();
 
     });
 
     it('VHost should load from API', function(done){
-        VHost.setStargateMock(StargateMock);
+        VHost.setMock("Stargate", StargateMock);
         var url = Location.getOrigin() + '/v01/config.getvars?keys=' + vhostKeys.join(",");        
         jasmine.Ajax.stubRequest(url).andReturn({            
             'response': vHostMock,            
@@ -67,7 +69,7 @@ describe("VHost", function(){
             var usercheckapi = VHost.get('MOA_API_USER_CHECK');
             expect(usercheckapi).toBeDefined();
             expect(usercheckapi.indexOf("user.check") !== -1).toEqual(true);
-            VHost.unsetStargateMock();
+            VHost.unsetMock("Stargate");
             done();
         });       
         
@@ -100,14 +102,14 @@ describe("VHost", function(){
         }
 
         
-        VHost.setStargateMock(StargateMock);
+        VHost.setMock("Stargate", StargateMock);
         VHost.load();   
         
         VHost.afterLoad(function(){
             var usercheckapi = VHost.get('MOA_API_USER_CHECK');
             expect(usercheckapi).toBeDefined();
             expect(usercheckapi.indexOf("user.check") !== -1).toEqual(true);
-            VHost.unsetStargateMock();            
+            VHost.unsetMock("Stargate");            
             done();
         });        
     });
@@ -141,14 +143,14 @@ describe("VHost", function(){
             return {type: "offline", networkState: "none"}
         }
         
-        VHost.setStargateMock(StargateMock);
+        VHost.setMock("Stargate", StargateMock);
         VHost.load();
         
         VHost.afterLoad(function(){
             var usercheckapi = VHost.get('MOA_API_USER_CHECK');
             expect(usercheckapi).toBeDefined();
             expect(usercheckapi.indexOf("user.check") !== -1).toEqual(true);
-            VHost.unsetStargateMock();            
+            VHost.unsetMock("Stargate");            
             done();
         });        
     });

@@ -6,6 +6,113 @@ module.exports = {
    "MOA_API_CANDOWNLOAD":null,
    "MOA_API_GAMEOVER":null,
    "MOA_API_USER_CHECK":"http:\/\/www2.gameasy.com\/ww-it\/v01\/user.check?apikey=abcdef1234567890&country=xx-gameasy&content_id=:CONTENT_ID&hybrid=:HYBRID&ts=:TS",
-   "NEWTON_SECRETID":"f$pippo"
+   "NEWTON_SECRETID":"f$pippo",
+   "CONTENT_RANKING": {
+            "Page":{
+                "game-page": {
+                    "guest": 1,
+                    "free": 3,
+                    "premium":{
+                        "natural": 5,
+                        "acquisition": 5
+                    }
+                }
+            },
+            "Hybrid":{
+                "OfflineToggleOn": {
+                    "guest": 0,
+                    "free": 0,
+                    "premium":{
+                        "natural": 15,
+                        "acquisition": 15
+                    }
+                },
+                "OfflineToggleOff": {
+                    "guest": 0,
+                    "free": 0,
+                    "premium":{
+                        "natural": -1,
+                        "acquisition": -1
+                    }
+                }
+            },
+            "Play":{
+                "GameLoad": {
+                    "guest": 3,
+                    "free": 7,
+                    "premium":{
+                        "natural": 10,
+                        "acquisition": 3
+                    }
+                },
+                "GameStart": {
+                    "guest": 5,
+                    "free": 10,
+                    "premium": {
+                        "natural": 15,
+                        "acquisition": 15
+                    }
+                },
+                "GameEnd": {
+                    "guest": 10,
+                    "free": 20,
+                    "premium":{
+                        "natural": 30,
+                        "acquisition": 30
+                    }
+                },
+                "DownloadAPK": {
+                    "guest": 3,
+                    "free": 7,
+                    "premium":{
+                        "natural": 3,
+                        "acquisition": 10
+                    }
+                },
+                "PlayClick": {
+                    "guest": 3,
+                    "free": 7,
+                    "premium":{
+                        "natural": 10,
+                        "acquisition": 10
+                    }
+                }
+            },
+            "Favorites": {
+                "Remove": {
+                    "guest": 0,
+                    "free": -5,
+                    "premium":{
+                        "natural": -10,
+                        "acquisition": -10
+                    }
+                },
+                "Add": {
+                    "guest": 0,
+                    "free": 5,
+                    "premium":{
+                        "natural": 10,
+                        "acquisition": 10
+                    }
+                }
+            },
+            "Share": {
+                "Common": {
+                    "guest": 5,
+                    "free": 10,
+                    "premium":{
+                        "natural": 15,
+                        "acquisition": 15
+                    }
+                },
+                "FbScore": {
+                    "guest": 10,
+                    "free": 20,
+                    "premium":{
+                        "natural": 30,
+                        "acquisition": 30
+                    }
+                }
+            }
+    }
 }
-

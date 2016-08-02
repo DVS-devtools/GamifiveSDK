@@ -1,5 +1,7 @@
-src/components/session/session.js:134:IMAGES_SPRITE_GAME
-src/components/session/session.js:150:NEWTON_SECRETID
-src/components/user/user.js:126:MOA_API_APPLICATION_OBJECTS_SET
-src/components/user/user.js:196:MOA_API_APPLICATION_OBJECTS_GET
+src/components/session/session.js:136:IMAGES_SPRITE_GAME
+src/components/session/session.js:137:CONTENT_RANKING
+src/components/session/session.js:153:NEWTON_SECRETID
+src/components/tracking_utils/tracking_utils.js:13:CONTENT_RANKING
+src/components/user/user.js:125:MOA_API_APPLICATION_OBJECTS_SET
+src/components/user/user.js:195:MOA_API_APPLICATION_OBJECTS_GET
 src/components/user/user.js:61:MOA_API_USER_CHECK

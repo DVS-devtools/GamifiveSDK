@@ -65,7 +65,6 @@ var User = new function(){
             
             // userInfoUrl = userInfoUrl.replace(":TS", "");            
             return Network.xhr('GET', userInfoUrl).then(function(resp, req){
-
                 if(!!resp && resp.success){
                     var responseData = resp.response;
 
@@ -235,6 +234,20 @@ var User = new function(){
         return userInfo.gameInfo.info;
     }
 
+    /**
+     * get the user type: guest free or premium
+     * @returns {string}
+     */
+    this.getUserType = function(){
+        if(!userInfo.user){
+            return 'guest';
+        } else if(!userInfo.subscribed) {
+            return 'free';
+        } else if(userInfo.subscribed) {
+            return 'premium';
+        }
+    }
+
     this.syncUserData = function(){
         // get data from server
         // if local.data > server.data
@@ -243,18 +256,75 @@ var User = new function(){
         // -- save on local        
     }
 
-    if(process.env.NODE_ENV === "testing"){
-        var original = { Stargate: null };
-        this.setStargateMock = function(theMock){            
-            original.Stargate = require('stargatejs');
-            Stargate = theMock;
+    if (process.env.NODE_ENV === "testing"){
+        var original = {
+            Stargate: null,
+            User: null,
+            VHost: null,
+            GameInfo: null,
+            Menu: null
+        };
+
+        this.setMock = function(what, mock){            
+            switch(what){
+                case "User":
+                    original.User = require('../user/user');;
+                    User = mock;
+                    break;
+                case "Stargate":
+                    original.Stargate = require('stargatejs');;
+                    Stargate = mock;
+                    break;
+                case "VHost":
+                    original.VHost = require('../vhost/vhost');
+                    VHost = mock;
+                    break;
+                case "GameInfo":
+                    original.GameInfo = require('../game_info/game_info');
+                    GameInfo = mock
+                    break;
+                case "Menu":
+                    original.Menu = require('../menu/menu');
+                    Menu = mock;
+                    break;
+                case "NewtonAdapter":
+                    original.NewtonAdapter = require('newton-adapter');
+                    NewtonAdapter = mock;
+                    break;
+                default:
+                    break;
+            }
         }
 
-        this.unsetStargateMock = function(){
-            if(!original.Stargate){ return; }
-            console.log("Unmocking stargate");
-            Stargate = original.Stargate;
-            original.Stargate = null;
+        this.unsetMock = function(what){
+            if (!original[what]) return;
+            switch(what){
+                case "User":
+                    User = original.User;
+                    original.User = null;
+                    break;
+                case "Stargate":
+                    Stargate = original.Stargate;
+                    original.Stargate = null;
+                    break;
+                case "VHost":
+                    VHost =  original.VHost;
+                    original.VHost = null;
+                case "GameInfo":
+                    GameInfo = original.GameInfo;
+                    original.GameInfo = null;
+                    break;
+                case "Menu":
+                    Menu = original.Menu;
+                    original.Menu = null;
+                    break;
+                case "NewtonAdapter":
+                    NewtonAdapter = original.NewtonAdapter;
+                    original.NewtonAdapter = null;
+                    break;
+                default:
+                    break;
+            }
         }
     }
 };

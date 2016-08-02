@@ -16,6 +16,7 @@ var User      = require('../user/user');
 var VHost     = require('../vhost/vhost');
 var VarCheck  = require('../varcheck/varcheck'); 
 var Stargate  = require('stargatejs');
+var calculateContentRanking = require('../tracking_utils/tracking_utils').calculateContentRanking;
 /**
  * Utils is the same of stargate
  * TODO: make a package.json and share as dep with stargate
@@ -34,6 +35,7 @@ var Session = new function(){
     var sessionInstance = this;
     var menuIstance;
     var startCallback;
+    var contentRanking;
 
     var config;    
     var initBarrier = new Barrier('SessionInit', ['VHost.load', 'User.fetch', 'GameInfo.fetch']);
@@ -132,7 +134,8 @@ var Session = new function(){
                .then(function(){
 
                     Menu.setSpriteImage(VHost.get('IMAGES_SPRITE_GAME'));
-                    Menu.show();                    
+                    contentRanking = VHost.get('CONTENT_RANKING');
+                    Menu.show();                                        
                     
                     Logger.info("User.fetch & GameInfo.fetch");                   
                     return Promise.all([
@@ -144,8 +147,8 @@ var Session = new function(){
                    return User.loadData(null, true);
                })
                .then(function(){
-                    initialized = true;
-                    var env = Stargate.isHybrid() ? "hybrid" : "webapp";
+                    initialized = true;                    
+                    var env = Stargate.isHybrid() ? 'hybrid' : 'webapp';
                     NewtonAdapter.init({
                            secretId: VHost.get('NEWTON_SECRETID'),
                            enable: true,        // enable newton
@@ -156,22 +159,23 @@ var Session = new function(){
                                 white_label_id: GameInfo.getInfo().label
                            }
                     });
-                    /**                         
-                    var gameloadEvent = { 
-                        name: 'GameLoad', 
+
+                    Logger.info('Track Gameload');           
+                    NewtonAdapter.trackEvent({
+                        name: 'GameLoad',
+                        rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'), 
                         properties:{
-                            action:"Yes",
-                            category:"Play",
-                            game_title:GameInfo.getInfo().game.title,
+                            action: 'Yes',
+                            category: 'Play',
+                            game_title: GameInfo.getInfo().game.title,
                             label: GameInfo.getContentId(),
-                            valuable:"Yes",
+                            valuable: 'Yes'                            
                         }
-                    };
-                    NewtonAdapter.trackEvent(gameLoadEvent);
-                     */
+                    });
+                    
                     return true;
                }).catch(function(reason){
-                    Logger.error("GamifiveSDK init error: ", reason);
+                    Logger.error('GamifiveSDK init error: ', reason);
                     /**
                      * TODO:
                      * do we want to track this?
@@ -200,9 +204,19 @@ var Session = new function(){
 
         Menu.hide();
 
-        function doStartSession(){
+        function doStartSession(){            
             // ADD TRACKING HERE
-            NewtonAdapter.trackEvent({name:"GameStart", properties:{}});
+            NewtonAdapter.trackEvent({
+                name: "GameStart",
+                rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'), 
+                properties:{
+                    category: "Play", 
+                    label: GameInfo.getContentId(),
+                    valuable: "Yes",
+                    action: "Yes"                    
+                }
+            });
+
             if (typeof startCallback === 'function') {                
                 try {                    
                     startCallback();
@@ -328,8 +342,7 @@ var Session = new function(){
     * @param {Number} data.score - the score of the user in the sesssion
     * @param {Number} data.level - the level
     */
-    this.end = function(data){
-        NewtonAdapter.trackEvent({name:"GameEnd", properties:{}});
+    this.end = function(data){        
         Logger.info('GamifiveSDK', 'Session', 'end', data);
         
         if (!initPromise){
@@ -345,6 +358,17 @@ var Session = new function(){
         if (typeof getLastSession().endTime !== 'undefined'){
             throw Constants.ERROR_SESSION_ALREADY_ENDED;
         }
+
+        NewtonAdapter.trackEvent({
+            rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'),
+            name:'GameEnd', 
+            properties:{
+                category: 'Play',
+                label: GameInfo.getContentId(),
+                valuable: 'No',
+                action: 'No'                
+            }
+        });
 
         getLastSession().endTime = new Date();
 
@@ -442,6 +466,7 @@ var Session = new function(){
             Logger.log("Fail build gameover, you are offline", Stargate.checkConnection());
         }
     }
+
     /**
     * returns to the main page of the webapp
     * @function goToHome
