@@ -1,7 +1,7 @@
 var Barrier   = require("../src/components/barrier/barrier");
 var Constants = require("../src/components/constants/constants");
 
-xdescribe("Barrier",function(){   
+describe("Barrier",function(){   
 
     it("should be defined", function(){
         expect(Barrier).toBeDefined();

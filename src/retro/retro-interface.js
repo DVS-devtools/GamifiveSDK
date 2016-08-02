@@ -24,6 +24,22 @@ var addRetroInterface = function(build){
 
     build.share = build.FB.share;
     build.send = build.FB.send;
+    if(!window.GameoverCore){
+        window.GameoverCore = {
+            playAgain:function(){
+                build.startSession();
+            },
+            goToPaywall:function(){
+                var _url = window.location.href;
+                _url += (_url.split('?')[1] ? '&':'?') + "show_paywall=1";		
+		        window.location.href=_url;
+            },
+            toggleLike:function(){
+                // TODO: User.toggleLike();?
+                console.warn("Not Implemented");
+            }
+        } 
+    }
     
 }
 
