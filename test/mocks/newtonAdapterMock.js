@@ -6,4 +6,8 @@ module.exports = function(){
     this.trackEvent = function(){
         console.log([].slice.call(arguments));
     }
+
+    this.login = function(){
+        console.log([].slice.call(arguments));
+    }
 }

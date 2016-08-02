@@ -1,7 +1,6 @@
 var Promise   = require('promise-polyfill');
 var API = require('../api/api');
 var Constants = require('../constants/constants');
-var Barrier   = require('../barrier/barrier');
 var DOMUtils  = require('../dom/dom-utils');
 var Event     = require('../event/event');
 var Facebook  = require('../fb/fb');
@@ -37,9 +36,7 @@ var Session = new function(){
     var startCallback;
     var contentRanking;
 
-    var config;    
-    var initBarrier = new Barrier('SessionInit', ['VHost.load', 'User.fetch', 'GameInfo.fetch']);
-
+    var config;
     /**
     * returns whether Session has already been initialized
     * @function isInitialized
@@ -83,13 +80,6 @@ var Session = new function(){
             throw Constants.ERROR_AFTERINIT_CALLBACK_TYPE + typeof callback;
         }
 
-        /*
-        if (initBarrier.isComplete()){
-            callback();
-        } else {
-            initBarrier.onComplete(callback);
-        }
-        */
         if (initPromise){
             initPromise.then(callback)
         } else {
@@ -147,12 +137,12 @@ var Session = new function(){
                    return User.loadData(null, true);
                })
                .then(function(){
-                    initialized = true;                    
+                                      
                     var env = Stargate.isHybrid() ? 'hybrid' : 'webapp';
                     NewtonAdapter.init({
                            secretId: VHost.get('NEWTON_SECRETID'),
                            enable: true,        // enable newton
-                           waitLogin: false,    // wait for login to have been completed (async)
+                           waitLogin: true,    // wait for login to have been completed (async)
                            logger: Logger,
                            properties: {
                                 environment: env,
@@ -160,7 +150,19 @@ var Session = new function(){
                            }
                     });
 
-                    Logger.info('Track Gameload');           
+                    var queryString = Location.getQueryString();
+                    if (typeof queryString.dest === 'undefined'){
+    					queryString.dest = 'N/A';                        
+                    }
+
+                    queryString.http_referrer = window.document.referrer;
+                    NewtonAdapter.login({
+                        type: 'external',
+                        userId: User.getUserId(), 
+                        properties: queryString,
+                        logged: (User.getUserType() !== 'guest')
+                    });
+
                     NewtonAdapter.trackEvent({
                         name: 'GameLoad',
                         rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'), 
@@ -172,14 +174,10 @@ var Session = new function(){
                             valuable: 'Yes'                            
                         }
                     });
-                    
+                    initialized = true;  
                     return true;
                }).catch(function(reason){
                     Logger.error('GamifiveSDK init error: ', reason);
-                    /**
-                     * TODO:
-                     * do we want to track this?
-                     *  */
                     initialized = false;
                     throw reason;
                });
@@ -236,15 +234,20 @@ var Session = new function(){
             
             Logger.log('CAN_DOWNLOAD_API_URL', urlToCall);
             Network.xhr('GET', urlToCall)
-                .then(function(response){
-                    Logger.log('GamifiveSDK', 'Session', 'start', 'can play', response.response);
+                .then(function(results){
+                    Logger.log('GamifiveSDK', 'Session', 'start', 'can play', results.response);
                     var canPlay = false;
-                    try {
-                        canPlay = JSON.parse(response.response).canDownload;
-                    } catch(e){
-                        Logger.error('GamifiveSDK', 'Session', 'error parsing response', urlToCall, e);
-                        throw e;
-                    }                    
+                    
+                    if(typeof results.response === 'string'){
+                        try {
+                            canPlay = JSON.parse(results.response).canDownload;
+                        } catch(e){
+                            Logger.error('GamifiveSDK', 'Session', 'error parsing response', urlToCall, e);
+                            throw e;
+                        }
+                    } else if(typeof results.response === 'object'){
+                        canPlay = results.response.canDownload
+                    }
                     return canPlay;
 
                 })
@@ -258,7 +261,7 @@ var Session = new function(){
                         var url = [API.get('GAMEOVER_API_URL'), GameInfo.getContentId()].join("/");
                         
                         Logger.log("Gameover ", url);
-                        Network.xhr('GET', url).then(function(resp) {
+                        return Network.xhr('GET', url).then(function(resp) {
                             DOMUtils.create(resp.response);
                             DOMUtils.show(Constants.PAYWALL_ELEMENT_ID);
                         });
@@ -308,7 +311,7 @@ var Session = new function(){
             Logger.info('GamifiveSDK', 'Session', 'register onStart callback');
             startCallback = callback;
         } else {
-            throw Constants.ERROR_ONSTART_CALLBACK_TYPE + typeof callback;
+            throw new Error(Constants.ERROR_ONSTART_CALLBACK_TYPE + typeof callback);
         }
     }
 
@@ -411,7 +414,7 @@ var Session = new function(){
             Logger.log("Leaderboard ", leaderboardCallUrl);
             
             // TODO: callback when finished here?
-            if (Stargate.checkConnection().type === "online"){
+            if (Stargate.checkConnection().type === 'online'){
                 Network.xhr('GET', leaderboardCallUrl);
             } else {
                 // saveForLater

@@ -1,3 +1,4 @@
+var Location = require('../location/location');
 /**
  * Calculate the weight of the event according 
  * to user type and vhost configuration
@@ -11,7 +12,7 @@
  */
 module.exports.calculateContentRanking = function(GameInfo, User, VHost, eventCategory, eventName){
     var contentRanking = VHost.get('CONTENT_RANKING');
-    var userFrom = 'acquisition'; // or natural
+    var userFrom = Location.hasKey('dest') || Location.hasKey('trackExecutionKey') ? 'acquisition' : 'natural';
     var userType = User.getUserType();
     var scopeType = 'social';
     var ranking = 0;
