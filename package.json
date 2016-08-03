@@ -2,7 +2,9 @@
   "engines": {
     "node": ">= 0.10.0"
   },
-  "devDependencies": {
+  "scripts":{
+    "upload":"scp -r dist/* super@192.168.124.3:/dadanet2/wl2/webstore_html5game/js/webstore_html5game/gfsdk/dist"
+  },"devDependencies": {
     "grunt": "~0.4.2",
     "grunt-contrib-clean": "^0.6.0",
     "grunt-contrib-concat": "~0.3.0",
