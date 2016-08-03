@@ -387,7 +387,7 @@ var GamefiveSDK = new function() {
                 "modules": [
                     "game"
                 ],
-                "modules_con":{
+                "modules_conf":{
                     game:{}
                 }
             };
