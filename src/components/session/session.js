@@ -159,7 +159,7 @@ var Session = new function(){
                     NewtonAdapter.login({
                         type: 'external',
                         userId: User.getUserId(), 
-                        properties: queryString,
+                        userProperties: queryString,
                         logged: (User.getUserType() !== 'guest')
                     });
 
@@ -206,7 +206,7 @@ var Session = new function(){
             // ADD TRACKING HERE
             NewtonAdapter.trackEvent({
                 name: "GameStart",
-                rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'), 
+                rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameStart'), 
                 properties:{
                     category: "Play", 
                     label: GameInfo.getContentId(),
