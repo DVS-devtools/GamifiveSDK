@@ -20,7 +20,8 @@ var calculateContentRanking = require('../tracking_utils/tracking_utils').calcul
  * Utils is the same of stargate
  * TODO: make a package.json and share as dep with stargate
  */
-var Utils     = require('../utils/utils');
+var Utils = require('../utils/utils');
+var getType = require('../utils/utils').getType;
 
 /**
 * Session module
@@ -352,18 +353,22 @@ var Session = new function(){
             throw Constants.ERROR_SESSION_INIT_NOT_CALLED;
         }
         // set default object
-        data = data ? data : {};
+        // data = data ? data : {};
+        var dataTypeCheck = getType(data);
+        if (dataTypeCheck === 'undefined' || dataTypeCheck === 'null'){
+            throw new Error(Constants.ERROR_END_SESSION_PARAM + dataTypeCheck);
+        }
 
         if (config.sessions.length < 1){
             throw Constants.ERROR_SESSION_NO_SESSION_STARTED;
         }
 
-        if (typeof getLastSession().endTime !== 'undefined'){
+        if (getType(getLastSession().endTime) !== 'undefined'){
             throw Constants.ERROR_SESSION_ALREADY_ENDED;
         }
 
         NewtonAdapter.trackEvent({
-            rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'),
+            rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameEnd'),
             name:'GameEnd', 
             properties:{
                 category: 'Play',
@@ -375,19 +380,21 @@ var Session = new function(){
 
         getLastSession().endTime = new Date();
 
-        if (typeof data.score !== 'undefined'){
-            if (typeof data.score === 'number'){
-                getLastSession().score = data.score;
+        if (data.hasOwnProperty('score')){
+            if (getType(data.score) === 'number'){
+                getLastSession().score = data.score;                
             } else {
-                throw Constants.ERROR_SCORE_TYPE + typeof data.score;
+                throw new Error(Constants.ERROR_SCORE_TYPE + getType(data.score));            
             }
+        } else {
+            throw new Error("GamifiveSDK :: score is mandatory!");
         }
 
-        if (typeof data.level !== 'undefined'){
-            if (typeof data.level === 'number'){
+        if (data.hasOwnProperty('level')){
+            if (getType(data.level) === 'number'){
                getLastSession().level = data.level;
             } else {
-                throw Constants.ERROR_LEVEL_TYPE + typeof data.level;
+                throw Constants.ERROR_LEVEL_TYPE + getType(data.level);
             }
         }
 

@@ -36,6 +36,7 @@ module.exports = {
 
     ERROR_SESSION_ALREADY_ENDED: 'GamifiveSDK :: Session :: end :: session already ended',
     ERROR_SESSION_NO_SESSION_STARTED: 'GamifiveSDK :: Session :: end :: no sessions started',
+    ERROR_END_SESSION_PARAM: 'GamifiveSDK :: Session :: end :: invalid type of data: expected number, got ',
     ERROR_SCORE_TYPE: 'GamifiveSDK :: Session :: end :: invalid type of score: expected number, got ',
     ERROR_LEVEL_TYPE: 'GamifiveSDK :: Session :: end :: invalid type of level: expected number, got ',
 

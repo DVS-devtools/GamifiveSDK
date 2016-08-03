@@ -230,12 +230,12 @@ describe("Session",function(){
         Session.start();
         expect(Session.getConfig().sessions[0].endTime).toBeUndefined();
         
-        Session.end({});
+        Session.end({score:10});
         expect(Session.getConfig().sessions[0].endTime).toBeDefined();
 
         var errorEndSession;
         try {
-            Session.end({});
+            Session.end({score:5});
         } catch (e){
             errorEndSession = e;
         }
@@ -284,7 +284,7 @@ describe("Session",function(){
         done();
     });
 
-    it("Score type check:string should error", function(done){
+    it("Session end: Score type check string throw error", function(done){
         // Mocking canDownload url
         var canDownloadMockURL = window.fakewindow.location.origin + "/ww-it" + Constants.CAN_DOWNLOAD_API_URL;
         canDownloadMockURL = canDownloadMockURL.replace(":ID", GameInfoMock.game_info.contentId);
@@ -326,12 +326,12 @@ describe("Session",function(){
         try{
             Session.end({score: '10'});
         } catch(e){
-            expect(e).toEqual(Constants.ERROR_SCORE_TYPE + typeof '');
+            expect(e).toEqual(new Error(Constants.ERROR_SCORE_TYPE + typeof ''));
         }
         
     });
 
-    it("Score type check:number should be ok", function(done){
+    it("Session end: Score type check number should be ok", function(done){
         // Mocking canDownload url
         var canDownloadMockURL = window.fakewindow.location.origin + "/ww-it" + Constants.CAN_DOWNLOAD_API_URL;
         canDownloadMockURL = canDownloadMockURL.replace(":ID", GameInfoMock.game_info.contentId);
