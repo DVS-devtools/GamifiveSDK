@@ -143,7 +143,7 @@ var Session = new function(){
                     NewtonAdapter.init({
                            secretId: VHost.get('NEWTON_SECRETID'),
                            enable: true,        // enable newton
-                           waitLogin: true,    // wait for login to have been completed (async)
+                           waitLogin: true,     // wait for login to have been completed (async)
                            logger: Logger,
                            properties: {
                                 environment: env,
@@ -198,8 +198,6 @@ var Session = new function(){
     */
     function __start(){
         Logger.info('GamifiveSDK', 'Session', 'start');
-        // cut out the older sessions
-        config.sessions = config.sessions.slice(0, Constants.MAX_RECORDED_SESSIONS_NUMBER);
 
         Menu.hide();
 
@@ -286,7 +284,8 @@ var Session = new function(){
         
         // if a previous session exists, it must have been ended
         if (config.sessions && config.sessions.length > 0 && typeof getLastSession().endTime === 'undefined'){
-            throw Constants.ERROR_SESSION_ALREADY_STARTED;
+            config.sessions.shift();
+            // throw Constants.ERROR_SESSION_ALREADY_STARTED;
         }
 
         // ok, you can try to start a new session
@@ -296,6 +295,9 @@ var Session = new function(){
             score: undefined,
             level: undefined
         });
+
+        // cut out the older sessions
+        config.sessions = config.sessions.slice(0, Constants.MAX_RECORDED_SESSIONS_NUMBER);
 
         return initPromise.then(__start);
     }
