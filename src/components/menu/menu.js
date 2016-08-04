@@ -58,6 +58,11 @@ var Menu = new function(){
     * @memberof Menu
     */
     this.setCustomStyle = function(customStyle){
+        if (!menuStyle){
+            // create default
+            setDefaultStyle();
+        }
+
         // override menu style
         if (customStyle){
             for (var key in customStyle){
