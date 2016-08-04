@@ -34,18 +34,18 @@ describe("User",function(){
     afterEach(function() {
         jasmine.Ajax.uninstall();
         window.fakewindow = null;
-        // User.unsetStargateMock();
+        User.unsetMock("Stargate");
         StargateMock = null;             
     });
 
     it('User.fetch should work after vhost load', function(done){
-        User.setStargateMock(StargateMock);
-        VHost.setStargateMock(StargateMock);   
+        User.setMock("Stargate", StargateMock);
+        VHost.setMock("Stargate", StargateMock);
         // stub vhost
         var vhostUrlStub = "http://www.gameasy.com/ww-it" + Constants.VHOST_API_URL;
         vhostUrlStub = vhostUrlStub + vhostKeys.join(",");
         
-        console.log("VHOST stub url",vhostUrlStub);
+        console.log("VHOST stub url", vhostUrlStub);
         jasmine.Ajax.stubRequest(vhostUrlStub).andReturn({            
             'response': VHostMock,            
             'status': 200,
@@ -74,16 +74,16 @@ describe("User",function(){
                 for (var key in UserCheckMock){
                     expect(User.get(key)).toEqual(UserCheckMock[key]);
                 }
-                User.unsetStargateMock();
-                VHost.unsetStargateMock();   
+                User.unsetMock("Stargate");
+                VHost.unsetMock("Stargate");   
                 done();
             });
         });
     });
 
     it("Check User saveData", function(done){
-        User.setStargateMock(StargateMock);
-        VHost.setStargateMock(StargateMock);
+        User.setMock("Stargate", StargateMock);
+        VHost.setMock("Stargate", StargateMock);
         
         // stub vhost
         var vhostUrlStub = "http://www.gameasy.com/ww-it" + Constants.VHOST_API_URL;
@@ -123,17 +123,46 @@ describe("User",function(){
         VHost.afterLoad(function(){
             User.fetch(function(){
                 
-                User.saveData({ pippo:1 });
+                User.saveData({ pippo: 1 });
                 var userInfo = User.getInfo();
                 expect(userInfo).toBeDefined();
                 expect(userInfo.gameInfo).toBeDefined();
                 expect(userInfo.gameInfo.info).toBeDefined();
                 expect(userInfo.gameInfo.info.pippo).toEqual(1);
-                User.unsetStargateMock();
-                VHost.unsetStargateMock();
+                User.unsetMock("Stargate");
+                VHost.unsetMock("Stargate");
                 done();               
             });
         });
 
+    });
+
+    it("User.getUserType should return guest with no userInfo", function(){
+        expect(User.getUserType()).toEqual('guest');
+    });
+
+    it("User.getUserType should return premium", function(done){
+        // stub user.check
+        jasmine.Ajax.stubRequest(VHostMock.MOA_API_USER_CHECK).andReturn({            
+                'response': UserCheckMock,            
+                'status': 200,
+                'contentType': 'text/json'                    
+        });
+        
+        User.setMock("VHost", {
+            get:function(key){
+                return VHostMock[key];
+            }
+        });
+
+        User.setMock("Stargate", StargateMock);
+        User.loadData = function(cb){
+            cb ? cb() : null;
+        }
+
+        User.fetch(function(){
+            expect(User.getUserType()).toEqual("premium");
+            done();
+        });        
     });
 });

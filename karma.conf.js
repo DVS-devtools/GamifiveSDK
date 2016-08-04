@@ -23,6 +23,7 @@ module.exports = function(config) {
       // source files, that you wanna generate coverage for
       // do not include tests or libraries
       // (these files will be instrumented by Istanbul)
+      'src/**/*.js': ['browserify', 'coverage'],
       'test/*Test.js': ['browserify']
     },
 
@@ -33,8 +34,11 @@ module.exports = function(config) {
     reporters: ['coverage', 'coveralls', 'mocha'],
       // optionally, configure the reporter
     coverageReporter: {
-      type : 'lcov',
-      dir : 'coverage/'
+        reporters: [
+            { type: 'html', dir: 'coverage', subdir: 'html' },
+            { type: 'text', dir: 'coverage', subdir: 'text' },
+            { type: 'lcov', dir: 'coverage', subdir: 'lcov' }
+        ]
     },
 
     // web server port

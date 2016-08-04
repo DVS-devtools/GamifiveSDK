@@ -1,4 +1,5 @@
 var Logger = require('../logger/logger');
+var Utils = require('../utils/utils');
 
 /**
 * Utility module for managing locations
@@ -28,7 +29,6 @@ var Location = new function(){
     */
     this.getOrigin = function(){
         __setTestEnvIfAny__();
-
         if (!theWindow.location.origin) {
             theWindow.location.origin = theWindow.location.protocol + "//" 
                                     + theWindow.location.hostname 
@@ -61,8 +61,26 @@ var Location = new function(){
     * @memberof Location
     */
     this.getCurrentHref = function(){
-         __setTestEnvIfAny__();
+        __setTestEnvIfAny__();  
         return theWindow.location.href;
+    }
+
+    /**
+     * If a key is in querystring
+     * @retuns {boolean} 
+     */
+    this.hasKey = function(key){
+        __setTestEnvIfAny__();
+        return Utils.dequeryfy(theWindow.location.href).hasOwnProperty(key);
+    }
+
+    /**
+     * get the current query string as object
+     * @returns {object}
+     */
+    this.getQueryString = function(){
+        __setTestEnvIfAny__();
+        return Utils.dequeryfy(theWindow.location.href);
     }
 };
 

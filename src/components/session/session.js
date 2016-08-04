@@ -1,7 +1,6 @@
 var Promise   = require('promise-polyfill');
 var API = require('../api/api');
 var Constants = require('../constants/constants');
-var Barrier   = require('../barrier/barrier');
 var DOMUtils  = require('../dom/dom-utils');
 var Event     = require('../event/event');
 var Facebook  = require('../fb/fb');
@@ -11,16 +10,18 @@ var Location  = require('../location/location');
 var Logger    = require('../logger/logger');
 var Menu      = require('../menu/menu');
 var Network   = require('../network/network');
-var Newton    = require('../newton/newton');
+var NewtonAdapter = require('newton-adapter');
 var User      = require('../user/user');
 var VHost     = require('../vhost/vhost');
 var VarCheck  = require('../varcheck/varcheck'); 
 var Stargate  = require('stargatejs');
+var calculateContentRanking = require('../tracking_utils/tracking_utils').calculateContentRanking;
 /**
  * Utils is the same of stargate
  * TODO: make a package.json and share as dep with stargate
  */
-var Utils     = require('../utils/utils');
+var Utils = require('../utils/utils');
+var getType = require('../utils/utils').getType;
 
 /**
 * Session module
@@ -34,10 +35,9 @@ var Session = new function(){
     var sessionInstance = this;
     var menuIstance;
     var startCallback;
+    var contentRanking;
 
-    var config;    
-    var initBarrier = new Barrier('SessionInit', ['VHost.load', 'User.fetch', 'GameInfo.fetch']);
-
+    var config;
     /**
     * returns whether Session has already been initialized
     * @function isInitialized
@@ -81,13 +81,6 @@ var Session = new function(){
             throw Constants.ERROR_AFTERINIT_CALLBACK_TYPE + typeof callback;
         }
 
-        /*
-        if (initBarrier.isComplete()){
-            callback();
-        } else {
-            initBarrier.onComplete(callback);
-        }
-        */
         if (initPromise){
             initPromise.then(callback)
         } else {
@@ -130,9 +123,10 @@ var Session = new function(){
                    return VHost.load();
                })
                .then(function(){
-                   
+
                     Menu.setSpriteImage(VHost.get('IMAGES_SPRITE_GAME'));
-                    Menu.show();                    
+                    contentRanking = VHost.get('CONTENT_RANKING');
+                    Menu.show();                                        
                     
                     Logger.info("User.fetch & GameInfo.fetch");                   
                     return Promise.all([
@@ -144,13 +138,50 @@ var Session = new function(){
                    return User.loadData(null, true);
                })
                .then(function(){
-                    initialized = true;
+                                      
+                    var env = Stargate.isHybrid() ? 'hybrid' : 'webapp';
+                    NewtonAdapter.init({
+                           secretId: VHost.get('NEWTON_SECRETID'),
+                           enable: true,        // enable newton
+                           waitLogin: true,     // wait for login to have been completed (async)
+                           logger: Logger,
+                           properties: {
+                                environment: env,
+                                white_label_id: GameInfo.getInfo().label
+                           }
+                    });
+
+                    var queryString = Location.getQueryString();
+                    if (typeof queryString.dest === 'undefined'){
+    					queryString.dest = 'N/A';                        
+                    }
+
+                    queryString.http_referrer = window.document.referrer;
+                    NewtonAdapter.login({
+                        type: 'external',
+                        userId: User.getUserId(), 
+                        userProperties: queryString,
+                        logged: (User.getUserType() !== 'guest')
+                    });
+
+                    NewtonAdapter.trackEvent({
+                        name: 'GameLoad',
+                        rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'), 
+                        properties:{
+                            action: 'Yes',
+                            category: 'Play',
+                            game_title: GameInfo.getInfo().game.title,
+                            label: GameInfo.getContentId(),
+                            valuable: 'Yes'                            
+                        }
+                    });
+                    initialized = true;  
                     return true;
                }).catch(function(reason){
-                    Logger.error("GamifiveSDK init error: ", reason);
+                    Logger.error('GamifiveSDK init error: ', reason);
                     initialized = false;
                     throw reason;
-               });               
+               });
 
         return initPromise; 
     }
@@ -167,15 +198,24 @@ var Session = new function(){
     */
     function __start(){
         Logger.info('GamifiveSDK', 'Session', 'start');
-        // cut out the older sessions
-        config.sessions = config.sessions.slice(0, Constants.MAX_RECORDED_SESSIONS_NUMBER);
 
         Menu.hide();
 
-        function doStartSession(){
+        function doStartSession(){            
             // ADD TRACKING HERE
+            NewtonAdapter.trackEvent({
+                name: "GameStart",
+                rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameStart'), 
+                properties:{
+                    category: "Play", 
+                    label: GameInfo.getContentId(),
+                    valuable: "Yes",
+                    action: "Yes"                    
+                }
+            });
+
             if (typeof startCallback === 'function') {                
-                try {
+                try {                    
                     startCallback();
                 } catch (e){
                     Logger.error('GamifiveSDK', 'startSession', 'error while trying to start a session', e);
@@ -193,15 +233,20 @@ var Session = new function(){
             
             Logger.log('CAN_DOWNLOAD_API_URL', urlToCall);
             Network.xhr('GET', urlToCall)
-                .then(function(response){
-                    Logger.log('GamifiveSDK', 'Session', 'start', 'can play', response.response);
+                .then(function(results){
+                    Logger.log('GamifiveSDK', 'Session', 'start', 'can play', results.response);
                     var canPlay = false;
-                    try {
-                        canPlay = JSON.parse(response.response).canDownload;
-                    } catch(e){
-                        Logger.error('GamifiveSDK', 'Session', 'error parsing response', urlToCall, e);
-                        throw e;
-                    }                    
+                    
+                    if(typeof results.response === 'string'){
+                        try {
+                            canPlay = JSON.parse(results.response).canDownload;
+                        } catch(e){
+                            Logger.error('GamifiveSDK', 'Session', 'error parsing response', urlToCall, e);
+                            throw e;
+                        }
+                    } else if(typeof results.response === 'object'){
+                        canPlay = results.response.canDownload
+                    }
                     return canPlay;
 
                 })
@@ -215,7 +260,7 @@ var Session = new function(){
                         var url = [API.get('GAMEOVER_API_URL'), GameInfo.getContentId()].join("/");
                         
                         Logger.log("Gameover ", url);
-                        Network.xhr('GET', url).then(function(resp) {
+                        return Network.xhr('GET', url).then(function(resp) {
                             DOMUtils.create(resp.response);
                             DOMUtils.show(Constants.PAYWALL_ELEMENT_ID);
                         });
@@ -239,7 +284,8 @@ var Session = new function(){
         
         // if a previous session exists, it must have been ended
         if (config.sessions && config.sessions.length > 0 && typeof getLastSession().endTime === 'undefined'){
-            throw Constants.ERROR_SESSION_ALREADY_STARTED;
+            config.sessions.shift();
+            // throw Constants.ERROR_SESSION_ALREADY_STARTED;
         }
 
         // ok, you can try to start a new session
@@ -249,6 +295,9 @@ var Session = new function(){
             score: undefined,
             level: undefined
         });
+
+        // cut out the older sessions
+        config.sessions = config.sessions.slice(0, Constants.MAX_RECORDED_SESSIONS_NUMBER);
 
         return initPromise.then(__start);
     }
@@ -265,7 +314,7 @@ var Session = new function(){
             Logger.info('GamifiveSDK', 'Session', 'register onStart callback');
             startCallback = callback;
         } else {
-            throw Constants.ERROR_ONSTART_CALLBACK_TYPE + typeof callback;
+            throw new Error(Constants.ERROR_ONSTART_CALLBACK_TYPE + typeof callback);
         }
     }
 
@@ -299,38 +348,55 @@ var Session = new function(){
     * @param {Number} data.score - the score of the user in the sesssion
     * @param {Number} data.level - the level
     */
-    this.end = function(data){
+    this.end = function(data){        
         Logger.info('GamifiveSDK', 'Session', 'end', data);
         
         if (!initPromise){
             throw Constants.ERROR_SESSION_INIT_NOT_CALLED;
         }
         // set default object
-        data = data ? data : {};
+        // data = data ? data : {};
+        var dataTypeCheck = getType(data);
+        if (dataTypeCheck === 'undefined' || dataTypeCheck === 'null'){
+            throw new Error(Constants.ERROR_END_SESSION_PARAM + dataTypeCheck);
+        }
 
         if (config.sessions.length < 1){
             throw Constants.ERROR_SESSION_NO_SESSION_STARTED;
         }
 
-        if (typeof getLastSession().endTime !== 'undefined'){
+        if (getType(getLastSession().endTime) !== 'undefined'){
             throw Constants.ERROR_SESSION_ALREADY_ENDED;
         }
 
+        NewtonAdapter.trackEvent({
+            rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameEnd'),
+            name:'GameEnd', 
+            properties:{
+                category: 'Play',
+                label: GameInfo.getContentId(),
+                valuable: 'No',
+                action: 'No'                
+            }
+        });
+
         getLastSession().endTime = new Date();
 
-        if (typeof data.score !== 'undefined'){
-            if (typeof data.score === 'number'){
-                getLastSession().score = data.score;
+        if (data.hasOwnProperty('score')){
+            if (getType(data.score) === 'number'){
+                getLastSession().score = data.score;                
             } else {
-                throw Constants.ERROR_SCORE_TYPE + typeof data.score;
+                throw new Error(Constants.ERROR_SCORE_TYPE + getType(data.score));            
             }
+        } else {
+            throw new Error("GamifiveSDK :: score is mandatory!");
         }
 
-        if (typeof data.level !== 'undefined'){
-            if (typeof data.level === 'number'){
+        if (data.hasOwnProperty('level')){
+            if (getType(data.level) === 'number'){
                getLastSession().level = data.level;
             } else {
-                throw Constants.ERROR_LEVEL_TYPE + typeof data.level;
+                throw Constants.ERROR_LEVEL_TYPE + getType(data.level);
             }
         }
 
@@ -357,11 +423,14 @@ var Session = new function(){
             Logger.log("Leaderboard ", leaderboardCallUrl);
             
             // TODO: callback when finished here?
-            Network.xhr('GET', leaderboardCallUrl);
+            if (Stargate.checkConnection().type === 'online'){
+                Network.xhr('GET', leaderboardCallUrl);
+            } else {
+                // saveForLater
+            }            
 
         } else {           
-            // call gameover
-            var url = [API.get('GAMEOVER_API_URL'), GameInfo.getContentId()].join("/");
+            // call gameover            
             var gameoverParams = {
                 start: lastSession.startTime.getTime(),
                 duration: lastSession.endTime - lastSession.startTime,
@@ -370,16 +439,44 @@ var Session = new function(){
 
             if(lastSession.level){
                 gameoverParams.level = lastSession.level;
-            }
-
-            url = Utils.queryfy(url, gameoverParams);
-            Logger.log("Gameover ", url);
-            Network.xhr('GET', url).then(function(resp) {
-                DOMUtils.create(resp.response);
-            });
+            }            
+            
+            gameOver(gameoverParams).then(function(htmlString){
+                DOMUtils.create(htmlString);
+            });            
         }
 
         Menu.show();
+    }
+
+    /**
+     * Build the gameover if online or offline hybrid and returns it as a compiled html string
+     * @param {object} gameoverParams
+     * @param {number} gameoverParams.start
+     * @param {number} gameoverParams.duration
+     * @param {number} gameoverParams.score
+     * @param {number} [gameoverParams.level]
+     * @returns {Promise<string>} the html as string gameover
+     */
+    function gameOver(gameoverParams){
+        var url = [API.get('GAMEOVER_API_URL'), GameInfo.getContentId()].join("/");
+        url = Utils.queryfy(url, gameoverParams);
+        Logger.log("Gameover ", url);        
+
+        if (Stargate.checkConnection().type === "online"){
+            return Network.xhr('GET', url).then(function(resp) {
+                if(Stargate.isHybrid()){
+                    gameoverParams.content_id = GameInfo.getContentId();
+                    return Stargate.game.buildGameover(gameoverParams);
+                }
+                return resp.response;
+            });
+        } else if(Stargate.checkConnection().type === "offline" && Stargate.isHybrid()){
+            gameoverParams.content_id = GameInfo.getContentId();
+            return Stargate.game.buildGameover(gameoverParams);
+        } else {
+            Logger.log("Fail build gameover, you are offline", Stargate.checkConnection());
+        }
     }
 
     /**
@@ -431,6 +528,10 @@ var Session = new function(){
                     original.Menu = require('../menu/menu');
                     Menu = mock;
                     break;
+                case "NewtonAdapter":
+                    original.NewtonAdapter = require('newton-adapter');
+                    NewtonAdapter = mock;
+                    break;
                 default:
                     break;
             }
@@ -441,17 +542,26 @@ var Session = new function(){
             switch(what){
                 case "User":
                     User = original.User;
+                    original.User = null;
                     break;
                 case "Stargate":
                     Stargate = original.Stargate;
+                    original.Stargate = null;
                     break;
                 case "VHost":
                     VHost =  original.VHost;
+                    original.VHost = null;
                 case "GameInfo":
-                    GameInfo = original.GameInfo
+                    GameInfo = original.GameInfo;
+                    original.GameInfo = null;
                     break;
                 case "Menu":
                     Menu = original.Menu;
+                    original.Menu = null;
+                    break;
+                case "NewtonAdapter":
+                    NewtonAdapter = original.NewtonAdapter;
+                    original.NewtonAdapter = null;
                     break;
                 default:
                     break;

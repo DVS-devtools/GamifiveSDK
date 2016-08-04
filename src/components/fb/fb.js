@@ -2,7 +2,6 @@ var Constants = require('../constants/constants');
 var GA        = require('../ga/ga');
 var Location  = require('../location/location');
 var Logger    = require('../logger/logger');
-var Newton    = require('../newton/newton');
 
 /**
 * Facebook module
@@ -41,16 +40,14 @@ var Facebook = new function(){
     * downloads and initializes the Facebook sdk 
     * @function init
     * @memberof Facebook
-    */
-    var i = 0;
+    */    
     this.init = function(params){
         Logger.log('GamifiveSDK', 'Facebook', 'init', params);
         for (var key in params){
             config[key] = params[key];
-        }
-        
-         window.fbAsyncInit = function() {
-            i++;
+        }        
+        window.fbAsyncInit = function() {
+            
             if (typeof FB === 'undefined') {
                 Logger.error('GamifiveSDK', 'Facebook', 'init', 'cannot download fb sdk');
             } else {
@@ -61,7 +58,6 @@ var Facebook = new function(){
                     version    : config.fbVersion   
                 });
             }
-            console.log(i);
             initialized = true;
         };
 

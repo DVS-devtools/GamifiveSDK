@@ -17,7 +17,7 @@ describe("Location test", function(){
             hostname:"", port:"", protocol:"", href:"http://www.gameasy/ww-it/#!/"}
         }
 
-        expect(Location.getOrigin()).toEqual(fakewindow.location.origin);
+        expect(Location.getOrigin()).toEqual(window.fakewindow.location.origin);
     });
 
     it("Location getOrigin should work with www2", function(){
@@ -91,5 +91,35 @@ describe("Location test", function(){
         var expected = window.fakewindow.location.protocol + "//" + window.fakewindow.location.hostname;
 
         expect(Location.getOrigin()).toEqual(expected);
+    });
+
+    it("Location.hasKey should work", function(){
+        window.fakewindow = {
+            location:{
+                origin:null, 
+                hostname:"www.gamifive.it", 
+                port:"", 
+                protocol:"http:", 
+                href:"http://www.gamifive.it/test/fabiof/sdk_integration_test/c2701133414427fee732e051abdfe3e8/index.html?key=1&pippo"
+            }
+        }
+
+        expect(Location.hasKey('key')).toEqual(true);
+        expect(Location.hasKey('pippo')).toEqual(true);
+        expect(Location.hasKey('pippa')).toEqual(false);
+    });
+
+    it("Location.getQueryString should work", function(){
+        window.fakewindow = {
+            location:{
+                origin: null, 
+                hostname:"www.gamifive.it", 
+                port:"", 
+                protocol:"http:", 
+                href:"http://www.gamifive.it/test/fabiof/sdk_integration_test/c2701133414427fee732e051abdfe3e8/index.html?key=1&pippo"
+            }
+        }
+
+        expect(Location.getQueryString('key')).toEqual({key:'1',pippo:undefined});
     });
 });

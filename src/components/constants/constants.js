@@ -2,7 +2,7 @@ module.exports = {
 
     PAYWALL_ELEMENT_ID: 'paywall',
     MAX_RECORDED_SESSIONS_NUMBER: 2,
-    FB_SDK_VERSION: '2.7',
+    FB_SDK_VERSION: '2.4',
     FB_SDK_URL: 'connect.facebook.net/en_US/all.js',
     OVERLAY_ELEMENT_ID: 'gfsdk_root',
     DEFAULT_MENU_STYLE: {
@@ -36,6 +36,7 @@ module.exports = {
 
     ERROR_SESSION_ALREADY_ENDED: 'GamifiveSDK :: Session :: end :: session already ended',
     ERROR_SESSION_NO_SESSION_STARTED: 'GamifiveSDK :: Session :: end :: no sessions started',
+    ERROR_END_SESSION_PARAM: 'GamifiveSDK :: Session :: end :: invalid type of data: expected number, got ',
     ERROR_SCORE_TYPE: 'GamifiveSDK :: Session :: end :: invalid type of score: expected number, got ',
     ERROR_LEVEL_TYPE: 'GamifiveSDK :: Session :: end :: invalid type of level: expected number, got ',
 
@@ -52,6 +53,7 @@ module.exports = {
     ERROR_GAME_INFO_NO_CONTENTID: 'GamifiveSDK :: GameInfo :: getContentId :: cannot match any content id on url ',
 
     ERROR_USER_FETCH_FAIL: 'GamifiveSDK :: User :: couldn\'t retrieve user profile: ',
+    ERROR_USER_MISSING_INFO: 'GamifiveSDK :: User :: Missing userInfo ',
     ERROR_GAMEINFO_FETCH_FAIL: 'GamifiveSDK :: GameInfo :: couldn\'t retrieve game info: ',
     ERROR_VHOST_LOAD_FAIL: 'GamifiveSDK :: Vhost :: couldn\'t retrieve vhost: ',
 
