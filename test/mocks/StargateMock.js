@@ -17,6 +17,10 @@ module.exports = function(){
             BASE_DIR: "file:///appid/applicationStorageDirectory/"
         }
 
+        this.game = {
+            BASE_DIR:"file:///appid/applicationStorageDirectory/"
+        };
+
         
         this.initialize = function(){
             return Promise.resolve(true);

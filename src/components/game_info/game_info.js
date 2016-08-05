@@ -127,7 +127,7 @@ var GameInfo = new function(){
                 
                 // TODO: Save gamifiveinfo
                 if (Stargate.isHybrid()) {
-                    var filePath = [Stargate.file.BASE_DIR, Constants.GAMEINFO_JSON_FILENAME].join("");
+                    var filePath = [Stargate.game.BASE_DIR, Constants.GAMEINFO_JSON_FILENAME].join("");
                     Stargate.file.write(filePath, JSON.stringify(gameInfo));
                 }
             } else {

@@ -68,5 +68,5 @@ module.exports = {
 
     GAMEINFO_JSON_FILENAME:'gameinfo.json',
     USER_JSON_FILENAME:'user.json',
-    VHOST_JSON_FILENAME:'vhost.json'
+    VHOST_JSON_FILENAME:'config.json'
 }   

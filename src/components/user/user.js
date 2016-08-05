@@ -78,7 +78,7 @@ var User = new function(){
                     Logger.log('GamifiveSDK', 'User', 'load complete');
 
                     if(Stargate.isHybrid()){                        
-                        var filePath = [Stargate.file.BASE_DIR, Constants.USER_JSON_FILENAME].join("");
+                        var filePath = [Stargate.game.BASE_DIR, Constants.USER_JSON_FILENAME].join("");
                         return Stargate.file.write(filePath, userInfo);                        
                     }
                 } else {
@@ -95,7 +95,7 @@ var User = new function(){
             
         } else if (Stargate.checkConnection().type === 'offline' && Stargate.isHybrid()) {
             Logger.warn('GamifiveSDK', 'User', 'offline', Stargate.checkConnection());
-            var filePath = [Stargate.file.BASE_DIR, Constants.USER_JSON_FILENAME].join("");
+            var filePath = [Stargate.game.BASE_DIR, Constants.USER_JSON_FILENAME].join("");
             return Stargate.file.readFileAsJSON(filePath)
                .then(function(responseData) {                   
                     for (var key in responseData){

@@ -35,8 +35,7 @@ var VHost = new function(){
     */
     this.load = function(){
         if(Stargate.isHybrid()){
-            // TODO: change in Stargate.file.BASE_DIR cause on iOS path change
-            VHOST_PATH = Stargate.file.BASE_DIR + Constants.VHOST_JSON_FILENAME;
+            VHOST_PATH = Stargate.game.BASE_DIR + Constants.VHOST_JSON_FILENAME;
         }
 
         if (Stargate.isHybrid() && Stargate.checkConnection().type === 'offline'){            
