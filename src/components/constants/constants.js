@@ -57,7 +57,7 @@ module.exports = {
     ERROR_GAMEINFO_FETCH_FAIL: 'GamifiveSDK :: GameInfo :: couldn\'t retrieve game info: ',
     ERROR_VHOST_LOAD_FAIL: 'GamifiveSDK :: Vhost :: couldn\'t retrieve vhost: ',
 
-    CONTENT_ID_REGEX: '(html5gameplay|sdk_integration_test)\/([a-zA-Z0-9]+)',    
+    CONTENT_ID_REGEX: '(html5gameplay|sdk_integration_test|games)\/([a-zA-Z0-9]+)', // games in hybrid case(folder name)    
 
     // API
     VHOST_API_URL: '/v01/config.getvars?keys=',
@@ -66,7 +66,7 @@ module.exports = {
     LEADERBOARD_API_URL: '/v01/leaderboard',
     CAN_DOWNLOAD_API_URL: '/v01/user.candownload/:ID',
 
-    GAMEINFO_JSON_FILENAME:'gameinfo.json',
+    GAMEINFO_JSON_FILENAME:'offlineData.json',
     USER_JSON_FILENAME:'user.json',
     VHOST_JSON_FILENAME:'config.json'
 }   

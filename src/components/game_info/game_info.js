@@ -4,6 +4,7 @@ var Logger     = require('../logger/logger');
 var Location   = require('../location/location');
 var Network    = require('../network/network');
 var Stargate   = require('stargatejs');
+var extend = require('../utils/utils').extend;
 
 /**
 * GameInfo module
@@ -43,8 +44,7 @@ var GameInfo = new function(){
     * @function getContentId
     * @memberof GameInfo
     */
-    this.getContentId = function(){
-        // TODO: hybrid match pattern
+    this.getContentId = function(){        
         var urlToMatch = Location.getCurrentHref();
         var contentIdRegex = new RegExp(Constants.CONTENT_ID_REGEX);
         var match = urlToMatch.match(contentIdRegex);
@@ -77,12 +77,19 @@ var GameInfo = new function(){
             return getGameInfoFromAPI(callback);
 
         } else if (Stargate.checkConnection().type === 'offline' && Stargate.isHybrid()) {
-
-            return Stargate.file.readFileAsJSON(Constants.GAMEINFO_JSON_FILENAME)
-               .then(function(responseData) {                   
-                    for (var key in responseData){
-                        gameInfo[key] = responseData[key];
+            var GAMEINFO_FILE_PATH = [Stargate.game.BASE_DIR, Constants.GAMEINFO_JSON_FILENAME].join("");
+            return Stargate.file.readFileAsJSON(GAMEINFO_FILE_PATH)
+               .then(function(offlineData) {
+                    if (offlineData.GamifiveInfo){                        
+                        var toSave = offlineData.GamifiveInfo[gameInfo.getContentId()];
+                        Logger.log('GameInfo from file', toSave);
+                        if (toSave){
+                            gameInfo = extend(gameInfo, toSave);                            
+                        }  else {
+                            throw new Error("GamifiveSDK could not retrieve GameInfo for " + gameInfo.getContentId() + " from file");
+                        }                        
                     }
+                    
                     if (typeof callback === "function") { callback(gameInfo); }
                     return gameInfo;                    
                 });
@@ -111,8 +118,7 @@ var GameInfo = new function(){
                     } catch(e) {
                         Logger.error("GameInfo", "getGameInfoFromAPI", "GET", urlToCall, "error parsing gameinfo");
                         throw e;
-                    }
-                    
+                    }                    
                 }
 
                 Logger.log('GamifiveSDK', 'GameInfo', 'fetch complete');
