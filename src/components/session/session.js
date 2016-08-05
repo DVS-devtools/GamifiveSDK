@@ -117,8 +117,23 @@ var Session = new function(){
 
         Menu.setGoToHomeCallback = sessionInstance.goToHome;
         
-        // let's dance        
-        initPromise = Stargate.initialize()
+        var SG_CONF = {};        
+        // let's dance     
+        if (Stargate.isHybrid()){
+            SG_CONF = {
+                modules:[
+                    ['game', {
+                        sdk_url: '',  
+                        api: '',
+                        gamifive_info_api: '', 
+                        bundle_games: []
+                        }
+                    ]
+                ]
+            };
+        }
+
+        initPromise = Stargate.initialize(SG_CONF)
                .then(function(){
                    return VHost.load();
                })

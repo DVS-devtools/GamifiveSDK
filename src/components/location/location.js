@@ -1,5 +1,6 @@
 var Logger = require('../logger/logger');
 var Utils = require('../utils/utils');
+var Stargate = require('stargatejs');
 
 /**
 * Utility module for managing locations
@@ -15,6 +16,7 @@ var Location = new function(){
         if (process.env.NODE_ENV === "testing" && window.fakewindow){
             
             theWindow = window.fakewindow;
+
             // Logger.log("TESTING ENV", theWindow);
         } else {
             theWindow = window;
@@ -34,9 +36,17 @@ var Location = new function(){
                                     + theWindow.location.hostname 
                                     + (theWindow.location.port ? ':' + theWindow.location.port: '');
         }
+        var href;
+        if (Stargate.isHybrid()){
+            
+            href = [Stargate.getWebappOrigin(), Stargate.getCountryCode()].join('/');
+            console.log(href);
+        } else {
+            href = theWindow.location.href;
+        }
         
-        var isGameasyRegex = new RegExp(/http:\/\/www2?\.gameasy\.com\/([a-zA-Z0-9-_]*)/);
-        var isGameasyMatch = theWindow.location.href.match(isGameasyRegex);
+        var isGameasyRegex = new RegExp(/http:\/\/www2?\.gameasy\.com\/([a-zA-Z0-9-_]*)/);        
+        var isGameasyMatch = href.match(isGameasyRegex);
 
         var gameasyCountryCode = '', 
             toJoin = [];
@@ -82,6 +92,32 @@ var Location = new function(){
         __setTestEnvIfAny__();
         return Utils.dequeryfy(theWindow.location.href);
     }
+
+    if (process.env.NODE_ENV === "testing"){
+        var original = {
+            Stargate: null
+        };
+    
+        locationInstance.setMock = function(what, mock){            
+            switch(what){
+                case "Stargate":
+                    original.Stargate = require('stargatejs');;
+                    Stargate = mock;
+                    break;
+            }
+        }
+
+        locationInstance.unsetMock = function(what){
+            if (!original[what]) return;
+            switch(what){
+                case "Stargate":
+                    Stargate = original.Stargate;
+                    original.Stargate = null;
+                    break;
+            }
+        }
+    }
+    
 };
 
 module.exports = Location;

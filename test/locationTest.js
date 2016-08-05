@@ -122,4 +122,29 @@ describe("Location test", function(){
 
         expect(Location.getQueryString('key')).toEqual({key:'1',pippo:undefined});
     });
+
+    it("Location should work when hybrid is true", function(){
+        window.fakewindow = {
+            location:{
+                origin: null, 
+                hostname:"www.gameasy.com", 
+                port:"", 
+                protocol:"http:", 
+                href:"http://www.gameasy.com/asd"
+            }
+        }
+        Location.setMock("Stargate", {
+            getWebappOrigin:function(){
+                return "http://www.gameasy.com";
+            },
+            getCountryCode:function(){
+                return "ww-it";
+            },isHybrid:function(){
+                return true;
+            }
+        });
+
+        expect(Location.getOrigin()).toEqual("http://www.gameasy.com/ww-it");
+        Location.unsetMock("Stargate");
+    });
 });
