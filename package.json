@@ -16,7 +16,8 @@
     "minify": "uglifyjs dist/gfsdk.js --compress --mangle --dead-code  --source-map dist/gfsdk.min.js.map --output dist/gfsdk.min.js",
     "test:develop": "export NODE_ENV=testing && npm run vhost:keys && karma start",
     "test": "export NODE_ENV=testing && npm run vhost:keys && karma start --no-auto-watch --single-run",
-    "upload":"scp -r dist/* super@192.168.124.3:/dadanet2/webstore2/htdocs/test/fabiof/sdk_integration_test/c2701133414427fee732e051abdfe3e8"
+    "upload:integration":"scp -r dist/* super@192.168.124.3:/dadanet2/webstore2/htdocs/test/fabiof/sdk_integration_test/c2701133414427fee732e051abdfe3e8",
+    "upload":"scp -r dist/* super@192.168.124.3:/dadanet2/wl2/webstore_html5game/js/webstore_html5game/gfsdk/dist/"
   },
   "devDependencies": {
     "babel-plugin-add-module-exports": "^0.2.1",
