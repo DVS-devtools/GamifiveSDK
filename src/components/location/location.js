@@ -38,9 +38,7 @@ var Location = new function(){
         }
         var href;
         if (Stargate.isHybrid()){
-            
-            href = [Stargate.getWebappOrigin(), Stargate.getCountryCode()].join('/');
-            console.log(href);
+            href = Stargate.getDomainWithCountry();            
         } else {
             href = theWindow.location.href;
         }

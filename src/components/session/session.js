@@ -134,6 +134,7 @@ var Session = new function(){
         }
 
         initPromise = Stargate.initialize(SG_CONF)
+               .then(Stargate.getInfo)
                .then(function(){
                    return VHost.load();
                })
@@ -143,9 +144,9 @@ var Session = new function(){
                     contentRanking = VHost.get('CONTENT_RANKING');
                     Menu.show();                                        
                     
-                    Logger.info("User.fetch & GameInfo.fetch");                   
+                    Logger.info('User.fetch & GameInfo.fetch');                   
                     return Promise.all([
-                        User.fetch(), 
+                        User.fetch(),
                         GameInfo.fetch()
                     ]);
                })

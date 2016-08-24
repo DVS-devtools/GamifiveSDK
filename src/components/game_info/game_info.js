@@ -86,7 +86,7 @@ var GameInfo = new function(){
                         if (toSave){
                             gameInfo = extend(gameInfo, toSave);                            
                         }  else {
-                            throw new Error("GamifiveSDK could not retrieve GameInfo for " + gameInfo.getContentId() + " from file");
+                            throw new Error('GamifiveSDK could not retrieve GameInfo for ' + gameInfo.getContentId() + ' from file');
                         }                        
                     }
                     
