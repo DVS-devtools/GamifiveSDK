@@ -5,6 +5,7 @@ module.exports = {
     FB_SDK_VERSION: '2.4',
     FB_SDK_URL: 'connect.facebook.net/en_US/all.js',
     OVERLAY_ELEMENT_ID: 'gfsdk_root',
+    BACK_BUTTON_SELECTOR:'#backBtn',
     DEFAULT_MENU_STYLE: {
         'left': '2px',
         'height': '44px',

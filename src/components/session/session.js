@@ -114,7 +114,7 @@ var Session = new function(){
             Menu.setCustomStyle(config.moreGamesButtonStyle);
         }
 
-        Menu.setGoToHomeCallback = sessionInstance.goToHome;
+        Menu.setGoToHomeCallback(sessionInstance.goToHome);
         
         var SG_CONF = {};        
         // let's dance     
@@ -450,16 +450,35 @@ var Session = new function(){
             var gameoverParams = {
                 start: lastSession.startTime.getTime(),
                 duration: lastSession.endTime - lastSession.startTime,
-                score: lastSession.score || 'null'                           
+                score: lastSession.score                           
             };
 
             if(lastSession.level){
                 gameoverParams.level = lastSession.level;
             }            
             
-            gameOver(gameoverParams).then(function(htmlString){
-                DOMUtils.create(htmlString);
-            });            
+            gameOver(gameoverParams)
+                .then(DOMUtils.create)
+                .then(function(){
+                    var backBtn = document.querySelector(Constants.BACK_BUTTON_SELECTOR).parentNode;
+                    backBtn.addEventListener('touchend', function(){
+                        sessionInstance.goToHome();
+                        //remove it everytime to prevent memory leak
+                        backBtn.removeEventListener(this);
+                    });
+
+                    // disabled false
+                    var state = Stargate.checkConnection().type === "online" ? false : true;
+                    var buttons = document.querySelectorAll('.social .btn');	
+                    buttons = [].slice.call(buttons);
+                    buttons.map(function(button){ button.disabled = state; });
+
+                    Stargate.addListener("connectionchange", function(conn){
+                        var state;
+                        conn.type === "online" ? state = false : state = true;					
+                        buttons.map(function(button){ button.disabled = state; })
+                    });
+                });  
         }
 
         Menu.show();
@@ -503,11 +522,8 @@ var Session = new function(){
     this.goToHome = function(){
         Logger.info('GamifiveSDK', 'Session', 'goToHome');
         if (Stargate.isHybrid()){
-            if (Stargate.checkConnection().type === "offline") {
-                Stargate.goToLocalIndex();
-            } else {
-                Stargate.goToWebIndex();
-            }
+            // In local index there's already a connection check
+            Stargate.goToLocalIndex();
         } else {
             window.location.href = Location.getOrigin();
         }
