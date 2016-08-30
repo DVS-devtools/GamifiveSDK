@@ -33,4 +33,12 @@ module.exports = function(){
         this.goToWebIndex = function(){
             return true;
         }
+
+        this.getWebappOrigin = function(){
+            return 'http://www.gameasy.com';
+        }
+
+        this.getCountryCode = function(){
+            return 'ww-it';
+        }
 }

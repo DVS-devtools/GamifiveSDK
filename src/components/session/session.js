@@ -10,12 +10,13 @@ var Location  = require('../location/location');
 var Logger    = require('../logger/logger');
 var Menu      = require('../menu/menu');
 var Network   = require('../network/network');
-var NewtonAdapter = require('newton-adapter');
 var User      = require('../user/user');
 var VHost     = require('../vhost/vhost');
 var VarCheck  = require('../varcheck/varcheck'); 
 var Stargate  = require('stargatejs');
 var calculateContentRanking = require('../tracking_utils/tracking_utils').calculateContentRanking;
+var NewtonService = require('../newton/newton');
+
 /**
  * Utils is the same of stargate
  * TODO: make a package.json and share as dep with stargate
@@ -54,9 +55,7 @@ var Session = new function(){
     */
     this.reset = function(){
         initPromise = null;
-        config = {
-            sessions:[]
-        };
+        config = {sessions:[]};
     }
     // apply default configuration
     sessionInstance.reset();
@@ -134,7 +133,6 @@ var Session = new function(){
         }
 
         initPromise = Stargate.initialize(SG_CONF)
-               .then(Stargate.getInfo)
                .then(function(){
                    return VHost.load();
                })
@@ -154,9 +152,9 @@ var Session = new function(){
                    return User.loadData(null, true);
                })
                .then(function(){
-                                      
+
                     var env = Stargate.isHybrid() ? 'hybrid' : 'webapp';
-                    NewtonAdapter.init({
+                    NewtonService.init({
                            secretId: VHost.get('NEWTON_SECRETID'),
                            enable: true,        // enable newton
                            waitLogin: true,     // wait for login to have been completed (async)
@@ -173,14 +171,14 @@ var Session = new function(){
                     }
 
                     queryString.http_referrer = window.document.referrer;
-                    NewtonAdapter.login({
+                    NewtonService.login({
                         type: 'external',
                         userId: User.getUserId(), 
                         userProperties: queryString,
                         logged: (User.getUserType() !== 'guest')
                     });
 
-                    NewtonAdapter.trackEvent({
+                    NewtonService.trackEvent({
                         name: 'GameLoad',
                         rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'), 
                         properties:{
@@ -219,7 +217,7 @@ var Session = new function(){
 
         function doStartSession(){            
             // ADD TRACKING HERE
-            NewtonAdapter.trackEvent({
+            NewtonService.trackEvent({
                 name: "GameStart",
                 rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameStart'), 
                 properties:{
@@ -315,7 +313,9 @@ var Session = new function(){
         // cut out the older sessions
         config.sessions = config.sessions.slice(0, Constants.MAX_RECORDED_SESSIONS_NUMBER);
 
-        return initPromise.then(__start);
+        return initPromise.then(function(){
+            return __start();
+        });
     }
 
     /**
@@ -385,7 +385,7 @@ var Session = new function(){
             throw Constants.ERROR_SESSION_ALREADY_ENDED;
         }
 
-        NewtonAdapter.trackEvent({
+        NewtonService.trackEvent({
             rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameEnd'),
             name:'GameEnd', 
             properties:{
@@ -483,13 +483,13 @@ var Session = new function(){
             return Network.xhr('GET', url).then(function(resp) {
                 if(Stargate.isHybrid()){
                     gameoverParams.content_id = GameInfo.getContentId();
-                    return Stargate.game.buildGameover(gameoverParams);
+                    return Stargate.game.buildGameOver(gameoverParams);
                 }
                 return resp.response;
             });
         } else if(Stargate.checkConnection().type === "offline" && Stargate.isHybrid()){
             gameoverParams.content_id = GameInfo.getContentId();
-            return Stargate.game.buildGameover(gameoverParams);
+            return Stargate.game.buildGameOver(gameoverParams);
         } else {
             Logger.log("Fail build gameover, you are offline", Stargate.checkConnection());
         }
@@ -544,9 +544,9 @@ var Session = new function(){
                     original.Menu = require('../menu/menu');
                     Menu = mock;
                     break;
-                case "NewtonAdapter":
-                    original.NewtonAdapter = require('newton-adapter');
-                    NewtonAdapter = mock;
+                case "NewtonService":
+                    original.NewtonService = require('../newton/newton');
+                    NewtonService = mock;
                     break;
                 default:
                     break;
@@ -575,9 +575,9 @@ var Session = new function(){
                     Menu = original.Menu;
                     original.Menu = null;
                     break;
-                case "NewtonAdapter":
-                    NewtonAdapter = original.NewtonAdapter;
-                    original.NewtonAdapter = null;
+                case "NewtonService":
+                    NewtonService = original.NewtonService;
+                    original.NewtonService = null;
                     break;
                 default:
                     break;

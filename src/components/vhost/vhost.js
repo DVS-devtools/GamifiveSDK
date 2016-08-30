@@ -148,10 +148,6 @@ var VHost = new function(){
                     original.Menu = require('../menu/menu');
                     Menu = mock;
                     break;
-                case "NewtonAdapter":
-                    original.NewtonAdapter = require('newton-adapter');
-                    NewtonAdapter = mock;
-                    break;
                 default:
                     break;
             }
@@ -178,10 +174,6 @@ var VHost = new function(){
                 case "Menu":
                     Menu = original.Menu;
                     original.Menu = null;
-                    break;
-                case "NewtonAdapter":
-                    NewtonAdapter = original.NewtonAdapter;
-                    original.NewtonAdapter = null;
                     break;
                 default:
                     break;

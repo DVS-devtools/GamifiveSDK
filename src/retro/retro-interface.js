@@ -24,8 +24,8 @@ var addRetroInterface = function(build){
 
     build.share = build.FB.share;
     build.send = build.FB.send;
-    if(!window.GameoverCore){
-        window.GameoverCore = {
+    if(!window.GameOverCore){
+        window.GameOverCore = {
             playAgain:function(){
                 build.startSession();
             },
