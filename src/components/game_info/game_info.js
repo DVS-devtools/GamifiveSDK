@@ -5,6 +5,7 @@ var Location   = require('../location/location');
 var Network    = require('../network/network');
 var Stargate   = require('stargatejs');
 var extend = require('../utils/utils').extend;
+var JSONPRequest = require('http-francis').JSONPRequest;
 
 /**
 * GameInfo module
@@ -73,9 +74,7 @@ var GameInfo = new function(){
         Logger.log('GamifiveSDK', 'GameInfo', 'fetch attempt');
         
         if (Stargate.checkConnection().type === 'online'){
-
             return getGameInfoFromAPI(callback);
-
         } else if (Stargate.checkConnection().type === 'offline' && Stargate.isHybrid()) {
             var GAMEINFO_FILE_PATH = [Stargate.game.BASE_DIR, Constants.GAMEINFO_JSON_FILENAME].join("");
             return Stargate.file.readFileAsJSON(GAMEINFO_FILE_PATH)
@@ -106,32 +105,17 @@ var GameInfo = new function(){
         var urlToCall = [gameInfoUrl, gameInfoInstance.getContentId()].join("");
 
         Logger.log("GameInfo", "getGameInfoFromAPI", "GET", urlToCall);
-        return Network.xhr('GET', urlToCall, function(resp, req){
-
-            if(!!resp && resp.success){
+        return new JSONPRequest(urlToCall, 5000).prom.then(function(resp){
+            if(resp.status >= 200 && resp.status <= 399){               
                 
-                var responseData = resp.response;
-
-                if (typeof responseData == typeof ''){
-                    try{
-                        responseData = JSON.parse(responseData);
-                    } catch(e) {
-                        Logger.error("GameInfo", "getGameInfoFromAPI", "GET", urlToCall, "error parsing gameinfo");
-                        throw e;
-                    }                    
-                }
-
-                Logger.log('GamifiveSDK', 'GameInfo', 'fetch complete');
-
-                if(responseData.game_info){
-                    for (var key in responseData.game_info){
-                        gameInfo[key] = responseData.game_info[key];
-                    }
-                } else {                    
-                    throw resp.status + " getting gameinfo";
+                if(!resp.game_info){
+                    Logger.error('GamifiveSDK', 'GameInfo', 'error fetching game info', resp);
+                    throw new Error('Missing game_info key in the response', resp);    
                 }
                 
-                // TODO: Save gamifiveinfo
+                Logger.log('GamifiveSDK', 'GameInfo', 'fetch complete');                
+                gameInfo = extend(gameInfo, resp.game_info);
+
                 if (Stargate.isHybrid()) {
                     var filePath = [Stargate.game.BASE_DIR, Constants.GAMEINFO_JSON_FILENAME].join("");
                     Stargate.file.write(filePath, JSON.stringify(gameInfo));
