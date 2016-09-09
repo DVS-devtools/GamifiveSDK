@@ -7,6 +7,10 @@ var Network   = require('../network/network');
 var VarCheck  = require('../varcheck/varcheck');
 var VHost     = require('../vhost/vhost');
 var Stargate  = require('stargatejs');
+var Utils = require('stargatejs').Utils;
+var API = require('../api/api');
+var DOMUtils  = require('../dom/dom-utils');
+var JSONPRequest = require('http-francis').JSONPRequest
 
 /**
 * User module
@@ -18,6 +22,7 @@ var User = new function(){
     var userInstance = this;
 
     var userInfo;
+    var favorites = [];
 
     this.getInfo = function(){
         return userInfo || {};
@@ -53,34 +58,28 @@ var User = new function(){
     * @memberof User
     */
     this.fetch = function(callback){
-        Logger.log('GamifiveSDK', 'User', 'fetch attempt', Stargate.checkConnection());
-                
-        if (Stargate.checkConnection().type === 'online'){
-            Logger.info('GamifiveSDK', 'User', 'online', Stargate.checkConnection());
+        Logger.log('GamifiveSDK', 'User', 'fetch attempt:', Stargate.checkConnection().type, ' Hybrid:', Stargate.isHybrid());
+        
+        // This condition is important beacause when 
+        // i'm loading the game from disk i don't have that damn cookies
+        if (Stargate.checkConnection().type === 'online' 
+            && window.location.protocol !== 'cdvfile:'){
 
             var userInfoUrl = VHost.get('MOA_API_USER_CHECK');
-            if (Stargate.isHybrid()){
-                userInfoUrl.replace(":HYBRID", 1);
-            } 
+            var _hyb = Stargate.isHybrid() ? 1 : 0; 
+            userInfoUrl.replace(':HYBRID', _hyb);            
             
-            // userInfoUrl = userInfoUrl.replace(":TS", "");            
+            // userInfoUrl = userInfoUrl.replace(":TS", "");
             return Network.xhr('GET', userInfoUrl).then(function(resp, req){
                 if(!!resp && resp.success){
                     var responseData = resp.response;
 
-                    if (typeof responseData == typeof ''){
+                    if (typeof responseData === typeof ''){
                         responseData = JSON.parse(responseData);
-                    }                    
-
-                    for (var key in responseData){
-                        userInfo[key] = responseData[key];
                     }
+
+                    userInfo = Utils.extend(userInfo, responseData);
                     Logger.log('GamifiveSDK', 'User', 'load complete');
-
-                    if(Stargate.isHybrid()){                        
-                        var filePath = [Stargate.game.BASE_DIR, Constants.USER_JSON_FILENAME].join("");
-                        return Stargate.file.write(filePath, userInfo);                        
-                    }
                 } else {
                     Logger.warn(Constants.ERROR_USER_FETCH_FAIL + resp.status + ' ' + resp.statusText + ' ');
                 }
@@ -90,88 +89,113 @@ var User = new function(){
                         callback(userInfo);
                     });
                 }
-
-            });
+                return userInfo;
+            });            
             
-        } else if (Stargate.checkConnection().type === 'offline' && Stargate.isHybrid()) {
-            Logger.warn('GamifiveSDK', 'User', 'offline', Stargate.checkConnection());
-            var filePath = [Stargate.game.BASE_DIR, Constants.USER_JSON_FILENAME].join("");
-            return Stargate.file.readFileAsJSON(filePath)
-               .then(function(responseData) {                   
-                    for (var key in responseData){
-                        userInfo[key] = responseData[key];
-                    }
-                    callback(userInfo);
+        } else {
+            if(Stargate.isHybrid()){
+                // The file should be saved by webapp
+                var filePath = [Stargate.file.BASE_DIR, Constants.USER_JSON_FILENAME].join('');
+                return Stargate.file.readFileAsJSON(filePath)
+                .then(function(responseData) {
+                        userInfo = Utils.extend(userInfo, responseData);
+                        if (typeof callback === 'function') { callback(userInfo); }
+                    });
+            }            
+        }
+    }
+   
+    this.canPlay = function(){
+        if(Stargate.checkConnection().type === 'online'){
+            var urlToCall = API.get('CAN_DOWNLOAD_API_URL')
+                    .replace(":ID", GameInfo.getContentId());
+            
+            urlToCall = Utils.queryfy(urlToCall, {format:'jsonp'});
+            
+            var callDefer = new JSONPRequest(urlToCall, 5000).prom;
+            return callDefer
+                .then(function(result){
+                    Logger.log('GamifiveSDK', 'Session', 'start', 'can play', result);
+                    canPlay = result.canDownload;
+                    return canPlay;
                 });
+        } else {
+            if(Stargate.isHybrid()){
+                // User can play this game?
+                var daInfo = GameInfo.getInfo().game;
+                var canPlay = false;
+                if(daInfo.access_type){
+                    canPlay = daInfo.access_type[ userInstance.getUserType() ];
+                }
+                return Promise.resolve(canPlay);
+            }            
         }
     }
 
     /**
-     * doSaveUserData makes the server call
-     * @private
-     * @param {object} data - the data to save. if null delete the data
-     * @param {function} callback - callback fullfilled with userdata {object}
+     * get user favourites from api
+     * @returns {promise<Object>}
      */
-    var doSaveUserData = function(data, callback){
-        var contentId  = GameInfo.getContentId();
-        var userId     = userInstance.getUserId();
-        var userDataId = VarCheck.get(userInfo, ['gameInfo', '_id']) || '';
-
-        if (typeof userInfo.gameInfo === 'undefined'){
-            userInfo.gameInfo = {};
+    this.getFavorites = function(){
+         if(Stargate.checkConnection().type !== 'online'){
+             Logger.warn('Cannot load favorites because offline'); 
+             return Promise.resolve(favorites); 
         }
-        
-        userInfo.gameInfo.info = data;       
-        var saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
-        var urlToCall = saveUserDataUrl
-                            .replace(':QUERY', JSON.stringify({contentId: contentId}))
-                            .replace(':ID', userDataId)
-                            .replace(':ACCESS_TOKEN', '')
-                            .replace(':EXTERNAL_TOKEN', userId)
-                            .replace(':COLLECTION', 'gameInfo');
-
-        urlToCall += "&info=" + encodeURIComponent(JSON.stringify(data))
-                                + "&domain=" + encodeURIComponent(Location.getOrigin())
-                                + "&contentId=" + GameInfo.getContentId();
-
-        /**
-        * ATTENZIONE 
-        * è una get ma in realtà POSTa i dati dello user sul server
-        */
-        return Network.xhr('GET', urlToCall, function(resp, req){
-            Logger.log('GamifiveSDK', 'Data User', 'set', resp);
-            
-            if (typeof callback === 'function'){
-                callback(userInfo.gameInfo.info);
-            }
-            
+        var GET_LIKE = API.get('USER_GET_LIKE');
+        var query = {
+            user_id: userInstance.getUserId(),
+            size: 51
+        }
+        var url = Utils.queryfy(GET_LIKE, query);
+        return Network.xhr('GET', url).then(function(resp){
+            if(!resp.success){ Logger.warn('Fail to load favorites'); return;}                        
+            favorites = JSON.parse(resp.response);            
+            return favorites;
         });
     }
+    
+    /**
+     * verify if the game is in the user favourites
+     * @param {String} gameId - the game id to verify
+     * @returns {boolean}
+     */
+    this.isGameFavorite = function(gameId){
+        return favorites.some(function(gameObject){ return gameObject.id === gameId});
+    }
+
 
     /**
     * saves some user's data
     * @public
     * @function saveData
     * @memberof User
+    * @returns {Promise}
     */
-    this.saveData = function(data, callback){
-        Logger.info('GamifiveSDK', 'User', 'saveData', data);
-        doSaveUserData(data, callback);
+    this.saveData = function(info, callback){
+        if(!callback){ callback = function(){}; } 
+        var contentId  = GameInfo.getContentId();
+        var userId     = userInstance.getUserId();
+        var userDataId = VarCheck.get(GameInfo.getInfo(), ['user', 'gameInfo', '_id']) || '';
+        
+        if (typeof userInfo.gameInfo === 'undefined'){
+            userInfo.gameInfo = {};
+        }
+        
+        var data = {
+            // !! important !!
+            UpdatedAt: new Date(),
+            info:JSON.stringify(info)
+        }
+        Logger.info('GamifiveSDK', 'User', 'saveData', data);    
+        
+        setOnServer({ userId: userId, contentId: contentId, userDataId: userDataId }, data);
+        setOnLocal({ userId: userId, contentId: contentId } , data);
+        userInfo.gameInfo.info = info;
+        callback();
     }
 
     /**
-    * clear some user's data
-    *
-    * @function clearData
-    * @memberof User
-    */
-    this.clearData = function(callback){
-        Logger.info('GamifiveSDK', 'User', 'clearData');
-        doSaveUserData(null, callback);
-    }
-
-    /**
-    * loads some user's data 
+    * Loads some user's data 
     * @function loadData    
     * @memberof User
     * @param callback
@@ -179,10 +203,17 @@ var User = new function(){
     * @returns {promise|object}
     */
     this.loadData = function(callback, async){
+        if (!userInfo.gameInfo){
+            userInfo.gameInfo = {};
+        }
+
+        if(!callback){callback = function(){}}
+
         Logger.info('GamifiveSDK', 'User', 'loadData');
         if (!userInfo){ throw new Error(Constants.ERROR_USER_MISSING_INFO); }
 
         if (!userInfo.logged){ 
+            Logger.info('GamifiveSDK', 'User', 'not logged', userInfo.logged);
             if(async){
                 return Promise.resolve({});
             } else {
@@ -192,50 +223,73 @@ var User = new function(){
 
         var contentId = GameInfo.getContentId();
         var userId    = userInstance.getUserId();
-        var loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
-
-        var urlToCall = loadUserDataUrl
-                            .replace(':QUERY', JSON.stringify({contentId: contentId}))
-                            .replace(':ID', '')
-                            .replace(':ACCESS_TOKEN', '')
-                            .replace(':EXTERNAL_TOKEN', userId)
-                            .replace(':COLLECTION', 'gameInfo');
-
-        // unique parameter in qs to avoid cache 
-        urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random()*1000);
-        Logger.log('GamifiveSDK', 'User', 'loadData', 'url to call', urlToCall);        
         
-        var loadTask = Network.xhr('GET', urlToCall, function(resp, req){
+        var params = { userId: userId, contentId: contentId };
+        
+        var loadTask = Promise.all([
+            getFromServer(params), 
+            getFromLocal(params)
+        ]).then(function(results){
+            var serverData = results[0];
+            var localData = results[1];
+            var finalData;
 
-            var responseData = resp.response;
-            try{
-                responseData = JSON.parse(responseData);
-            } catch(e){
-                Logger.error(e);
-                throw e;
+            if(!serverData.UpdatedAt && !localData.UpdatedAt){
+                finalData = {info:JSON.stringify({})};
             }
 
-            userInfo.gameInfo = VarCheck.get(responseData, ['response', 'data', 0]);
-            Logger.log('GamifiveSDK', 'User', 'loadData', 'response data', userInfo.gameInfo.info)
-
-            if (typeof callback === 'function'){
-                callback(userInfo.gameInfo.info);
+            if(!serverData.UpdatedAt && localData.UpdatedAt){
+                finalData = localData;
             }
 
-        });
+            // localData is empty, serverData is ok then save serverData on local
+            if(serverData.UpdatedAt && !localData.UpdatedAt){
+                finalData = serverData;
+                setOnLocal(params, serverData);                
+            }
+
+            // serverData and localData exists but must be synchronized
+            if(serverData.UpdatedAt && localData.UpdatedAt){
+                if(new Date(serverData.UpdatedAt) > new Date(localData.UpdatedAt)){
+                    finalData = serverData;
+                    setOnLocal(params, serverData);
+                } else {
+                    finalData = localData;
+                    setOnServer(params, localData)
+                }
+            }
+
+            return finalData;               
+        })
+        .then(updateUserDataInMemory)
+        .then(callback);
 
         if (async){
             return loadTask;
-        }
-        
-        if (!userInfo.gameInfo){
-            userInfo.gameInfo = {};
-        }
+        }        
+
+        return userInfo.gameInfo.info;
+    }
+
+    function updateUserDataInMemory(data){
+        userInfo.gameInfo.info = JSON.parse(data.info);
         return userInfo.gameInfo.info;
     }
 
     /**
-     * get the user type: guest free or premium
+    * Clear some user's data
+    *
+    * @function clearData
+    * @memberof User
+    */
+    this.clearData = function(callback){
+        Logger.info('GamifiveSDK', 'User', 'clearData');
+        // doSaveUserData(null, callback);
+        // delete from server and on local
+    }
+
+    /**
+     * Get the user type: guest free or premium
      * @returns {string}
      */
     this.getUserType = function(){
@@ -248,12 +302,159 @@ var User = new function(){
         }
     }
 
-    this.syncUserData = function(){
-        // get data from server
-        // if local.data > server.data
-        // -- save on server
-        // else
-        // -- save on local        
+    /**
+     * Get UserData from server
+     * @param {Object} params
+     * @param {String} params.userId
+     * @param {String} params.contentId
+     * @returns {Promise} 
+     */
+    function getFromServer(params){
+        if (Stargate.checkConnection().type !== 'online'){ return Promise.resolve({});}
+        var loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
+
+        var urlToCall = loadUserDataUrl
+                            .replace(':QUERY', JSON.stringify({contentId: params.contentId}))
+                            .replace(':ID', '')
+                            .replace(':ACCESS_TOKEN', '')
+                            .replace(':EXTERNAL_TOKEN', params.userId)
+                            .replace(':COLLECTION', 'gameInfo');
+
+        // unique parameter in qs to avoid cache 
+        urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random() * 1000);
+        Logger.log('GamifiveSDK', 'User', 'getFromServer', 'url to call', urlToCall);        
+        return Network.xhr('GET', urlToCall)
+            .then(function(resp, req){
+                if(resp.success){
+                    var responseData = resp.response;
+                    try{
+                        responseData = JSON.parse(responseData);
+                    } catch(e){
+                        Logger.error('Fail to get ', url, e);
+                        throw e;
+                    }                   
+                    var data = VarCheck.get(responseData, ['response', 'data'])[0];                    
+                    return data ? data : {};
+                }
+            });
+    }
+
+    /**
+     * Set UserData on Server
+     * @param {Object} params
+     * @param {String} params.contentId
+     * @param {String} params.userDataId
+     * @param {String} params.userId
+     * @param {Object} data - the data to be saved
+     */
+    function setOnServer(params, data){
+        if (Stargate.checkConnection().type !== 'online'){ Logger.log('GamifiveSDK', 'userData cannot not be set on server'); return; }
+        var saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
+        var urlToCall = saveUserDataUrl
+                            .replace(':QUERY', JSON.stringify({contentId: params.contentId}))
+                            .replace(':ID', params.userDataId)
+                            .replace(':ACCESS_TOKEN', '')
+                            .replace(':EXTERNAL_TOKEN', params.userId)
+                            .replace(':COLLECTION', 'gameInfo');
+                     
+        urlToCall = Utils.queryfy(urlToCall, { info: data.info, domain: Location.getOrigin(), contentId: params.contentId });
+
+        /**
+        * ATTENZIONE 
+        * è una get ma in realtà POSTa i dati dello user sul server        
+        */
+        Logger.log('GamifiveSDK', 'try to set on server', urlToCall);
+        return Network.xhr('GET', urlToCall).then(function(resp, req){
+            
+            if(resp.success){
+                Logger.log('GamifiveSDK', 'userData set with success on server', resp);
+                return data;
+            }               
+        });
+    }
+
+    /**
+     * Save userData to local file
+     * @param {String} params
+     * @param {String} params.contentId - 
+     * @param {String} params.userId - 
+     * @param {Object} data - the data to store
+     * @returns {Promise<Object>}
+     */
+    function setOnLocal(params, data){
+        if(Stargate.isHybrid() && 
+           window.location.protocol === 'cdvfile:'){
+            var path = [Stargate.file.BASE_DIR, Constants.USER_DATA_JSON_FILENAME].join('');
+            return Stargate.file.readFileAsJSON(path)
+                .then(function(userData){
+                    // Update the date!
+                    data.UpdatedAt = new Date();
+                    Logger.log('GamifiveSDK', 'userData set with success on local', data);
+                    if(!userData[params.userId]){ userData[params.userId] = {}; }
+                    userData[params.userId][params.contentId] = data;
+                    return Stargate.file.write(path, JSON.stringify(userData));
+                });
+        } else {
+            //Save on localStorage?
+            return Promise.resolve();
+        }
+    }
+
+    /**
+     * Get the userData from the local file
+     * @param {Object} params
+     * @param {String} params.userId
+     * @param {String} params.contentId
+     * @returns {Promise}
+     */
+    function getFromLocal(params){
+        if(Stargate.isHybrid()){
+            var path = [Stargate.file.BASE_DIR, Constants.USER_DATA_JSON_FILENAME].join('');
+            return Stargate.file.readFileAsJSON(path)
+                .then(function(userData){
+                    var data = VarCheck.get(userData, [params.userId, params.contentId]);
+                    return data ? data : {};
+                });
+        } else {
+            return Promise.resolve({});
+        } 
+    }
+
+    this.toggleLike = function(){
+        var SET_LIKE = API.get('USER_SET_LIKE');
+        var DELETE_LIKE = API.get('USER_DELETE_LIKE');
+        
+        var isFavourite = User.isGameFavorite(GameInfo.getContentId());
+
+        var query = {
+            content_id: GameInfo.getContentId(),
+            user_id: userInstance.getUserId() 
+        }
+
+        var remoteOperation;
+        if(isFavourite){
+            var deleteUrl = Utils.queryfy(DELETE_LIKE, query);
+            remoteOperation = Network.xhr('POST', deleteUrl);
+        } else {
+            var setUrl = Utils.queryfy(SET_LIKE, query);
+            remoteOperation = Network.xhr('GET', setUrl);
+        }
+
+        remoteOperation.then(function(resp){            
+            if(resp.response === ''){
+                // DELETE OK
+                var temp = favorites.filter(function(gameObject){
+                    return gameObject.id !== GameInfo.getContentId()
+                });
+                favorites = temp;
+                DOMUtils.updateFavoriteButton(false);
+            } else {
+                // SET OK
+                var responseData = JSON.parse(resp.response);                
+                favorites.push({ id: responseData.object_id });
+                DOMUtils.updateFavoriteButton(true);
+            }
+        });
     }
 
     if (process.env.NODE_ENV === "testing"){

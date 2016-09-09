@@ -35,7 +35,7 @@ var VHost = new function(){
     */
     this.load = function(){
         if(Stargate.isHybrid()){
-            VHOST_PATH = Stargate.game.BASE_DIR + Constants.VHOST_JSON_FILENAME;
+            VHOST_PATH = Stargate.file.BASE_DIR + Constants.VHOST_JSON_FILENAME;
         }
 
         if (Stargate.isHybrid() && Stargate.checkConnection().type === 'offline'){            
@@ -44,13 +44,13 @@ var VHost = new function(){
                 .then(function(exists){
                         if (exists){
                             return Stargate.file.readFileAsJSON(VHOST_PATH);
-                        }                        
+                        }
                         throw new Error(Constants.ERROR_VHOST_LOAD_FAIL + ' file not exists');
                 })
                 .then(function(json){
                     vHost = json;
                 });
-        } else if(Stargate.checkConnection().type === "online") {
+        } else if(Stargate.checkConnection().type === 'online') {
             var urlToCall = API.get('VHOST_API_URL') + VHostKeys.join(',');
             Logger.log('GamifiveSDK', 'VHost', 'load url', urlToCall);
             
@@ -64,11 +64,7 @@ var VHost = new function(){
                             vHost = JSON.parse(vHost);
                         }
                     }
-
-                    Logger.log('GamifiveSDK', 'VHost', 'loaded');                    
-                    if (Stargate.isHybrid()){
-                        return vHostSave();
-                    }                    
+                    Logger.log('GamifiveSDK', 'VHost', 'loaded');
             });
         } else {
             

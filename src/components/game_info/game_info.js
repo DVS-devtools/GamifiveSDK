@@ -4,7 +4,7 @@ var Logger     = require('../logger/logger');
 var Location   = require('../location/location');
 var Network    = require('../network/network');
 var Stargate   = require('stargatejs');
-var extend = require('../utils/utils').extend;
+var extend = require('stargatejs').Utils.extend;
 var JSONPRequest = require('http-francis').JSONPRequest;
 
 /**
@@ -62,7 +62,20 @@ var GameInfo = new function(){
     * @memberof GameInfo
     */
     this.persist = function(callback){
-        Logger.warn('GamifiveSDK', 'GameInfo', 'persist', 'not implemented');
+        Logger.info('GamifiveSDK', 'GameInfo', 'persist', gameInfo);
+        
+        // save on file only if i'm running game from the disk
+        if (Stargate.isHybrid() && window.location.protocol === 'cdvfile:') {
+            var GAMEINFO_FILE_PATH = [Stargate.file.BASE_DIR, Constants.GAMEINFO_JSON_FILENAME].join("");
+            
+            return Stargate.file.readFileAsJSON(GAMEINFO_FILE_PATH)
+                .then(function(offlineData){
+                    offlineData.GamifiveInfo[gameInfoInstance.getContentId()] = gameInfo;
+                    return offlineData;
+                }).then(function(updated){
+                    return Stargate.file.write(GAMEINFO_FILE_PATH, JSON.stringify(updated));
+                });
+        }
     }
 
     /**
@@ -76,16 +89,16 @@ var GameInfo = new function(){
         if (Stargate.checkConnection().type === 'online'){
             return getGameInfoFromAPI(callback);
         } else if (Stargate.checkConnection().type === 'offline' && Stargate.isHybrid()) {
-            var GAMEINFO_FILE_PATH = [Stargate.game.BASE_DIR, Constants.GAMEINFO_JSON_FILENAME].join("");
+            var GAMEINFO_FILE_PATH = [Stargate.file.BASE_DIR, Constants.GAMEINFO_JSON_FILENAME].join("");
             return Stargate.file.readFileAsJSON(GAMEINFO_FILE_PATH)
                .then(function(offlineData) {
                     if (offlineData.GamifiveInfo){                        
-                        var toSave = offlineData.GamifiveInfo[gameInfo.getContentId()];
+                        var toSave = offlineData.GamifiveInfo[gameInfoInstance.getContentId()];
                         Logger.log('GameInfo from file', toSave);
                         if (toSave){
                             gameInfo = extend(gameInfo, toSave);                            
                         }  else {
-                            throw new Error('GamifiveSDK could not retrieve GameInfo for ' + gameInfo.getContentId() + ' from file');
+                            throw new Error('GamifiveSDK could not retrieve GameInfo for ' + gameInfoInstance.getContentId() + ' from file');
                         }                        
                     }
                     
@@ -115,11 +128,8 @@ var GameInfo = new function(){
                 
                 Logger.log('GamifiveSDK', 'GameInfo', 'fetch complete');                
                 gameInfo = extend(gameInfo, resp.game_info);
+                return gameInfoInstance.persist();
 
-                if (Stargate.isHybrid()) {
-                    var filePath = [Stargate.game.BASE_DIR, Constants.GAMEINFO_JSON_FILENAME].join("");
-                    Stargate.file.write(filePath, JSON.stringify(gameInfo));
-                }
             } else {
                 Logger.warn(Constants.ERROR_GAMEINFO_FETCH_FAIL + resp.status + ' ' + resp.statusText + ' ');
             }

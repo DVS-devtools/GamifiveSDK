@@ -16,13 +16,11 @@ var VarCheck  = require('../varcheck/varcheck');
 var Stargate  = require('stargatejs');
 var calculateContentRanking = require('../tracking_utils/tracking_utils').calculateContentRanking;
 var NewtonService = require('../newton/newton');
+var Facebook = require('../fb/fb');
+var JSONPRequest = require('http-francis').JSONPRequest;
 
-/**
- * Utils is the same of stargate
- * TODO: make a package.json and share as dep with stargate
- */
-var Utils = require('../utils/utils');
-var getType = require('../utils/utils').getType;
+var Utils = require('stargatejs').Utils;
+var getType = Utils.getType;
 
 /**
 * Session module
@@ -35,10 +33,13 @@ var Session = new function(){
     var initialized = false;
     var sessionInstance = this;
     var menuIstance;
-    var startCallback;
+    var startCallback = function(){};
     var contentRanking;
 
-    var config;
+    var config = {};
+    
+    //[[GET, url]]
+    var toDoXHR = [];
     /**
     * returns whether Session has already been initialized
     * @function isInitialized
@@ -105,10 +106,7 @@ var Session = new function(){
             throw Constants.ERROR_LITE_TYPE + typeof params.lite;
         }
 
-        // copy parameters into internal configuration
-        for (var key in params){
-            config[key] = params[key];
-        }
+        config = Utils.extend(config, params);
 
         if (typeof config.moreGamesButtonStyle !== 'undefined'){
             Menu.setCustomStyle(config.moreGamesButtonStyle);
@@ -116,9 +114,12 @@ var Session = new function(){
 
         Menu.setGoToHomeCallback(sessionInstance.goToHome);
         
-        var SG_CONF = {};        
+        var SG_CONF = {};
         // let's dance     
-        if (Stargate.isHybrid()){
+        if (Stargate.isHybrid() 
+            && window.location.protocol === 'cdvfile:'){ 
+            // added for retro compatibility: 
+            // game module should not be initialized in old hybrid app without offline
             SG_CONF = {
                 modules:[
                     ['game', {
@@ -140,11 +141,12 @@ var Session = new function(){
 
                     Menu.setSpriteImage(VHost.get('IMAGES_SPRITE_GAME'));
                     contentRanking = VHost.get('CONTENT_RANKING');
-                    Menu.show();                                        
-                    
+                    Menu.show();
+                
+                    var UserTasks = User.fetch().then(User.getFavorites);
                     Logger.info('User.fetch & GameInfo.fetch');                   
                     return Promise.all([
-                        User.fetch(),
+                        UserTasks,
                         GameInfo.fetch()
                     ]);
                })
@@ -152,11 +154,18 @@ var Session = new function(){
                    return User.loadData(null, true);
                })
                .then(function(){
-
+                    Facebook.init({ fbAppId: GameInfo.getInfo().fbAppId });
+                    
                     var env = Stargate.isHybrid() ? 'hybrid' : 'webapp';
+                    var enableNewton = true;
+
+                    if(Stargate.checkConnection().type !== 'online'){
+                        enableNewton = false;
+                    }
+
                     NewtonService.init({
                            secretId: VHost.get('NEWTON_SECRETID'),
-                           enable: true,        // enable newton
+                           enable: enableNewton,        // enable newton
                            waitLogin: true,     // wait for login to have been completed (async)
                            logger: Logger,
                            properties: {
@@ -191,6 +200,9 @@ var Session = new function(){
                     });
                     initialized = true;  
                     return true;
+               }).then(function(){
+                   Logger.log('register sync function for gameover/leaderboard results');
+                   Stargate.addListener('connectionchange', sync);
                }).catch(function(reason){
                     Logger.error('GamifiveSDK init error: ', reason);
                     initialized = false;
@@ -202,6 +214,32 @@ var Session = new function(){
 
     var getLastSession = function(){
         return config.sessions[0];
+    }
+
+    function sync(networkStatus){
+        if(networkStatus.type === 'online'){
+            if(toDoXHR.length === 0){ Logger.log('No xhr to sync', toDoXHR); return;}
+            Logger.log('Try to sync', toDoXHR);
+            var promiseCallsList = toDoXHR.map(function(todo, index, arr){
+                return Network.xhr(todo[0], todo[1]);
+            });
+
+            Promise.all(promiseCallsList)
+                .then(function(results){
+                    // filtering results, get the unsuccess calls indexes
+                    return results
+                        .map(function(element, index){if(!element.success) return index; })
+                        .filter(function(index){ if(index !== undefined){ return true;} });
+
+                }).then(function(indexesToRetain){
+                    Logger.log('toDoXHR list', toDoXHR);
+                    // retain because they failed
+                    var toRetain = indexesToRetain.map(function(index){ return toDoXHR.slice(index, index + 1) });
+
+                    toDoXHR = toRetain.reduce(function(prev, current){ return prev.concat(current) }, []);
+                    Logger.log('New toDoXHR list', toDoXHR);
+                });
+        }
     }
 
     /**
@@ -226,60 +264,24 @@ var Session = new function(){
                     valuable: "Yes",
                     action: "Yes"                    
                 }
-            });
-
-            if (typeof startCallback === 'function') {                
-                try {                    
-                    startCallback();
-                } catch (e){
-                    Logger.error('GamifiveSDK', 'startSession', 'error while trying to start a session', e);
-                    // restore menu, to be able to go back to main page
-                    Menu.show();
-                    // rethrow the error
-                    throw e;
-                }
-            }
+            });             
+            startCallback();            
         }
 
         if (!config.lite){     
-            var urlToCall = API.get('CAN_DOWNLOAD_API_URL')
-                               .replace(":ID", GameInfo.getContentId());                
             
-            Logger.log('CAN_DOWNLOAD_API_URL', urlToCall);
-            Network.xhr('GET', urlToCall)
-                .then(function(results){
-                    Logger.log('GamifiveSDK', 'Session', 'start', 'can play', results.response);
-                    var canPlay = false;
-                    
-                    if(typeof results.response === 'string'){
-                        try {
-                            canPlay = JSON.parse(results.response).canDownload;
-                        } catch(e){
-                            Logger.error('GamifiveSDK', 'Session', 'error parsing response', urlToCall, e);
-                            throw e;
-                        }
-                    } else if(typeof results.response === 'object'){
-                        canPlay = results.response.canDownload
-                    }
-                    return canPlay;
-
-                })
+            User.canPlay()
                 .then(function(canPlay){
                     if(canPlay){
                         // clear dom
                         DOMUtils.delete();
                         doStartSession();
                     } else {
-                        // call gameover API if he can't play
-                        var url = [API.get('GAMEOVER_API_URL'), GameInfo.getContentId()].join("/");
-                        
-                        Logger.log("Gameover ", url);
-                        return Network.xhr('GET', url).then(function(resp) {
-                            DOMUtils.create(resp.response);
-                            DOMUtils.show(Constants.PAYWALL_ELEMENT_ID);
-                        });
+                        // Call the paywall instead?
+                        return gameOver({ start: 0, duration: 0, score: 0, level: 0 });
                     }
                 });
+
         } else {            
             doStartSession();
         }
@@ -324,8 +326,7 @@ var Session = new function(){
     * @memberof Session
     * @param {function} callback the function to be called when the game starts
     */
-    this.onStart = function(callback){       
-        
+    this.onStart = function(callback){
         if (typeof callback === 'function'){
             Logger.info('GamifiveSDK', 'Session', 'register onStart callback');
             startCallback = callback;
@@ -426,7 +427,8 @@ var Session = new function(){
 	      		'newapps': 1,
 	      		'appId': GameInfo.getContentId(),
 	      		'label': GameInfo.getInfo().label,
-	      		'userId': User.getUserId()
+	      		'userId': User.getUserId(),
+                'format': 'jsonp'
 			};
 
 			if (typeof lastSession.level !== 'undefined'){
@@ -436,14 +438,13 @@ var Session = new function(){
             var leaderboardCallUrl = API.get('LEADERBOARD_API_URL');
             leaderboardCallUrl = Utils.queryfy(leaderboardCallUrl, leaderboardParams);
             
-            Logger.log("Leaderboard ", leaderboardCallUrl);
+            Logger.log("Leaderboard ", leaderboardCallUrl);            
             
-            // TODO: callback when finished here?
             if (Stargate.checkConnection().type === 'online'){
                 Network.xhr('GET', leaderboardCallUrl);
             } else {
-                // saveForLater
-            }            
+                enqueue('GET', leaderboardCallUrl);
+            }
 
         } else {           
             // call gameover            
@@ -460,24 +461,34 @@ var Session = new function(){
             gameOver(gameoverParams)
                 .then(DOMUtils.create)
                 .then(function(){
-                    var backBtn = document.querySelector(Constants.BACK_BUTTON_SELECTOR).parentNode;
-                    backBtn.addEventListener('touchend', function(){
-                        sessionInstance.goToHome();
-                        //remove it everytime to prevent memory leak
-                        backBtn.removeEventListener(this);
-                    });
+                    // attach listener to back button
+                    
+                    if(document.querySelector(Constants.BACK_BUTTON_SELECTOR)){
+                        var toHomeBtn = document.querySelector(Constants.BACK_BUTTON_SELECTOR).parentNode;
+                        
+                        toHomeBtn.addEventListener('touchend', function(e){
+                            e.stopPropagation();
+                            e.preventDefault();
+                            sessionInstance.goToHome();
+                            //remove it everytime to prevent memory leak
+                            toHomeBtn.removeEventListener(this);
+                        });
+                    }
 
                     // disabled false
-                    var state = Stargate.checkConnection().type === "online" ? false : true;
-                    var buttons = document.querySelectorAll('.social .btn');	
+                    var state = Stargate.checkConnection().type === 'online' ? false : true;
+                    var buttons = document.querySelectorAll('.social .btn');
+                    	
                     buttons = [].slice.call(buttons);
                     buttons.map(function(button){ button.disabled = state; });
 
-                    Stargate.addListener("connectionchange", function(conn){
+                    Stargate.addListener('connectionchange', function(conn){
                         var state;
-                        conn.type === "online" ? state = false : state = true;					
+                        conn.type === 'online' ? state = false : state = true;					
                         buttons.map(function(button){ button.disabled = state; })
                     });
+                    var isFav = User.isGameFavorite(GameInfo.getContentId());
+                    DOMUtils.updateFavoriteButton(isFav);
                 });  
         }
 
@@ -496,18 +507,20 @@ var Session = new function(){
     function gameOver(gameoverParams){
         var url = [API.get('GAMEOVER_API_URL'), GameInfo.getContentId()].join("/");
         url = Utils.queryfy(url, gameoverParams);
-        Logger.log("Gameover ", url);        
+        Logger.log('Gameover ', url);        
 
         if (Stargate.checkConnection().type === "online"){
             return Network.xhr('GET', url).then(function(resp) {
-                if(Stargate.isHybrid()){
+                if(Stargate.isHybrid() && window.location.protocol === 'cdvfile:'){
                     gameoverParams.content_id = GameInfo.getContentId();
                     return Stargate.game.buildGameOver(gameoverParams);
                 }
                 return resp.response;
             });
         } else if(Stargate.checkConnection().type === "offline" && Stargate.isHybrid()){
+
             gameoverParams.content_id = GameInfo.getContentId();
+            enqueue('GET', url);
             return Stargate.game.buildGameOver(gameoverParams);
         } else {
             Logger.log("Fail build gameover, you are offline", Stargate.checkConnection());
@@ -523,10 +536,26 @@ var Session = new function(){
         Logger.info('GamifiveSDK', 'Session', 'goToHome');
         if (Stargate.isHybrid()){
             // In local index there's already a connection check
-            Stargate.goToLocalIndex();
+            Stargate.goToLocalIndex();            
         } else {
             window.location.href = Location.getOrigin();
         }
+    }
+
+    function persistXHR(){
+        if(Stargate.isHybrid()){
+            var TODO_XHR_PATH = [Stargate.file.BASE_DIR, 'toDoXHR.json'].join('');
+            return Stargate.file.write(TODO_XHR_PATH, JSON.stringify(toDoXHR));
+        }
+    }
+
+    /**
+     * Save the call for later
+     */
+    function enqueue(method, url){
+        var saved = ['GET', url];
+        Logger.info(saved, ' save the call for later');
+        toDoXHR.push(saved);
     }
 
     if (process.env.NODE_ENV === "testing"){

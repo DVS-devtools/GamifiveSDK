@@ -1,6 +1,7 @@
 var Logger = require('../logger/logger');
-var Utils = require('../utils/utils');
 var Stargate = require('stargatejs');
+var Utils = Stargate.Utils;
+var VHost = require('../vhost/vhost');
 
 /**
 * Utility module for managing locations
@@ -37,7 +38,7 @@ var Location = new function(){
                                     + (theWindow.location.port ? ':' + theWindow.location.port: '');
         }
         var href;
-        if (Stargate.isHybrid()){
+        if (Stargate.isHybrid()){            
             return [Stargate.getWebappOrigin(), Stargate.getCountryCode()].join('/');            
         } else {
             href = theWindow.location.href;

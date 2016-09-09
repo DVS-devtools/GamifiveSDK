@@ -34,9 +34,11 @@ var addRetroInterface = function(build){
                 _url += (_url.split('?')[1] ? '&':'?') + "show_paywall=1";		
 		        window.location.href=_url;
             },
-            toggleLike:function(){
-                // TODO: User.toggleLike();?
-                console.warn("Not Implemented");
+            toggleLike:function(){                
+                build.User.toggleLike.apply(build.User, arguments);
+            },
+            share:function(){
+                build.share.apply(null, arguments);
             }
         } 
     }

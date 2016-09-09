@@ -1,5 +1,6 @@
 var Constants = require('../constants/constants');
 var Logger    = require('../logger/logger');
+var VHost = require('../vhost/vhost')
 
 /**
 * DOMUtils module
@@ -92,6 +93,20 @@ var DOMUtils = new function(){
                 document.getElementById(id).className += " hide";
             }
         }
+    }
+    
+    this.updateFavoriteButton = function(fill){
+        
+        // starting class
+        var selector = VHost.get('GAMEOVER_LIKE_SELECTOR');
+        var FILL_CLASS = VHost.get('GAMEOVER_LIKE_CLASS_TO_TOGGLE');
+        var favoriteIconElement = document.querySelector(selector);
+        
+        if(fill){            
+            favoriteIconElement.classList.add(FILL_CLASS);
+        } else {            
+            favoriteIconElement.classList.remove(FILL_CLASS);
+        }           
     }
 };
 

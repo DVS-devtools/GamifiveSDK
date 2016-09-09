@@ -2,6 +2,8 @@ var Constants = require('../constants/constants');
 var GA        = require('../ga/ga');
 var Location  = require('../location/location');
 var Logger    = require('../logger/logger');
+var Stargate  = require('stargatejs');
+var extend  = Stargate.Utils.extend;
 
 /**
 * Facebook module
@@ -39,13 +41,17 @@ var Facebook = new function(){
     /**
     * downloads and initializes the Facebook sdk 
     * @function init
+    * @param {Object} params
+    * @param {String} params.fbAppId
+    * @param {String} params.fbVersion
     * @memberof Facebook
     */    
     this.init = function(params){
         Logger.log('GamifiveSDK', 'Facebook', 'init', params);
-        for (var key in params){
-            config[key] = params[key];
-        }        
+        if (Stargate.isHybrid()){ return; }
+        
+        config = extend(config, params);
+        
         window.fbAsyncInit = function() {
             
             if (typeof FB === 'undefined') {
@@ -60,16 +66,14 @@ var Facebook = new function(){
             }
             initialized = true;
         };
-
-        if (parseInt(localStorage.getItem('hybrid')) !== 1){
-            var d = document, s = 'script', id = 'facebook-jssdk';
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) return;
-            js = d.createElement(s); js.id = id;
-            js.src = window.location.protocol + "//" + Constants.FB_SDK_URL;
-            Logger.log("Getting facebook sdk", js.src)
-            fjs.parentNode.insertBefore(js, fjs);
-        }
+        
+        var d = document, s = 'script', id = 'facebook-jssdk';
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s); js.id = id;
+        js.src = window.location.protocol + "//" + Constants.FB_SDK_URL;
+        Logger.log("Getting facebook sdk", js.src)
+        fjs.parentNode.insertBefore(js, fjs);        
        
         Logger.log('GamifiveSDK', 'Facebook', 'defined fbAsyncInit', window.fbAsyncInit);
 
@@ -81,6 +85,9 @@ var Facebook = new function(){
     * @memberof Facebook
     */
     this.share = function(url, callback){
+        if(Stargate.isHybrid()){
+            return Stargate.facebookShare(url);
+        }
 
         if(!initialized){
           Logger.error('GamifiveSDK', 'Facebook', 'not yet initialized');

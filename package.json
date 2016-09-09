@@ -58,7 +58,7 @@
     "http-francis": "^0.1.4",
     "newton-adapter": "^1.3.1",
     "promise-polyfill": "^5.0.0",
-    "stargatejs": "^0.1.10"
+    "stargatejs": "^0.1.15"
   },
   "browserify": {
     "transform": ["envify"]

@@ -14,6 +14,7 @@ module.exports = function(){
             readFileAsJSON:function(){
                 return Promise.resolve({mockKey:"mockValue"});
             },
+            write:function(){},
             BASE_DIR: "file:///appid/applicationStorageDirectory/"
         }
 

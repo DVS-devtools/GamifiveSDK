@@ -66,8 +66,12 @@ module.exports = {
     GAMEOVER_API_URL: '/v01/gameover',
     LEADERBOARD_API_URL: '/v01/leaderboard',
     CAN_DOWNLOAD_API_URL: '/v01/user.candownload/:ID',
+    USER_SET_LIKE: '/v01/favorites.set',
+    USER_GET_LIKE: '/v01/favorites.get',
+    USER_DELETE_LIKE: '/v01/favorites.delete',
 
     GAMEINFO_JSON_FILENAME:'offlineData.json',
     USER_JSON_FILENAME:'user.json',
+    USER_DATA_JSON_FILENAME:'userData.json',
     VHOST_JSON_FILENAME:'config.json'
 }   
