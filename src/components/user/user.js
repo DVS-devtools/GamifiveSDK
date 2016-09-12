@@ -186,11 +186,10 @@ var User = new function(){
             UpdatedAt: new Date(),
             info:JSON.stringify(info)
         }
-        Logger.info('GamifiveSDK', 'User', 'saveData', data);    
-        
-        setOnServer({ userId: userId, contentId: contentId, userDataId: userDataId }, data);
-        setOnLocal({ userId: userId, contentId: contentId } , data);
+        Logger.info('GamifiveSDK', 'User', 'saveData', info);
         userInfo.gameInfo.info = info;
+        setOnServer({ userId: userId, contentId: contentId, userDataId: userDataId }, data);
+        setOnLocal({ userId: userId, contentId: contentId } , data);        
         callback();
     }
 
