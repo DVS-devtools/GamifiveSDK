@@ -7,6 +7,8 @@ var addRetroInterface = function(build){
     build.startSession = build.Session.start;
     build.onStartSession = build.Session.onStart;
     build.endSession = build.Session.end;
+
+    build.goToHome = build.Session.goToHome;
     
     build.getConfig = function(){
         var toReturn = build.Session.getConfig();
