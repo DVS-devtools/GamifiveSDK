@@ -92,7 +92,9 @@ var Session = new function(){
     * initializes the module with custom parameters
     * @function init
     * @memberof Session
-    * @param {Object} params can contain "lite" (boolean) attribute
+    * @param {Object} params - can contain "lite" (boolean) attribute
+    * @param {Boolean} params.lite
+    * @param {Boolean} params.debug 
     */
     this.init = function(params){
 
@@ -101,6 +103,10 @@ var Session = new function(){
         }
 
         Logger.info('GamifiveSDK', 'Session', 'init', params);
+
+        if(getType(params.lite) === 'number'){
+            params.lite = !!params.lite;
+        }
 
         if (typeof params.lite !== 'undefined' && typeof params.lite !== 'boolean'){
             throw Constants.ERROR_LITE_TYPE + typeof params.lite;
@@ -232,12 +238,12 @@ var Session = new function(){
                         .filter(function(index){ if(index !== undefined){ return true;} });
 
                 }).then(function(indexesToRetain){
-                    Logger.log('toDoXHR list', toDoXHR);
+                    Logger.log('before toDoXHR list', toDoXHR);
                     // retain because they failed
                     var toRetain = indexesToRetain.map(function(index){ return toDoXHR.slice(index, index + 1) });
 
                     toDoXHR = toRetain.reduce(function(prev, current){ return prev.concat(current) }, []);
-                    Logger.log('New toDoXHR list', toDoXHR);
+                    Logger.log('after toDoXHR list', toDoXHR);
                 });
         }
     }
