@@ -193,7 +193,7 @@ var Session = new function(){
                         logged: (User.getUserType() !== 'guest')
                     });
 
-                    NewtonService.trackEvent({
+                    /*NewtonService.trackEvent({
                         name: 'GameLoad',
                         rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'), 
                         properties:{
@@ -203,7 +203,7 @@ var Session = new function(){
                             label: GameInfo.getContentId(),
                             valuable: 'Yes'                            
                         }
-                    });
+                    });*/                    
                     initialized = true;  
                     return true;
                }).then(function(){
