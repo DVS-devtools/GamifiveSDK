@@ -10,7 +10,8 @@ var Stargate  = require('stargatejs');
 var Utils = require('stargatejs').Utils;
 var API = require('../api/api');
 var DOMUtils  = require('../dom/dom-utils');
-var JSONPRequest = require('http-francis').JSONPRequest
+var JSONPRequest = require('http-francis').JSONPRequest;
+var Event = require('../event/event');
 
 /**
 * User module
@@ -23,6 +24,22 @@ var User = new function(){
 
     var userInfo;
     var favorites = [];
+
+    /**
+     * This is useful because some developers could call sdk in this way
+     * WRONG
+     * GamifiveSDK.init(); var user.data = GamifiveSDK.loadUserData();
+     * 
+     * RIGHT
+     * GamifiveSDK.init(); GamifiveSDK.loadUserData(saveSomewhereFunction)
+     */
+    var onUserDataCallback;
+    Event.bind('INIT_FINISHED', function(){
+        userInstance.flag = true;
+        if(typeof onUserDataCallback === 'function'){
+            userInstance.__loadData__().then(onUserDataCallback);
+        }
+    });
 
     this.getInfo = function(){
         return userInfo || {};
@@ -187,37 +204,24 @@ var User = new function(){
             info:JSON.stringify(info)
         }
         Logger.info('GamifiveSDK', 'User', 'saveData', info);
-        userInfo.gameInfo.info = info;
-        setOnServer({ userId: userId, contentId: contentId, userDataId: userDataId }, data);
-        setOnLocal({ userId: userId, contentId: contentId } , data);        
-        callback();
+        userInfo.gameInfo.info = info;        
+        var setOnServerTask = setOnServer({ userId: userId, contentId: contentId, userDataId: userDataId }, data);
+        var setOnLocalTask = setOnLocal({ userId: userId, contentId: contentId } , data);
+        return Promise.all([
+            setOnServerTask, 
+            setOnLocalTask
+        ]).then(callback);        
     }
 
-    /**
-    * Loads some user's data 
-    * @function loadData    
-    * @memberof User
-    * @param callback
-    * @param async - if set to true returns a promise
-    * @returns {promise|object}
-    */
-    this.loadData = function(callback, async){
+    this.__loadData__ = function(){
+        
         if (!userInfo.gameInfo){
             userInfo.gameInfo = {};
         }
 
-        if(!callback){callback = function(){}}
-
-        Logger.info('GamifiveSDK', 'User', 'loadData');
-        if (!userInfo){ throw new Error(Constants.ERROR_USER_MISSING_INFO); }
-
         if (!userInfo.logged){ 
-            Logger.info('GamifiveSDK', 'User', 'not logged', userInfo.logged);
-            if(async){
-                return Promise.resolve({});
-            } else {
-                return {};
-            }
+            Logger.info('GamifiveSDK', 'User', 'not logged', userInfo.logged);            
+            return Promise.resolve({});            
         }
 
         var contentId = GameInfo.getContentId();
@@ -260,14 +264,24 @@ var User = new function(){
 
             return finalData;               
         })
-        .then(updateUserDataInMemory)
-        .then(callback);
+        .then(updateUserDataInMemory);
 
-        if (async){
-            return loadTask;
-        }        
-
-        return userInfo.gameInfo.info;
+        return loadTask;        
+    }
+    
+    /**
+    * Loads some user's data 
+    * @function loadData    
+    * @memberof User
+    * @param callback    
+    * @returns {promise|object}
+    */
+    this.loadData = function(callback){              
+        Logger.info('GamifiveSDK', 'User', 'loadData');
+        onUserDataCallback = callback;
+        if(userInstance.flag){            
+            userInstance.__loadData__().then(callback);
+        }
     }
 
     function updateUserDataInMemory(data){

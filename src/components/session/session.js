@@ -18,6 +18,7 @@ var calculateContentRanking = require('../tracking_utils/tracking_utils').calcul
 var NewtonService = require('../newton/newton');
 var Facebook = require('../fb/fb');
 var JSONPRequest = require('http-francis').JSONPRequest;
+var Event = require('../event/event');
 
 var Utils = require('stargatejs').Utils;
 var getType = Utils.getType;
@@ -157,9 +158,6 @@ var Session = new function(){
                     ]);
                })
                .then(function(){
-                   return User.loadData(null, true);
-               })
-               .then(function(){
                     Facebook.init({ fbAppId: GameInfo.getInfo().fbAppId });
                     
                     var env = Stargate.isHybrid() ? 'hybrid' : 'webapp';
@@ -207,9 +205,11 @@ var Session = new function(){
                     initialized = true;  
                     return true;
                }).then(function(){
-                   Logger.log('register sync function for gameover/leaderboard results');
+                   Logger.log('GamifiveSDk', 'register sync function for gameover/leaderboard results');
                    Stargate.addListener('connectionchange', sync);
+                   Event.trigger('INIT_FINISHED');
                }).catch(function(reason){
+                    Event.trigger('INIT_ERROR');
                     Logger.error('GamifiveSDK init error: ', reason);
                     initialized = false;
                     throw reason;
