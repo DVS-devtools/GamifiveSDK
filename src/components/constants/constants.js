@@ -8,12 +8,12 @@ module.exports = {
     BACK_BUTTON_SELECTOR:'#backBtn',
     DEFAULT_MENU_STYLE: {
         'left': '2px',
-        'height': '44px',
-        'background-position': '-22px -428px',
+        'height': '60px',
+        'background-position': '-5px -475px',
         'top': '50%',
         'margin-top': '-22px',
         'z-index': '9',
-        'width': '43px',
+        'width': '60px',
         'position': 'absolute'
     },
     IMMUTABLE_MENU_STYLE_PROPERTIES: [
