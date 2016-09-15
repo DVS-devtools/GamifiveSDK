@@ -185,6 +185,8 @@ var User = new function(){
     * saves some user's data
     * @public
     * @function saveData
+    * @param {Object} info - 
+    * @param {Function} callback - call when finshed 
     * @memberof User
     * @returns {Promise}
     */
