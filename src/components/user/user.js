@@ -280,10 +280,18 @@ var User = new function(){
     */
     this.loadData = function(callback){              
         Logger.info('GamifiveSDK', 'User', 'loadData');
-        onUserDataCallback = callback;
+
+        if(!callback || typeof callback !== 'function'){
+            callback = function(){};           
+            Logger.warn('GamifiveSDK', 'please use loadUserData(callback) instead of loadUserData');
+        }
+
+        onUserDataCallback = callback;       
+    
         if(userInstance.flag){            
             userInstance.__loadData__().then(callback);
         }
+        return userInfo.gameInfo.info;
     }
 
     function updateUserDataInMemory(data){
