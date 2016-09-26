@@ -425,7 +425,7 @@ Otherwise, the following error message is displayed:
     GamifiveSDK,ERROR,missing score value
 ```
 
-## H2 Full implementation example
+## Full implementation example
 ```javascript
 // returns an object containing the player's progress
 
