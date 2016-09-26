@@ -179,11 +179,17 @@ GamifiveSDK.saveUserData internally uses JSON.stringify and actually saves the o
 
 
 <h2>loadUserData</h2>  
-Retrieves the JSON string containing the player's progress and returns it as a JavaScript Object. 
+Retrieves the JSON string containing the player's progress and returns it as a JavaScript Object.
+This method make a call to our server and **must be called AFTER GamifiveSDK.init();**
   
 ```javascript
 // returns an object containing the player's progress
-var playerProgress = GamifiveSDK.loadUserData(); 
+
+GamifiveSDK.init();
+GamifiveSDK.loadUserData(function(userProgress){
+    // here your code
+    console.log(userProgress.level1)
+}); 
 ```
 
 Beware that JSON.stringify (used inside GamifiveSDK.saveUserData) ignores undefined properties, so if you try to save
@@ -419,3 +425,36 @@ Otherwise, the following error message is displayed:
     GamifiveSDK,ERROR,missing score value
 ```
 
+## H2 Full implementation example
+```javascript
+// returns an object containing the player's progress
+
+GamifiveSDK.onStartSession(function(){
+    // do somenthing when a session starts
+});
+
+GamifiveSDK.init({ lite: true }); // could be an empty object: default lite = false
+
+GamifiveSDK.loadUserData(function(userProgress){
+    // here your code
+    if(userProgress.level1 && userProgress.level1.unlocked){
+        // skip level1 or whatever
+    }
+}); 
+
+GamifiveSDK.startSession();
+
+//persist user data on our server
+GamifiveSDK.saveUserData({ 
+    level1: { 
+        unlocked: true, 
+        stars: 3
+    }, 
+    level2: {
+        unlocked: false, 
+        stars: 0
+    } 
+});
+
+GamifiveSDK.endSession({ score: 5, level: 3 });
+```
