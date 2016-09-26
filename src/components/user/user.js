@@ -75,7 +75,7 @@ var User = new function(){
     * @function load
     * @memberof User
     */
-    this.fetch = function(callback){
+    this.fetch = function(callback){        
         Logger.log('GamifiveSDK', 'User', 'fetch attempt:', Stargate.checkConnection().type, ' Hybrid:', Stargate.isHybrid());
         
         // This condition is important beacause when 
@@ -280,13 +280,13 @@ var User = new function(){
     * @param callback    
     * @returns {promise|object}
     */
-    this.loadData = function(callback){              
+    this.loadData = function(callback){ 
         Logger.info('Newton User is logged?', NewtonService.isUserLogged());
         Logger.info('GamifiveSDK', 'User', 'loadData');
 
         if(!callback || typeof callback !== 'function'){
             callback = function(){};           
-            Logger.warn('GamifiveSDK', 'please use loadUserData(callback) instead of loadUserData');
+            Logger.warn('GamifiveSDK', 'please use loadUserData(callback) instead of loadUserData()');
         }
 
         onUserDataCallback = callback;       
