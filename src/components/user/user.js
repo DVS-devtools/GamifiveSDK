@@ -12,6 +12,7 @@ var API = require('../api/api');
 var DOMUtils  = require('../dom/dom-utils');
 var JSONPRequest = require('http-francis').JSONPRequest;
 var Event = require('../event/event');
+var NewtonService = require('../newton/newton');
 
 /**
 * User module
@@ -191,6 +192,7 @@ var User = new function(){
     * @returns {Promise}
     */
     this.saveData = function(info, callback){
+        Logger.info('Newton User is logged?', NewtonService.isUserLogged());
         if(!callback){ callback = function(){}; } 
         var contentId  = GameInfo.getContentId();
         var userId     = userInstance.getUserId();
@@ -279,6 +281,7 @@ var User = new function(){
     * @returns {promise|object}
     */
     this.loadData = function(callback){              
+        Logger.info('Newton User is logged?', NewtonService.isUserLogged());
         Logger.info('GamifiveSDK', 'User', 'loadData');
 
         if(!callback || typeof callback !== 'function'){
