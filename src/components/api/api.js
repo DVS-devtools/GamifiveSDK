@@ -6,4 +6,4 @@ module.exports = {
         if(typeof Constants[key] === 'undefined'){ throw 'No key ' + key + ' found in Constants'}
         return [Location.getOrigin(), Constants[key]].join("");
     }
-}
+};
