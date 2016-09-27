@@ -1,5 +1,4 @@
 var Constants = require('../constants/constants');
-var GA        = require('../ga/ga');
 var GameInfo  = require('../game_info/game_info');
 var Location  = require('../location/location');
 var Logger    = require('../logger/logger');
@@ -44,7 +43,7 @@ var User = new function(){
 
     this.getInfo = function(){
         return userInfo || {};
-    }
+    };
 
     /**
     * returns a single value of userInfo, given its key
@@ -54,7 +53,7 @@ var User = new function(){
     */
     this.get = function(key){
         return userInfo[key];
-    }
+    };
 
     /**
     * resets userInfo
@@ -63,12 +62,12 @@ var User = new function(){
     */
     this.reset = function(){
         userInfo = {};
-    }
+    };
     userInstance.reset();
 
     this.getUserId = function(){
         return userInfo.user;
-    }
+    };
 
     /**
     * fetches the necessary info about the User (usercheck)
@@ -121,12 +120,12 @@ var User = new function(){
                     });
             }            
         }
-    }
+    };
    
     this.canPlay = function(){
         if(Stargate.checkConnection().type === 'online'){
             var urlToCall = API.get('CAN_DOWNLOAD_API_URL')
-                    .replace(":ID", GameInfo.getContentId());
+                    .replace(':ID', GameInfo.getContentId());
             
             urlToCall = Utils.queryfy(urlToCall, {format:'jsonp'});
             
@@ -146,16 +145,16 @@ var User = new function(){
                     canPlay = daInfo.access_type[ userInstance.getUserType() ];
                 }
                 return Promise.resolve(canPlay);
-            }            
+            }
         }
-    }
+    };
 
     /**
      * get user favourites from api
      * @returns {promise<Object>}
      */
     this.getFavorites = function(){
-         if(Stargate.checkConnection().type !== 'online'){
+        if(Stargate.checkConnection().type !== 'online'){
              Logger.warn('Cannot load favorites because offline'); 
              return Promise.resolve(favorites); 
         }
@@ -163,14 +162,15 @@ var User = new function(){
         var query = {
             user_id: userInstance.getUserId(),
             size: 51
-        }
+        };
         var url = Utils.queryfy(GET_LIKE, query);
         return Network.xhr('GET', url).then(function(resp){
-            if(!resp.success){ Logger.warn('Fail to load favorites'); return;}                        
-            favorites = JSON.parse(resp.response);            
+
+            favorites = JSON.parse(resp.response);
+            Logger.info('Favourites loaded', favorites);
             return favorites;
         });
-    }
+    };
     
     /**
      * verify if the game is in the user favourites
@@ -179,7 +179,7 @@ var User = new function(){
      */
     this.isGameFavorite = function(gameId){
         return favorites.some(function(gameObject){ return gameObject.id === gameId});
-    }
+    };
 
 
     /**
@@ -206,7 +206,7 @@ var User = new function(){
             // !! important !!
             UpdatedAt: new Date(),
             info:JSON.stringify(info)
-        }
+        };
         Logger.info('GamifiveSDK', 'User', 'saveData', info);
         userInfo.gameInfo.info = info;        
         var setOnServerTask = setOnServer({ userId: userId, contentId: contentId, userDataId: userDataId }, data);
@@ -215,7 +215,7 @@ var User = new function(){
             setOnServerTask, 
             setOnLocalTask
         ]).then(callback);        
-    }
+    };
 
     this.__loadData__ = function(){
         
@@ -233,7 +233,7 @@ var User = new function(){
         
         var params = { userId: userId, contentId: contentId };
         
-        var loadTask = Promise.all([
+        return Promise.all([
             getFromServer(params), 
             getFromLocal(params)
         ]).then(function(results){
@@ -269,12 +269,10 @@ var User = new function(){
             return finalData;               
         })
         .then(updateUserDataInMemory);
-
-        return loadTask;        
-    }
+    };
     
     /**
-    * Loads some user's data 
+    * Loads user's game progress
     * @function loadData    
     * @memberof User
     * @param callback    
@@ -295,7 +293,7 @@ var User = new function(){
             userInstance.__loadData__().then(callback);
         }
         return userInfo.gameInfo.info;
-    }
+    };
 
     function updateUserDataInMemory(data){
         userInfo.gameInfo.info = JSON.parse(data.info);
@@ -307,12 +305,13 @@ var User = new function(){
     *
     * @function clearData
     * @memberof User
+    * @param {Function} callback - called when finished
     */
     this.clearData = function(callback){
         Logger.info('GamifiveSDK', 'User', 'clearData');
         // doSaveUserData(null, callback);
         // delete from server and on local
-    }
+    };
 
     /**
      * Get the user type: guest free or premium
@@ -326,7 +325,7 @@ var User = new function(){
         } else if(userInfo.subscribed) {
             return 'premium';
         }
-    }
+    };
 
     /**
      * Get UserData from server
@@ -374,7 +373,10 @@ var User = new function(){
      * @param {Object} data - the data to be saved
      */
     function setOnServer(params, data){
-        if (Stargate.checkConnection().type !== 'online'){ Logger.log('GamifiveSDK', 'userData cannot not be set on server'); return; }
+        if (Stargate.checkConnection().type !== 'online'){
+            Logger.log('GamifiveSDK', 'userData cannot not be set on server');
+            return;
+        }
         var saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
         var urlToCall = saveUserDataUrl
                             .replace(':QUERY', JSON.stringify({contentId: params.contentId}))
@@ -390,7 +392,7 @@ var User = new function(){
         * è una get ma in realtà POSTa i dati dello user sul server        
         */
         Logger.log('GamifiveSDK', 'try to set on server', urlToCall);
-        return Network.xhr('GET', urlToCall).then(function(resp, req){
+        return Network.xhr('GET', urlToCall).then(function(resp){
             
             if(resp.success){
                 Logger.log('GamifiveSDK', 'userData set with success on server', resp);
@@ -455,7 +457,7 @@ var User = new function(){
         var query = {
             content_id: GameInfo.getContentId(),
             user_id: userInstance.getUserId() 
-        }
+        };
 
         var remoteOperation;
         if(isFavourite){
@@ -481,7 +483,7 @@ var User = new function(){
                 DOMUtils.updateFavoriteButton(true);
             }
         });
-    }
+    };
 
     if (process.env.NODE_ENV === "testing"){
         var original = {
@@ -495,11 +497,11 @@ var User = new function(){
         this.setMock = function(what, mock){            
             switch(what){
                 case "User":
-                    original.User = require('../user/user');;
+                    original.User = require('../user/user');
                     User = mock;
                     break;
                 case "Stargate":
-                    original.Stargate = require('stargatejs');;
+                    original.Stargate = require('stargatejs');
                     Stargate = mock;
                     break;
                 case "VHost":
@@ -508,7 +510,7 @@ var User = new function(){
                     break;
                 case "GameInfo":
                     original.GameInfo = require('../game_info/game_info');
-                    GameInfo = mock
+                    GameInfo = mock;
                     break;
                 case "Menu":
                     original.Menu = require('../menu/menu');
@@ -517,7 +519,7 @@ var User = new function(){
                 default:
                     break;
             }
-        }
+        };
 
         this.unsetMock = function(what){
             if (!original[what]) return;
@@ -533,6 +535,7 @@ var User = new function(){
                 case "VHost":
                     VHost =  original.VHost;
                     original.VHost = null;
+                    break;
                 case "GameInfo":
                     GameInfo = original.GameInfo;
                     original.GameInfo = null;
