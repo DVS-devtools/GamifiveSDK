@@ -2,9 +2,6 @@ var Promise   = require('promise-polyfill');
 var API = require('../api/api');
 var Constants = require('../constants/constants');
 var DOMUtils  = require('../dom/dom-utils');
-var Event     = require('../event/event');
-var Facebook  = require('../fb/fb');
-var GA        = require('../ga/ga');
 var GameInfo  = require('../game_info/game_info');
 var Location  = require('../location/location');
 var Logger    = require('../logger/logger');
@@ -12,12 +9,10 @@ var Menu      = require('../menu/menu');
 var Network   = require('../network/network');
 var User      = require('../user/user');
 var VHost     = require('../vhost/vhost');
-var VarCheck  = require('../varcheck/varcheck'); 
 var Stargate  = require('stargatejs');
 var calculateContentRanking = require('../tracking_utils/tracking_utils').calculateContentRanking;
 var NewtonService = require('../newton/newton');
 var Facebook = require('../fb/fb');
-var JSONPRequest = require('http-francis').JSONPRequest;
 var Event = require('../event/event');
 
 var Utils = require('stargatejs').Utils;
@@ -48,7 +43,7 @@ var Session = new function(){
     */
     this.isInitialized = function(){
         return initialized;
-    }
+    };
 
     /**
     * resets the internal configuration to default value
@@ -58,7 +53,7 @@ var Session = new function(){
     this.reset = function(){
         initPromise = null;
         config = {sessions:[]};
-    }
+    };
     // apply default configuration
     sessionInstance.reset();
 
@@ -69,7 +64,7 @@ var Session = new function(){
     */
     this.getConfig = function(){        
         return config;
-    }
+    };
 
     /**
     * sets a callback to be fired after the VHost has been loaded
@@ -87,7 +82,7 @@ var Session = new function(){
         } else {
             throw new Error(Constants.ERROR_SESSION_INIT_NOT_CALLED);
         }
-    }
+    };
 
     /**
     * initializes the module with custom parameters
@@ -203,9 +198,9 @@ var Session = new function(){
                         }
                     });*/                    
                     initialized = true;  
-                    return true;
+                    return initialized;
                }).then(function(){
-                   Logger.log('GamifiveSDk', 'register sync function for gameover/leaderboard results');
+                   Logger.log('GamifiveSDK', 'register sync function for gameover/leaderboard results');
                    Stargate.addListener('connectionchange', sync);
                    Event.trigger('INIT_FINISHED');
                }).catch(function(reason){
@@ -216,11 +211,11 @@ var Session = new function(){
                });
 
         return initPromise; 
-    }
+    };
 
     var getLastSession = function(){
         return config.sessions[0];
-    }
+    };
 
     function sync(networkStatus){
         if(networkStatus.type === 'online'){
@@ -304,10 +299,10 @@ var Session = new function(){
             throw Constants.ERROR_SESSION_INIT_NOT_CALLED;
         }
         
-        // if a previous session exists, it must have been ended
+        // If a previous session exists, it must have been ended
         if (config.sessions && config.sessions.length > 0 && typeof getLastSession().endTime === 'undefined'){
             config.sessions.shift();
-            // throw Constants.ERROR_SESSION_ALREADY_STARTED;
+            throw Constants.ERROR_SESSION_ALREADY_STARTED;
         }
 
         // ok, you can try to start a new session
@@ -324,7 +319,7 @@ var Session = new function(){
         return initPromise.then(function(){
             return __start();
         });
-    }
+    };
 
     /**
     * sets a callback function to be called when starting a gameplay session
@@ -339,7 +334,7 @@ var Session = new function(){
         } else {
             throw new Error(Constants.ERROR_ONSTART_CALLBACK_TYPE + typeof callback);
         }
-    }
+    };
 
     /**
     * sets a callback function to be called when the game enters pause status
@@ -350,7 +345,7 @@ var Session = new function(){
     this.onPauseEnter = function(callback){
         Logger.log('GamifiveSDK', 'Session', 'onPauseEnter');
         Menu.show();
-    }
+    };
 
     /**
     * sets a callback function to be called when the game exits pause status
@@ -361,7 +356,7 @@ var Session = new function(){
     this.onPauseExit = function(callback){
         Logger.log('GamifiveSDK', 'Session', 'onPauseExit');
         Menu.hide();
-    }
+    };
 
     /**
     * ends a session and (if not in lite mode) shows the platform's gameover screen    
@@ -499,7 +494,7 @@ var Session = new function(){
         }
 
         Menu.show();
-    }
+    };
 
     /**
      * Build the gameover if online or offline hybrid and returns it as a compiled html string
@@ -546,7 +541,7 @@ var Session = new function(){
         } else {
             window.location.href = Location.getOrigin();
         }
-    }
+    };
 
     function persistXHR(){
         if(Stargate.isHybrid()){
@@ -576,11 +571,11 @@ var Session = new function(){
         this.setMock = function(what, mock){            
             switch(what){
                 case "User":
-                    original.User = require('../user/user');;
+                    original.User = require('../user/user');
                     User = mock;
                     break;
                 case "Stargate":
-                    original.Stargate = require('stargatejs');;
+                    original.Stargate = require('stargatejs');
                     Stargate = mock;
                     break;
                 case "VHost":
@@ -602,7 +597,7 @@ var Session = new function(){
                 default:
                     break;
             }
-        }
+        };
 
         this.unsetMock = function(what){
             if (!original[what]) return;
