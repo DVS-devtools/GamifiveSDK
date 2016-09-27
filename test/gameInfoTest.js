@@ -16,6 +16,7 @@ describe("GameInfo", function(){
         jasmine.Ajax.uninstall();
         window.fakewindow = null;
         GameInfo.unsetStargateMock();
+        GameInfo.unsetMock('JSONPRequest');
     });
 
     it("should calculate contentId with regex from current href", function(){
@@ -24,7 +25,7 @@ describe("GameInfo", function(){
                 origin:"http://www2.gameasy.com", hostname:"", port:"",protocol:"", 
                 href:"http://www2.gameasy.com/html5gameplay/4de756a55ac71f45c5b7b4211b71219e/game/fruit-slicer"
             }
-        }
+        };
 
         expect(GameInfo.getContentId()).toEqual('4de756a55ac71f45c5b7b4211b71219e');
     });
@@ -35,7 +36,7 @@ describe("GameInfo", function(){
                 origin:"http://www2.gameasy.com", hostname:"", port:"", protocol:"", 
                 href:"http://www.anotherproduct.com/anotherpattern/4de756a55ac71f45c5b7b4211b71219e"
             }
-        }   
+        };
 
         var error;
         try {
@@ -52,7 +53,7 @@ describe("GameInfo", function(){
                 origin:"http://www2.gameasy.com", hostname:"", port:"", protocol:"", 
                 href:"http://www2.gameasy.com/ww-it/html5gameplay/c2701133414427fee732e051abdfe3e8/game/fruit-slicer"
             }
-        }
+        };
 
         // SET THE RESPONSE OF THE URL
         var gameInfoMock = { 
@@ -62,12 +63,10 @@ describe("GameInfo", function(){
         
         
         // SET THE URL TO FETCH
-        var gameInfoUrl = "http://www2.gameasy.com/ww-it/v01/gameplay?content_id=c2701133414427fee732e051abdfe3e8"
-        jasmine.Ajax.stubRequest(gameInfoUrl).andReturn({            
-                'response': JSON.stringify(gameInfoMock),            
-                'status': 200,
-                'contentType': 'text/json'                    
-        });
+        function jsonpMock(url, timeout){
+            this.prom = Promise.resolve(gameInfoMock);
+        }
+        GameInfo.setMock('JSONPRequest', jsonpMock);
 
         GameInfo.setStargateMock(StargateMock);
 

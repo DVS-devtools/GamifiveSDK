@@ -119,24 +119,18 @@ var GameInfo = new function(){
 
         Logger.log("GameInfo", "getGameInfoFromAPI", "GET", urlToCall);
         return new JSONPRequest(urlToCall, 5000).prom.then(function(resp){
-            if(resp.status >= 200 && resp.status <= 399){               
-                
-                if(!resp.game_info){
-                    Logger.error('GamifiveSDK', 'GameInfo', 'error fetching game info', resp);
-                    throw new Error('Missing game_info key in the response', resp);    
-                }
-                
-                Logger.log('GamifiveSDK', 'GameInfo', 'fetch complete');                
-                gameInfo = extend(gameInfo, resp.game_info);
-                return gameInfoInstance.persist();
 
-            } else {
-                Logger.warn(Constants.ERROR_GAMEINFO_FETCH_FAIL + resp.status + ' ' + resp.statusText + ' ');
+            if(typeof resp.game_info === 'undefined'){
+                throw new Error('GamifiveSDK: Missing game_info key in' + resp);
             }
+
+            gameInfo = extend(gameInfo, resp.game_info);
 
             if (typeof callback === 'function'){
                 callback(gameInfo);
             }
+            Logger.log('GamifiveSDK', 'GameInfo', 'fetch complete');
+            return gameInfoInstance.persist();
             
         });
     }
@@ -153,13 +147,32 @@ var GameInfo = new function(){
 
     if(process.env.NODE_ENV === "testing"){        
         var originalStargate;
+        var originals = {};
         this.setStargateMock = function(theMock){
             originalStargate = Stargate;
             Stargate = theMock;
-        }
+        };
 
         this.unsetStargateMock = function(){
             Stargate = originalStargate;
+        };
+
+        this.setMock = function(modName, mock){
+            switch (modName){
+                case 'JSONPRequest':
+                    originals.JSONPRequest = require('http-francis').JSONPRequest;
+                    JSONPRequest = mock;
+                    break;
+            }
+        };
+
+        this.unsetMock = function(modName){
+            if(!originals[modName]){ return;}
+            switch (modName){
+                case 'JSONPRequest':
+                    JSONPRequest = originals.JSONPRequest;
+                    break;
+            }
         }
     }
 
