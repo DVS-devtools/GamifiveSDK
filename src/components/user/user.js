@@ -292,7 +292,11 @@ var User = new function(){
         if(userInstance.flag){            
             userInstance.__loadData__().then(callback);
         }
-        return userInfo.gameInfo.info;
+
+        if(userInfo && userInfo.gameInfo && userInfo.gameInfo.info){
+            return userInfo.gameInfo.info;
+        } 
+        return {};
     };
 
     function updateUserDataInMemory(data){

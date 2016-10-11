@@ -15,7 +15,7 @@ require('jasmine-ajax');
 
 describe("Session",function(){
 
-    var originalUserFetch = null, originalGameInfoFetch = null;
+    var originalUserFetch = null, originalGameInfoFetch = null, NewtonAdapterMock;
     var StargateMock, MenuMock;
     beforeEach(function() {
         window.fakewindow = {
