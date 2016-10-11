@@ -163,6 +163,11 @@ var User = new function(){
             user_id: userInstance.getUserId(),
             size: 51
         };
+        
+        if(query.user_id === "" || typeof query.user_id === 'undefined'){
+            return Promise.resolve(favorites);
+        }
+
         var url = Utils.queryfy(GET_LIKE, query);
         return Network.xhr('GET', url).then(function(resp){
 
