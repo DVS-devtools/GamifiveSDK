@@ -489,6 +489,17 @@ var User = new function(){
         });
     };
 
+    this.getAvatar = function(){        
+        return {
+            src: userInfo.avatar || '', 
+            name: userInfo.nickname || ''
+        }
+    }
+
+    this.getNickName = function(){
+        return userInfo.nickname || '';
+    }
+
     if (process.env.NODE_ENV === "testing"){
         var original = {
             Stargate: null,
