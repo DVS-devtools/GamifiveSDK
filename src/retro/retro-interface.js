@@ -23,6 +23,8 @@ var addRetroInterface = function(build){
     build.saveUserData = build.User.saveData;
     build.loadUserData = build.User.loadData;
     build.clearUserData = build.User.clearData;
+    build.getAvatar = build.User.getAvatar;
+    build.getNickName = build.User.getNickName;
 
     build.share = build.FB.share;
     build.send = build.FB.send;

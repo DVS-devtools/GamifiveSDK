@@ -192,7 +192,14 @@ var User = new function(){
     * @returns {Promise}
     */
     this.saveData = function(info, callback){
-        Logger.info('Newton User is logged?', NewtonService.isUserLogged());
+        var logged;
+        try{
+            logged = NewtonService.isUserLogged();
+        } catch(e){
+            logged = e;
+        }
+        
+        Logger.info('Newton User is logged?', logged);
         if(!callback){ callback = function(){}; } 
         var contentId  = GameInfo.getContentId();
         var userId     = userInstance.getUserId();
@@ -278,8 +285,15 @@ var User = new function(){
     * @param callback    
     * @returns {promise|object}
     */
-    this.loadData = function(callback){ 
-        Logger.info('Newton User is logged?', NewtonService.isUserLogged());
+    this.loadData = function(callback){
+        var logged;
+        try{
+            logged = NewtonService.isUserLogged();
+        } catch(e){
+            logged = e;
+        }
+        
+        Logger.info('Newton User is logged?', logged);
         Logger.info('GamifiveSDK', 'User', 'loadData');
 
         if(!callback || typeof callback !== 'function'){
