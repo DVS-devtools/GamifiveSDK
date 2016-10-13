@@ -515,7 +515,7 @@ var User = new function(){
         }
     }
 
-    this.getNickName = function(){
+    this.getNickname = function(){
         return userInfo.nickname || '';
     }
 
