@@ -204,6 +204,16 @@ var User = new function(){
             logged = e;
         }
         
+        if(!userInstance.flag){
+            Logger.warn('Could not saveUserData. Wait the init to be finished!');
+            return;
+        }
+
+        if(!NewtonService.isUserLogged()){
+            Logger.warn('Could not saveUserData. User not logged');
+            return;
+        }
+
         Logger.info('Newton User is logged?', logged);
         if(!callback){ callback = function(){}; } 
         var contentId  = GameInfo.getContentId();
@@ -217,7 +227,7 @@ var User = new function(){
         var data = {
             // !! important !!
             UpdatedAt: new Date(),
-            info:JSON.stringify(info)
+            info: JSON.stringify(info)
         };
         Logger.info('GamifiveSDK', 'User', 'saveData', info);
         userInfo.gameInfo.info = info;        
