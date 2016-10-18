@@ -255,7 +255,6 @@ var Session = new function(){
         Menu.hide();
 
         function doStartSession(){            
-            // ADD TRACKING HERE
             NewtonService.trackEvent({
                 name: "GameStart",
                 rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameStart'), 
@@ -265,8 +264,13 @@ var Session = new function(){
                     valuable: "Yes",
                     action: "Yes"                    
                 }
-            });             
-            startCallback();            
+            });
+            
+            try{
+                startCallback();
+            } catch(e){
+                Logger.error('GamifiveSDK', 'onStartSession ERROR', e);
+            }                        
         }
 
         if (!config.lite){     
