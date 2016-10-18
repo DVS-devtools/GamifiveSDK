@@ -187,7 +187,9 @@ This method make a call to our server and **must be called AFTER GamifiveSDK.ini
 
 GamifiveSDK.init();
 GamifiveSDK.loadUserData(function(userProgress){
-    // here your code
+    // here your code N.B. userProgress is always an object
+    // so the first time will be empty
+    // you could check if it's empty with somenthing like this Object.keys(userProgress).length === 0
     console.log(userProgress.level1)
 }); 
 ```
@@ -436,7 +438,9 @@ GamifiveSDK.onStartSession(function(){
 GamifiveSDK.init({ lite: true }); // could be an empty object: default lite = false
 
 GamifiveSDK.loadUserData(function(userProgress){
-    // here your code
+    // here your code N.B. userProgress is always an object
+    // so the first time will be empty
+    // you could check if it's empty with somenthing like this Object.keys(userProgress).length === 0
     if(userProgress.level1 && userProgress.level1.unlocked){
         // skip level1 or whatever
     }
