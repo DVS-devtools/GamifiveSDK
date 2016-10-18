@@ -51,7 +51,7 @@ var VHost = new function(){
                     vHost = json;
                 });
         } else if(Stargate.checkConnection().type === 'online') {
-            var urlToCall = API.get('VHOST_API_URL') + VHostKeys.join(',');
+            var urlToCall = API.get('VHOST_API_URL') + VHostKeys.join(',') + '&base64_limit=10000';
             Logger.log('GamifiveSDK', 'VHost', 'load url', urlToCall);
             
             afterLoadPromise = Network.xhr('GET', urlToCall)

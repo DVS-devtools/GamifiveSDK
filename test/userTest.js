@@ -43,7 +43,7 @@ describe("User", function(){
         VHost.setMock("Stargate", StargateMock);
         // stub vhost
         var vhostUrlStub = "http://www.gameasy.com/ww-it" + Constants.VHOST_API_URL;
-        vhostUrlStub = vhostUrlStub + vhostKeys.join(",");
+        vhostUrlStub = vhostUrlStub + vhostKeys.join(",") + '&base64_limit=10000';
 
         jasmine.Ajax.stubRequest(vhostUrlStub).andReturn({            
             'response': VHostMock,            
