@@ -12,7 +12,7 @@ var DOMUtils  = require('../dom/dom-utils');
 var JSONPRequest = require('http-francis').JSONPRequest;
 var Event = require('../event/event');
 var NewtonService = require('../newton/newton');
-
+var getType = Utils.getType;
 /**
 * User module
 * @namespace User
@@ -390,9 +390,14 @@ var User = new function(){
                     } catch(e){
                         Logger.error('Fail to get ', url, e);
                         throw e;
-                    }                   
-                    var data = VarCheck.get(responseData, ['response', 'data'])[0];                    
-                    return data ? data : {};
+                    }
+                    // First time could be like this: {response:{data:null}}                   
+                    var data = VarCheck.get(responseData, ['response', 'data']);
+                    if(data && getType(data) === 'array'){                        
+                        return data[0];
+                    } else {
+                        return {};
+                    }
                 }
             });
     }
@@ -428,9 +433,18 @@ var User = new function(){
         return Network.xhr('GET', urlToCall).then(function(resp){
             
             if(resp.success){
-                Logger.log('GamifiveSDK', 'userData set with success on server', resp);
-                return data;
-            }               
+                var newtonResponse = JSON.parse(resp.response);
+                if(newtonResponse.response.data){
+                    Logger.log('GamifiveSDK', 'userData set with success on server', resp);
+                } else {
+                    // NEWTON error
+                    Logger.log('GamifiveSDK', 'userData FAIL to be set on server', newtonResponse.response.message);
+                }
+            } else {
+                // PHP error
+                Logger.log('GamifiveSDK', 'userData FAIL to be set on server', resp.response);
+            }
+            return data;
         });
     }
 
