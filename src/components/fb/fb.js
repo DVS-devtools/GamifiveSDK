@@ -73,10 +73,7 @@ var Facebook = new function(){
         js = d.createElement(s); js.id = id;
         js.src = window.location.protocol + "//" + Constants.FB_SDK_URL;
         Logger.log("Getting facebook sdk", js.src)
-        fjs.parentNode.insertBefore(js, fjs);        
-       
-        Logger.log('GamifiveSDK', 'Facebook', 'defined fbAsyncInit', window.fbAsyncInit);
-
+        fjs.parentNode.insertBefore(js, fjs);
     }
 
     /**

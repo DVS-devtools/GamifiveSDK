@@ -75,8 +75,6 @@ var User = new function(){
     * @memberof User
     */
     this.fetch = function(callback){        
-        Logger.log('GamifiveSDK', 'User', 'fetch attempt:', Stargate.checkConnection().type, ' Hybrid:', Stargate.isHybrid());
-        
         // This condition is important beacause when 
         // i'm loading the game from disk i don't have that damn cookies
         if (Stargate.checkConnection().type === 'online' 
