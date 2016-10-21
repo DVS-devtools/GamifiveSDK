@@ -11,6 +11,7 @@
     "vhost:keys": "sh compile_vhost.sh",
     "docs": "rm out -rf && node_modules/.bin/jsdoc src/components -r",
     "build": "npm run build:web && npm run minify",
+    "build:debug": "export NODE_ENV=debug && npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk-debug.js -s GamifiveSDK",
     "build:dev": "export NODE_ENV=testing && npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk.js -s GamifiveSDK && npm run minify",
     "build:prod": "export NODE_ENV=production && npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk.js -s GamifiveSDK && npm run minify",
     "minify": "uglifyjs dist/gfsdk.js --compress --mangle --dead-code  --source-map dist/gfsdk.min.js.map --output dist/gfsdk.min.js",

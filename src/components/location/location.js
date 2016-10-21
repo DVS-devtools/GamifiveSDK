@@ -2,6 +2,7 @@ var Logger = require('../logger/logger');
 var Stargate = require('stargatejs');
 var Utils = Stargate.Utils;
 var VHost = require('../vhost/vhost');
+var windowConf = require('./windowConf');
 
 /**
 * Utility module for managing locations
@@ -9,16 +10,15 @@ var VHost = require('../vhost/vhost');
 * @version 0.9
 */
 var Location = new function(){
-    var theWindow;
+    var theWindow = {};
     var locationInstance = this;
 
     function __setTestEnvIfAny__(){        
-        
-        if (process.env.NODE_ENV === "testing" && window.fakewindow){
-            
+        if (process.env.NODE_ENV === "testing" && window.fakewindow){            
             theWindow = window.fakewindow;
-
             // Logger.log("TESTING ENV", theWindow);
+        } else if(process.env.NODE_ENV === "debug"){
+            theWindow.location = windowConf("www.gameasy.com", "f5df5ed9bdf6166bd38068440f50f144", "ww-it");
         } else {
             theWindow = window;
             // Logger.log("original:", theWindow.location.href);
