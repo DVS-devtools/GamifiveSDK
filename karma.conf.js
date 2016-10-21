@@ -8,7 +8,7 @@ module.exports = function(config) {
     basePath: '',
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['jasmine','browserify'],
+    frameworks: ['browserify','jasmine'],
 
     // list of files / patterns to load in the browser
     files: [
@@ -58,8 +58,11 @@ module.exports = function(config) {
     autoWatch: true,
 
     browserify: {
-      debug: true,
-      transform: ['browserify-istanbul','envify']
+        'transform': [                
+            ['babelify', { 'presets': ['es2015', 'stage-0'], 'plugins': ['add-module-exports'], 'comments': false }],
+            ['browserify-istanbul', { instrumenter: require('isparta') }], 
+            'envify'
+        ]
     },
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher

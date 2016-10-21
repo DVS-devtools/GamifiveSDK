@@ -30,6 +30,7 @@
     "catharsis": "^0.8.7",
     "coveralls": "^2.11.9",
     "envify": "^3.4.1",
+    "isparta": "^4.0.0",
     "istanbul": "^0.4.3",
     "jasmine-ajax": "^3.2.0",
     "jasmine-core": "^2.4.1",
@@ -61,6 +62,21 @@
     "stargatejs": "^0.1.21"
   },
   "browserify": {
-    "transform": ["envify"]
+    "transform": [
+      [
+        "babelify",
+        {
+          "presets": [
+            "es2015",
+            "stage-0"
+          ],
+          "plugins": [
+            "add-module-exports"
+          ],
+          "comments": false
+        }
+      ],
+      "envify"
+    ]
   }
 }
