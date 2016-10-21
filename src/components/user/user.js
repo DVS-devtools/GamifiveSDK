@@ -34,7 +34,7 @@ var User = new function(){
      * GamifiveSDK.init(); GamifiveSDK.loadUserData(saveSomewhereFunction)
      */
     var onUserDataCallback;
-    Event.bind('INIT_FINISHED', function(){
+    Event.on('INIT_FINISHED', function(){
         userInstance.flag = true;
         if(typeof onUserDataCallback === 'function'){
             userInstance.__loadData__().then(onUserDataCallback);

@@ -204,7 +204,7 @@ var Session = new function(){
                    Stargate.addListener('connectionchange', sync);
                    Event.trigger('INIT_FINISHED');
                }).catch(function(reason){
-                    Event.trigger('INIT_ERROR');
+                    Event.trigger('INIT_ERROR', reason);
                     Logger.error('GamifiveSDK init error: ', reason);
                     initialized = false;
                     throw reason;
