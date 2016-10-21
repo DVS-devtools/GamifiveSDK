@@ -56,7 +56,7 @@ describe("VHost", function(){
 
     it('VHost should load from API', function(done){
         VHost.setMock("Stargate", StargateMock);
-        var url = Location.getOrigin() + '/v01/config.getvars?keys=' + vhostKeys.join(",") + '&base64_limit=10000';        
+        var url = Location.getOrigin() + '/v01/config.getvars?keys=' + vhostKeys.join(",");        
         jasmine.Ajax.stubRequest(url).andReturn({            
             'response': vHostMock,            
             'status': 200,
@@ -76,7 +76,7 @@ describe("VHost", function(){
     });
     
     it('VHost should load from api (hybrid and connection online)', function(done){
-        var url = Location.getOrigin() + '/v01/config.getvars?keys=' + vhostKeys.join(",") + '&base64_limit=10000';        
+        var url = Location.getOrigin() + '/v01/config.getvars?keys=' + vhostKeys.join(",");        
         jasmine.Ajax.stubRequest(url).andReturn({            
             'response': vHostMock,            
             'status': 200,

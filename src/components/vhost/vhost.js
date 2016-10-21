@@ -38,25 +38,25 @@ var VHost = new function(){
             VHOST_PATH = Stargate.file.BASE_DIR + Constants.VHOST_JSON_FILENAME;
         }
 
-        if (Stargate.isHybrid() && Stargate.checkConnection().type === 'offline'){            
-            
+        if (Stargate.isHybrid() && Stargate.checkConnection().type === 'offline'){
             afterLoadPromise = Stargate.file.fileExists(VHOST_PATH)
-                .then(function(exists){
+                .then(function(exists){                        
                         if (exists){
                             return Stargate.file.readFileAsJSON(VHOST_PATH);
-                        }
+                        }                        
                         throw new Error(Constants.ERROR_VHOST_LOAD_FAIL + ' file not exists');
                 })
-                .then(function(json){
+                .then(function(json){                    
                     vHost = json;
+                    vHost['IMAGES_SPRITE_GAME'] = ["../..", 'gameover_template', 'sprite.png'].join('/');
+                    Logger.log(vHost);                        
                 });
         } else if(Stargate.checkConnection().type === 'online') {
-            var urlToCall = API.get('VHOST_API_URL') + VHostKeys.join(',') + '&base64_limit=10000';
+            var urlToCall = API.get('VHOST_API_URL') + VHostKeys.join(',');            
             Logger.log('GamifiveSDK', 'VHost', 'load url', urlToCall);
             
             afterLoadPromise = Network.xhr('GET', urlToCall)
                 .then(function(resp){
-                    
                     if (!!resp && typeof resp.response !== 'undefined'){                                            
                         vHost = resp.response;
                         if (typeof vHost === typeof ''){
@@ -64,7 +64,7 @@ var VHost = new function(){
                             vHost = JSON.parse(vHost);
                         }
                     }
-                    Logger.log('GamifiveSDK', 'VHost', 'loaded');
+                    Logger.log('GamifiveSDK', 'VHost', 'loaded');                    
             });
         } else {
             
