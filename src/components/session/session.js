@@ -15,8 +15,8 @@ var NewtonService = require('../newton/newton');
 var Facebook = require('../fb/fb');
 var Event = require('../event/event');
 
-var Utils = require('stargatejs').Utils;
-var getType = Utils.getType;
+import { Utils } from 'stargatejs';
+const { getType } = Utils;
 
 /**
 * Session module
@@ -100,6 +100,7 @@ var Session = new function(){
 
         Logger.info('GamifiveSDK', 'Session', 'init', params);
 
+        // convert it if it's a number
         if(getType(params.lite) === 'number'){
             params.lite = !!params.lite;
         }

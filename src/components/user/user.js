@@ -6,13 +6,16 @@ var Network   = require('../network/network');
 var VarCheck  = require('../varcheck/varcheck');
 var VHost     = require('../vhost/vhost');
 var Stargate  = require('stargatejs');
-var Utils = require('stargatejs').Utils;
+
+import { Utils } from 'stargatejs';
+const { getType } = Utils;
+import Event from '../event/event';
+import { JSONPRequest } from 'http-francis';
+
 var API = require('../api/api');
 var DOMUtils  = require('../dom/dom-utils');
-var JSONPRequest = require('http-francis').JSONPRequest;
-var Event = require('../event/event');
 var NewtonService = require('../newton/newton');
-var getType = Utils.getType;
+
 /**
 * User module
 * @namespace User
@@ -74,12 +77,12 @@ var User = new function(){
     * @function load
     * @memberof User
     */
-    this.fetch = function(callback){        
+    this.fetch = function(callback){
         // This condition is important beacause when 
-        // i'm loading the game from disk i don't have that damn cookies
+        // i'm loading the game from disk i don't have that damn cookies        
         if (Stargate.checkConnection().type === 'online' 
-            && window.location.protocol !== 'cdvfile:'){
-
+            && window.location.protocol !== 'cdvfile:'){            
+            
             var userInfoUrl = VHost.get('MOA_API_USER_CHECK');
             var _hyb = Stargate.isHybrid() ? 1 : 0; 
             userInfoUrl.replace(':HYBRID', _hyb);            
