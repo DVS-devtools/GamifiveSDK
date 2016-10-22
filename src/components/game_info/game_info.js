@@ -83,8 +83,7 @@ var GameInfo = new function(){
     * @function fetch
     * @memberof GameInfo
     */
-    this.fetch = function(callback){
-        Logger.log('GamifiveSDK', 'GameInfo', 'fetch attempt');
+    this.fetch = function(callback){        
         
         if (Stargate.checkConnection().type === 'online'){
             return getGameInfoFromAPI(callback);
@@ -119,7 +118,6 @@ var GameInfo = new function(){
 
         Logger.log("GameInfo", "getGameInfoFromAPI", "GET", urlToCall);
         return new JSONPRequest(urlToCall, 10000).prom.then(function(resp){
-
             if(typeof resp.game_info === 'undefined'){
                 throw new Error('GamifiveSDK: Missing game_info key in' + resp);
             }
@@ -129,7 +127,7 @@ var GameInfo = new function(){
             if (typeof callback === 'function'){
                 callback(gameInfo);
             }
-            Logger.log('GamifiveSDK', 'GameInfo', 'fetch complete');
+            Logger.log('GamifiveSDK', 'GameInfo', 'fetch complete', gameInfo);
             return gameInfoInstance.persist();
             
         });

@@ -11,6 +11,7 @@
     "vhost:keys": "sh compile_vhost.sh",
     "docs": "rm out -rf && node_modules/.bin/jsdoc src/components -r",
     "build": "npm run build:web && npm run minify",
+    "build:debug": "export NODE_ENV=debug && npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk-debug.js -s GamifiveSDK",
     "build:dev": "export NODE_ENV=testing && npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk.js -s GamifiveSDK && npm run minify",
     "build:prod": "export NODE_ENV=production && npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk.js -s GamifiveSDK && npm run minify",
     "minify": "uglifyjs dist/gfsdk.js --compress --mangle --dead-code  --source-map dist/gfsdk.min.js.map --output dist/gfsdk.min.js",
@@ -30,6 +31,7 @@
     "catharsis": "^0.8.7",
     "coveralls": "^2.11.9",
     "envify": "^3.4.1",
+    "isparta": "^4.0.0",
     "istanbul": "^0.4.3",
     "jasmine-ajax": "^3.2.0",
     "jasmine-core": "^2.4.1",
@@ -58,9 +60,24 @@
     "http-francis": "^0.1.6",
     "newton-adapter": "^1.3.1",
     "promise-polyfill": "^5.0.0",
-    "stargatejs": "^0.1.21"
+    "stargatejs": "^0.2.0"
   },
   "browserify": {
-    "transform": ["envify"]
+    "transform": [
+      [
+        "babelify",
+        {
+          "presets": [
+            "es2015",
+            "stage-0"
+          ],
+          "plugins": [
+            "add-module-exports"
+          ],
+          "comments": false
+        }
+      ],
+      "envify"
+    ]
   }
 }

@@ -15,8 +15,8 @@ var NewtonService = require('../newton/newton');
 var Facebook = require('../fb/fb');
 var Event = require('../event/event');
 
-var Utils = require('stargatejs').Utils;
-var getType = Utils.getType;
+import { Utils } from 'stargatejs';
+const { getType } = Utils;
 
 /**
 * Session module
@@ -100,6 +100,7 @@ var Session = new function(){
 
         Logger.info('GamifiveSDK', 'Session', 'init', params);
 
+        // convert it if it's a number
         if(getType(params.lite) === 'number'){
             params.lite = !!params.lite;
         }
@@ -145,8 +146,7 @@ var Session = new function(){
                     contentRanking = VHost.get('CONTENT_RANKING');
                     Menu.show();
                 
-                    var UserTasks = User.fetch().then(User.getFavorites);
-                    Logger.info('User.fetch & GameInfo.fetch');                   
+                    var UserTasks = User.fetch().then(User.getFavorites);                                   
                     return Promise.all([
                         UserTasks,
                         GameInfo.fetch()
@@ -164,7 +164,7 @@ var Session = new function(){
 
                     NewtonService.init({
                            secretId: VHost.get('NEWTON_SECRETID'),
-                           enable: enableNewton,        // enable newton
+                           enable: enableNewton, // enable newton
                            waitLogin: true,     // wait for login to have been completed (async)
                            logger: Logger,
                            properties: {
@@ -186,8 +186,8 @@ var Session = new function(){
                         logged: (User.getUserType() !== 'guest')
                     });
 
-                    /*NewtonService.trackEvent({
-                        name: 'GameLoad',
+                    NewtonService.trackEvent({
+                        name: 'SdkInitFinished',
                         rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'), 
                         properties:{
                             action: 'Yes',
@@ -196,15 +196,15 @@ var Session = new function(){
                             label: GameInfo.getContentId(),
                             valuable: 'Yes'                            
                         }
-                    });*/                    
+                    });           
                     initialized = true;  
-                    return initialized;
-               }).then(function(){
+                    return initialized;                    
+               }).then(function(){  
                    Logger.log('GamifiveSDK', 'register sync function for gameover/leaderboard results');
-                   Stargate.addListener('connectionchange', sync);
+                   Stargate.addListener('connectionchange', sync);                   
                    Event.trigger('INIT_FINISHED');
                }).catch(function(reason){
-                    Event.trigger('INIT_ERROR');
+                    Event.trigger('INIT_ERROR', reason);
                     Logger.error('GamifiveSDK init error: ', reason);
                     initialized = false;
                     throw reason;
