@@ -69,6 +69,7 @@ module.exports = {
     USER_SET_LIKE: '/v01/favorites.set',
     USER_GET_LIKE: '/v01/favorites.get',
     USER_DELETE_LIKE: '/v01/favorites.delete',
+    GAME_OVER_JSON_API_URL: '/v01/json/gameover/:CONTENT_ID', // ?score=&duration=
 
     GAMEINFO_JSON_FILENAME:'offlineData.json',
     USER_JSON_FILENAME:'user.json',
