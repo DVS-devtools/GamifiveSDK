@@ -11,14 +11,21 @@
     "vhost:keys": "sh compile_vhost.sh",
     "docs": "rm out -rf && node_modules/.bin/jsdoc src/components -r",
     "build": "npm run build:web && npm run minify",
-    "build:debug": "export NODE_ENV=debug && npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk-debug.js -s GamifiveSDK",
+    "build:debug": "export NODE_ENV=debug && npm run vhost:keys && browserify src/builders/build_web.js -o debug/gfsdk.js -s GamifiveSDK",
     "build:dev": "export NODE_ENV=testing && npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk.js -s GamifiveSDK && npm run minify",
     "build:prod": "export NODE_ENV=production && npm run vhost:keys && browserify src/builders/build_web.js -o dist/gfsdk.js -s GamifiveSDK && npm run minify",
     "minify": "uglifyjs dist/gfsdk.js --compress --mangle --dead-code  --source-map dist/gfsdk.min.js.map --output dist/gfsdk.min.js",
     "test:develop": "export NODE_ENV=testing && npm run vhost:keys && karma start",
     "test": "export NODE_ENV=testing && npm run vhost:keys && karma start --no-auto-watch --single-run",
-    "upload:integration":"scp -r dist/* super@192.168.124.3:/dadanet2/webstore2/htdocs/test/fabiof/sdk_integration_test/c2701133414427fee732e051abdfe3e8",
-    "upload":"scp -r dist/* super@192.168.124.3:/dadanet2/wl2/webstore_html5game/js/webstore_html5game/gfsdk/2.x.x/dist/"
+    "upload:integration": "scp -r dist/* super@192.168.124.3:/dadanet2/webstore2/htdocs/test/fabiof/sdk_integration_test/c2701133414427fee732e051abdfe3e8",
+    "upload:dist": "scp -r dist/* super@192.168.124.3:$npm_package_config_release_folder",
+    "upload:debug": "scp -r debug/* super@192.168.124.3:$npm_package_config_debug_folder",
+    "upload":"npm run upload:dist && npm run upload:debug",
+    "serve": "http-server debug/ -p 5050 -a local.buongiornosdk.com"
+  },
+  "config":{
+    "release_folder":"/dadanet2/wl2/webstore_html5game/js/webstore_html5game/gfsdk/2.x.x/dist/",
+    "debug_folder":"/dadanet2/wl2/webstore_html5game/js/webstore_html5game/gfsdk/2.x.x/debug/"
   },
   "devDependencies": {
     "babel-plugin-add-module-exports": "^0.2.1",
@@ -50,6 +57,7 @@
     "karma-mocha-reporter": "^1.1.3",
     "karma-phantomjs-launcher": "^0.2.3",
     "karma-spec-reporter": "0.0.22",
+    "openurl": "^1.1.1",
     "phantomjs": "^2.1.7",
     "phantomjs-polyfill": "0.0.1",
     "phantomjs-prebuilt": "^2.1.7",
