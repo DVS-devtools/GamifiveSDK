@@ -10,12 +10,12 @@ var Network   = require('../network/network');
 var User      = require('../user/user');
 var VHost     = require('../vhost/vhost');
 var Stargate  = require('stargatejs');
-var calculateContentRanking = require('../tracking_utils/tracking_utils').calculateContentRanking;
+
 var NewtonService = require('../newton/newton');
 var Facebook = require('../fb/fb');
 var Event = require('../event/event');
-
 import { Utils } from 'stargatejs';
+import { calculateContentRanking } from '../tracking_utils/tracking_utils';
 const { getType } = Utils;
 
 /**
