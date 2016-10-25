@@ -12,13 +12,15 @@ var windowConf = require('./windowConf');
 var Location = new function(){
     var theWindow = {};
     var locationInstance = this;
-
+    var DEBUG_OPTIONS = {};
     function __setTestEnvIfAny__(){        
         if (process.env.NODE_ENV === "testing" && window.fakewindow){            
             theWindow = window.fakewindow;
             // Logger.log("TESTING ENV", theWindow);
         } else if(process.env.NODE_ENV === "debug"){
-            theWindow.location = windowConf("www.gameasy.com", "f5df5ed9bdf6166bd38068440f50f144", "ww-it");
+            // game_id f5df5ed9bdf6166bd38068440f50f144
+            DEBUG_OPTIONS = Utils.dequeryfy(window.location.href);
+            theWindow.location = windowConf(DEBUG_OPTIONS.host, DEBUG_OPTIONS.game_id);
         } else {
             theWindow = window;
             // Logger.log("original:", theWindow.location.href);
