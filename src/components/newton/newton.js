@@ -1,6 +1,6 @@
-var NewtonAdapter = require('newton-adapter');
+import NewtonAdapter from 'newton-adapter';
 
-var NewtonService = new function(){
+export default new function NewtonService(){
 
     var methods = Object.getOwnPropertyNames(NewtonAdapter);
     var self = this;
@@ -11,7 +11,4 @@ var NewtonService = new function(){
             return NewtonAdapter[methodName].apply(NewtonAdapter, arguments);
         }
     });
-
 }
-
-module.exports = NewtonService;

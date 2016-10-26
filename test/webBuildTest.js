@@ -1,4 +1,4 @@
-var GamifiveSDK = require("../src/builders/build_web");
+var GamifiveSDK = require("../src/builders/build");
 
 describe("GamifiveSDK web build",function(){
     

@@ -12,8 +12,8 @@ var VHost     = require('../vhost/vhost');
 var Stargate  = require('stargatejs');
 
 var NewtonService = require('../newton/newton');
-var Facebook = require('../fb/fb');
-var Event = require('../event/event');
+import Facebook from '../fb/fb';
+import Event from '../event/event';
 import { Utils } from 'stargatejs';
 import { calculateContentRanking } from '../tracking_utils/tracking_utils';
 const { getType } = Utils;
