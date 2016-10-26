@@ -1,3 +1,6 @@
+if(process.env.NODE_ENV === "debug"){
+    var GameInfoFakeResponse = require('../../../test/mocks/gameInfoMock');
+}
 var API = require('../api/api');
 var Constants  = require('../constants/constants');
 var Logger     = require('../logger/logger');
@@ -12,7 +15,7 @@ var JSONPRequest = require('http-francis').JSONPRequest;
 * @namespace GameInfo
 * @version 0.9
 */
-var GameInfo = new function(){
+var GameInfo = function(){
 
     var gameInfoInstance = this;
 
@@ -143,6 +146,17 @@ var GameInfo = new function(){
         return gameInfo[key];
     }
 
+    if(process.env.NODE_ENV === "debug"){
+        this.fetch = function(){            
+            gameInfo = extend(gameInfo, GameInfoFakeResponse.game_info);
+            var fakeId = Location.getQueryString()['game_id'];
+            gameInfo.contentId = fakeId;
+            gameInfo.game.content_id = fakeId;
+            gameInfo.id = fakeId;
+            return Promise.resolve(gameInfo);
+        }
+    }
+
     if(process.env.NODE_ENV === "testing"){        
         var originalStargate;
         var originals = {};
@@ -176,4 +190,4 @@ var GameInfo = new function(){
 
 };
 
-module.exports = GameInfo;
+module.exports = new GameInfo;
