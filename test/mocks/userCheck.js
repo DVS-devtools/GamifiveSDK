@@ -121,7 +121,7 @@ module.exports = {
     "mipuser_email": null,
     "fb_name": null,
     "auth_id": null,
-    "nickname": "pasquale",
+    "nickname": "virgilio",
     "avatar": "virgilio.png",
     "subscribed": true,
     "logged": 1

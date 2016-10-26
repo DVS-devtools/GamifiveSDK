@@ -1,4 +1,7 @@
-var Constants = require('../constants/constants');
+if(process.env.NODE_ENV === "debug"){
+    var UserCheckFakeResponse = require('../../../test/mocks/userCheck');
+}
+import Constants from '../constants/constants';
 var GameInfo  = require('../game_info/game_info');
 var Location  = require('../location/location');
 var Logger    = require('../logger/logger');
@@ -21,7 +24,7 @@ var NewtonService = require('../newton/newton');
 * @namespace User
 * @version 0.9
 */
-var User = new function(){
+var User = function(){
 
     var userInstance = this;
 
@@ -544,6 +547,20 @@ var User = new function(){
         return userInfo.nickname || '';
     }
 
+    if(process.env.NODE_ENV === "debug"){
+        this.fetch = function(callback){
+            callback ? callback() : null;
+            userInfo = Utils.extend(userInfo, UserCheckFakeResponse);
+            userInfo.user = "fakeuser";         
+            return Promise.resolve(userInfo);
+        }
+
+        this.getFavorites = function(){
+            return Promise.resolve({});
+        }
+    }
+
+
     if (process.env.NODE_ENV === "testing"){
         var original = {
             Stargate: null,
@@ -610,4 +627,4 @@ var User = new function(){
     }
 };
 
-module.exports = User;
+module.exports = new User();
