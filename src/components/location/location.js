@@ -20,7 +20,7 @@ var Location = new function(){
         } else if(process.env.NODE_ENV === "debug"){
             // game_id f5df5ed9bdf6166bd38068440f50f144
             DEBUG_OPTIONS = Utils.dequeryfy(window.location.href);
-            theWindow.location = windowConf(DEBUG_OPTIONS.host, DEBUG_OPTIONS.game_id);
+            theWindow.location = windowConf(DEBUG_OPTIONS.host, DEBUG_OPTIONS.game_id, DEBUG_OPTIONS.country_code);
         } else {
             theWindow = window;
             // Logger.log("original:", theWindow.location.href);
