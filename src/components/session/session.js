@@ -93,7 +93,10 @@ var Session = new function(){
     * @param {Boolean} params.debug 
     */
     this.init = function(params){
-
+        if(process.env.NODE_ENV === "debug"){
+            Logger.warn("GFSDK: Running in debug mode!")
+        }
+        
         if (!params){
             params = {};
         }
