@@ -1,4 +1,4 @@
-module.exports = function(HOST, GAME_ID, COUNTRY_CODE = "ww-it"){
+module.exports = function(HOST, GAME_ID = 'fakeid', COUNTRY_CODE = "ww-it"){
     return {
         "hash": "",
         "search": "",
