@@ -397,7 +397,7 @@ var User = function(){
                     }
                     // First time could be like this: {response:{data:null}}                   
                     var data = VarCheck.get(responseData, ['response', 'data']);
-                    if(data && getType(data) === 'array'){                        
+                    if(data && getType(data) === 'array' && data.length > 0){
                         return data[0];
                     } else {
                         return {};
