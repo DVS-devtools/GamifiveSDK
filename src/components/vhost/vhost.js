@@ -64,7 +64,6 @@ var VHost = new function(){
                             vHost = JSON.parse(vHost);
                         }
                     }
-                    Logger.log('GamifiveSDK', 'VHost', 'loaded');                    
             });
         } else {
             
