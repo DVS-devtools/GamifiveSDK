@@ -558,6 +558,10 @@ var User = function(){
         this.getFavorites = function(){
             return Promise.resolve({});
         }
+
+        this.canPlay = function(){
+            return Promise.resolve(true);
+        }
     }
 
 
