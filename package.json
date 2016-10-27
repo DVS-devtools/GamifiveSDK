@@ -10,7 +10,8 @@
   "scripts": {
     "vhost:keys": "sh compile_vhost.sh",
     "docs": "rm out -rf && node_modules/.bin/jsdoc src/components -r",
-    "build": "npm run build:web && npm run minify",
+    "prebuild":"sh getrevision.sh && git add src/version.js",
+    "build": "npm run build:prod && npm run minify",
     "build:debug": "export NODE_ENV=debug && npm run vhost:keys && browserify src/builders/build.js -o debug/gfsdk.js -s GamifiveSDK",
     "build:dev": "export NODE_ENV=testing && npm run vhost:keys && browserify src/builders/build.js -o dist/gfsdk.js -s GamifiveSDK && npm run minify",
     "build:prod": "export NODE_ENV=production && npm run vhost:keys && browserify src/builders/build.js -o dist/gfsdk.js -s GamifiveSDK && npm run minify",
@@ -21,6 +22,8 @@
     "upload:dist": "scp -r dist/* super@192.168.124.3:$npm_package_config_release_folder",
     "upload:debug": "scp -r debug/* super@192.168.124.3:$npm_package_config_debug_folder",
     "upload":"npm run upload:dist && npm run upload:debug",
+    "version":"npm run build",
+    "postversion":"git push --tags",
     "serve": "http-server debug/ -p 5050 -a local.buongiornosdk.com"
   },
   "config":{

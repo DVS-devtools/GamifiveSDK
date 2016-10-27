@@ -7,6 +7,9 @@ build.User = require('../components/user/user.js');
 build.FB = require('../components/fb/fb.js');
 build.Session = require('../components/session/session.js');
 build.GameInfo = require('../components/game_info/game_info.js');
+build.getVersion = function(){
+    return require('../version');
+}
 
 build.setLogLevel = function(level){
     Logger.init({level: level});
