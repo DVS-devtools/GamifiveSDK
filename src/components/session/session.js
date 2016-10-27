@@ -10,12 +10,12 @@ var Network   = require('../network/network');
 var User      = require('../user/user');
 var VHost     = require('../vhost/vhost');
 var Stargate  = require('stargatejs');
-var calculateContentRanking = require('../tracking_utils/tracking_utils').calculateContentRanking;
-var NewtonService = require('../newton/newton');
-var Facebook = require('../fb/fb');
-var Event = require('../event/event');
 
+var NewtonService = require('../newton/newton');
+import Facebook from '../fb/fb';
+import Event from '../event/event';
 import { Utils } from 'stargatejs';
+import { calculateContentRanking } from '../tracking_utils/tracking_utils';
 const { getType } = Utils;
 
 /**
@@ -93,7 +93,10 @@ var Session = new function(){
     * @param {Boolean} params.debug 
     */
     this.init = function(params){
-
+        if(process.env.NODE_ENV === "debug"){
+            Logger.warn("GFSDK: Running in debug mode!")
+        }
+        
         if (!params){
             params = {};
         }
@@ -157,10 +160,6 @@ var Session = new function(){
                     
                     var env = Stargate.isHybrid() ? 'hybrid' : 'webapp';
                     var enableNewton = true;
-
-                    if(Stargate.checkConnection().type !== 'online'){
-                        enableNewton = false;
-                    }
 
                     NewtonService.init({
                            secretId: VHost.get('NEWTON_SECRETID'),

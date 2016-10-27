@@ -49,7 +49,7 @@ var VHost = new function(){
                 .then(function(json){                    
                     vHost = json;
                     vHost['IMAGES_SPRITE_GAME'] = ["../..", 'gameover_template', 'sprite.png'].join('/');
-                    Logger.log(vHost);                        
+                    Logger.log("VHOST loaded");
                 });
         } else if(Stargate.checkConnection().type === 'online') {
             var urlToCall = API.get('VHOST_API_URL') + VHostKeys.join(',');            
@@ -60,11 +60,10 @@ var VHost = new function(){
                     if (!!resp && typeof resp.response !== 'undefined'){                                            
                         vHost = resp.response;
                         if (typeof vHost === typeof ''){
-                            Logger.log('GamifiveSDK', 'VHost', 'load response parsing it', resp.response);
+                            Logger.log('GamifiveSDK', 'VHost', 'loaded');
                             vHost = JSON.parse(vHost);
                         }
                     }
-                    Logger.log('GamifiveSDK', 'VHost', 'loaded');                    
             });
         } else {
             
