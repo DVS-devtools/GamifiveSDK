@@ -1,6 +1,6 @@
 {
   "name": "gamifivesdk",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "",
   "main": "src/index_web.js",
   "repository": {
@@ -10,7 +10,8 @@
   "scripts": {
     "vhost:keys": "sh compile_vhost.sh",
     "docs": "rm out -rf && node_modules/.bin/jsdoc src/components -r",
-    "build": "npm run build:web && npm run minify",
+    "prebuild": "sh getrevision.sh && git add src/version.js",
+    "build": "npm run build:prod && npm run minify",
     "build:debug": "export NODE_ENV=debug && npm run vhost:keys && browserify src/builders/build.js -o debug/gfsdk.js -s GamifiveSDK",
     "build:dev": "export NODE_ENV=testing && npm run vhost:keys && browserify src/builders/build.js -o dist/gfsdk.js -s GamifiveSDK && npm run minify",
     "build:prod": "export NODE_ENV=production && npm run vhost:keys && browserify src/builders/build.js -o dist/gfsdk.js -s GamifiveSDK && npm run minify",
@@ -20,12 +21,14 @@
     "upload:integration": "scp -r dist/* super@192.168.124.3:/dadanet2/webstore2/htdocs/test/fabiof/sdk_integration_test/c2701133414427fee732e051abdfe3e8",
     "upload:dist": "scp -r dist/* super@192.168.124.3:$npm_package_config_release_folder",
     "upload:debug": "scp -r debug/* super@192.168.124.3:$npm_package_config_debug_folder",
-    "upload":"npm run upload:dist && npm run upload:debug",
+    "upload": "npm run upload:dist && npm run upload:debug",
+    "version": "npm run build",
+    "postversion": "git push --tags",
     "serve": "http-server debug/ -p 5050 -a local.buongiornosdk.com"
   },
-  "config":{
-    "release_folder":"/dadanet2/wl2/webstore_html5game/js/webstore_html5game/gfsdk/2.x.x/dist/",
-    "debug_folder":"/dadanet2/wl2/webstore_html5game/js/webstore_html5game/gfsdk/2.x.x/debug/"
+  "config": {
+    "release_folder": "/dadanet2/wl2/webstore_html5game/js/webstore_html5game/gfsdk/2.x.x/dist/",
+    "debug_folder": "/dadanet2/wl2/webstore_html5game/js/webstore_html5game/gfsdk/2.x.x/debug/"
   },
   "devDependencies": {
     "babel-plugin-add-module-exports": "^0.2.1",
