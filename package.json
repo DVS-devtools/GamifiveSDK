@@ -9,7 +9,7 @@
   },
   "scripts": {
     "vhost:keys": "sh compile_vhost.sh",
-    "docs": "rm out -rf && node_modules/.bin/jsdoc src/components -r",
+    "docs": "rm docs -rf && node_modules/.bin/jsdoc src/components -r -d docs",
     "prebuild": "sh getrevision.sh && git add src/version.js",
     "build": "npm run build:prod && npm run minify",
     "build:debug": "export NODE_ENV=debug && npm run vhost:keys && browserify src/builders/build.js -o debug/gfsdk.js -s GamifiveSDK",
