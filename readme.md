@@ -462,3 +462,64 @@ GamifiveSDK.saveUserData({
 
 GamifiveSDK.endSession({ score: 5, level: 3 });
 ```
+# Set the debug environment
+
+1. Include the debug SDK version in your index.html (do not forget to change debug with dist before send the package) :)
+```javascript
+    <script src="static.newton.pm/js/v2.2.3/newton.min.js"></script> 
+    <script src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/2.x.x/debug/gfsdk.js"></script>
+```
+2. Serve statically the game forlder with appsworld.gamifive-app.com as origin
+
+For the second point you need:
+
+### 2.1 Install NodeJS and NPM in your system.
+
+- Mac Users can follow this guide: http://blog.teamtreehouse.com/install-node-js-npm-mac
+- Windows Users can follow this one: http://blog.teamtreehouse.com/install-node-js-npm-windows
+(Some other of billions guides on the web anyway will be ok)
+
+### 2.2  Install http-server npm package globally
+
+```javascript
+    npm install http-server -g
+```
+
+### 2.3 Edit your hosts file
+
+Add this line
+```javascript
+   127.0.0.1 appsworld.gamifive-app.com
+```
+
+into your hosts file
+
+ ```javascript
+/private/etc/hosts file (Mac)
+C:\Windows\System32\drivers\etc\hosts (Windows)
+```  
+
+
+On Mac you can simply do:
+ ```javascript
+sudo -i # Enter the password
+sudo echo '127.0.0.1 appsworld.gamifive-app.com' >> /private/etc/hosts;
+exit
+```
+
+(Guide to edit hosts file on any platform http://www.howtogeek.com/howto/27350/beginner-geek-how-to-edit-your-hosts-file/)
+
+### 2.4 Serve the gamepath
+
+Serve the gamepath in this way from the cmd line
+```javascript
+   http-server <myAwesomeGameFolder> -p 5050 -a appsworld.gamifive-app.com
+```
+
+Then open the browser to
+```javascript
+    http://appsworld.gamifive-app.com:5050/index.html?host=www.gameasy.com
+``` 
+
+That's it! Now you can test your implementation of the SDK. 
+Open a issue on github if you want encounter any issues

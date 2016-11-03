@@ -201,24 +201,16 @@ var User = function(){
     * @returns {Promise}
     */
     this.saveData = function(info, callback){
-        var logged;
-        try{
-            logged = NewtonService.isUserLogged();
-        } catch(e){
-            logged = e;
-        }
-        
         if(!userInstance.flag){
-            Logger.warn('Could not saveUserData. Wait the init to be finished!');
-            return;
+            Logger.warn("Could not save user data before init finished");
+            return {};
         }
 
         if(!NewtonService.isUserLogged()){
-            Logger.warn('Could not saveUserData. User not logged');
-            return;
+            Logger.warn("Could not save user data: Newton user not logged");
+            return {};
         }
 
-        Logger.info('Newton User is logged?', logged);
         if(!callback){ callback = function(){}; } 
         var contentId  = GameInfo.getContentId();
         var userId     = userInstance.getUserId();
@@ -305,14 +297,12 @@ var User = function(){
     * @returns {promise|object}
     */
     this.loadData = function(callback){
-        var logged;
-        try{
-            logged = NewtonService.isUserLogged();
-        } catch(e){
-            logged = e;
+        
+        if(!NewtonService.isUserLogged()){
+            Logger.warn("Could not load user data: Newton user not logged");
+            return {};
         }
         
-        Logger.info('Newton User is logged?', logged);
         Logger.info('GamifiveSDK', 'User', 'loadData');
 
         if(!callback || typeof callback !== 'function'){
@@ -551,7 +541,7 @@ var User = function(){
         this.fetch = function(callback){
             callback ? callback() : null;
             userInfo = Utils.extend(userInfo, UserCheckFakeResponse);
-            userInfo.user = "fakeuser";         
+            userInfo.user = Date.now() + "_gfsdk_fakeuser";
             return Promise.resolve(userInfo);
         }
 

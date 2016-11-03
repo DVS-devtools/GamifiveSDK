@@ -101,6 +101,10 @@ var VHost = new function(){
             Logger.error('GamifiveSDK', 'VHost', 'get', 'cannot get "' + key + '" before loading the VHost');
             return undefined;
         }
+        
+        if(process.env.NODE_ENV === "debug" && key === 'NEWTON_SECRETID'){
+            return Constants.NEWTON_DEBUG_SECRET;
+        }
         return vHost[key];
     }
 

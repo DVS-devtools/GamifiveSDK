@@ -58,7 +58,8 @@ module.exports = {
     ERROR_GAMEINFO_FETCH_FAIL: 'GamifiveSDK :: GameInfo :: couldn\'t retrieve game info: ',
     ERROR_VHOST_LOAD_FAIL: 'GamifiveSDK :: Vhost :: couldn\'t retrieve vhost: ',
 
-    CONTENT_ID_REGEX: '(html5gameplay|sdk_integration_test|games)\/([a-zA-Z0-9]+)', // games in hybrid case(folder name)    
+    CONTENT_ID_REGEX: '(html5gameplay|sdk_integration_test|games)\/([a-zA-Z0-9]+)', // games in hybrid case(folder name)
+    NEWTON_DEBUG_SECRET:'_BdH,S;lTr%Fd+#fka-]',  
 
     // API
     VHOST_API_URL: '/v01/config.getvars?keys=',

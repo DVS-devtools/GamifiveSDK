@@ -24,7 +24,7 @@
     "upload": "npm run upload:dist && npm run upload:debug",
     "version": "npm run build",
     "postversion": "git push --tags",
-    "serve": "http-server debug/ -p 5050 -a local.buongiornosdk.com"
+    "serve": "http-server debug/ -p 5050 -a appsworld.gamifive-app.com"
   },
   "config": {
     "release_folder": "/dadanet2/wl2/webstore_html5game/js/webstore_html5game/gfsdk/2.x.x/dist/",
