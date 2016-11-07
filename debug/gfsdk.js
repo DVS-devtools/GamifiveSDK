@@ -12010,22 +12010,23 @@ var Location = new function () {
 module.exports = Location;
 
 },{"../logger/logger":332,"../vhost/vhost":340,"./windowConf":331,"stargatejs":310}],331:[function(require,module,exports){
-"use strict";
+'use strict';
 
-module.exports = function (HOST) {
+module.exports = function () {
+    var HOST = arguments.length <= 0 || arguments[0] === undefined ? 'appsworld.gamifive-app.com' : arguments[0];
     var GAME_ID = arguments.length <= 1 || arguments[1] === undefined ? 'fakeid' : arguments[1];
     var COUNTRY_CODE = arguments.length <= 2 || arguments[2] === undefined ? "ww-it" : arguments[2];
 
     return {
         "hash": "",
         "search": "",
-        "pathname": "/" + COUNTRY_CODE + "/html5gameplay/" + GAME_ID + "/game/sample",
+        "pathname": '/' + COUNTRY_CODE + '/html5gameplay/' + GAME_ID + '/game/sample',
         "port": "",
-        "hostname": "" + HOST,
-        "host": "" + HOST,
+        "hostname": '' + HOST,
+        "host": '' + HOST,
         "protocol": "http:",
-        "origin": "http://" + HOST,
-        "href": "http://" + HOST + "/" + COUNTRY_CODE + "/html5gameplay/" + GAME_ID + "/game/sample"
+        "origin": 'http://' + HOST,
+        "href": 'http://' + HOST + '/' + COUNTRY_CODE + '/html5gameplay/' + GAME_ID + '/game/sample'
     };
 };
 
@@ -13522,7 +13523,7 @@ module.exports = addRetroInterface;
 },{"../components/vhost/vhost":340}],342:[function(require,module,exports){
 "use strict";
 
-var pkgInfo = { "version": "2.0.1", "build": "v2.0.0-1-ge966006" };module.exports = pkgInfo;
+var pkgInfo = { "version": "2.0.1", "build": "v2.0.1-19-gd4041cc" };module.exports = pkgInfo;
 
 },{}],343:[function(require,module,exports){
 "use strict";

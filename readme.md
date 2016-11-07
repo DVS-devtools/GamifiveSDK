@@ -489,7 +489,7 @@ For the second point you need:
 
 Add this line
 ```javascript
-   127.0.0.1 appsworld.gamifive-app.com
+   127.0.0.1 local.appsworld.gamifive-app.com
 ```
 
 into your hosts file
@@ -500,10 +500,10 @@ C:\Windows\System32\drivers\etc\hosts (Windows)
 ```  
 
 
-On Mac you can simply do:
+On Mac you can simply append this line at the end of the file in this way:
  ```javascript
 sudo -i # Enter the password
-sudo echo '127.0.0.1 appsworld.gamifive-app.com' >> /private/etc/hosts;
+sudo echo '127.0.0.1 local.appsworld.gamifive-app.com' >> /private/etc/hosts;
 exit
 ```
 
@@ -513,12 +513,12 @@ exit
 
 Serve the gamepath in this way from the cmd line
 ```javascript
-   http-server <myAwesomeGameFolder> -p 5050 -a appsworld.gamifive-app.com
+   http-server <myAwesomeGameFolder> -p 5050 -a local.appsworld.gamifive-app.com
 ```
 
 Then open the browser to
 ```javascript
-    http://appsworld.gamifive-app.com:5050/index.html?host=www.gameasy.com
+    http://local.appsworld.gamifive-app.com:5050/index.html
 ``` 
 
 That's it! Now you can test your implementation of the SDK. 
