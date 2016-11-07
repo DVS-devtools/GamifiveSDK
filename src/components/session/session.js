@@ -455,7 +455,7 @@ var Session = new function(){
             var gameoverParams = {
                 start: lastSession.startTime.getTime(),
                 duration: lastSession.endTime - lastSession.startTime,
-                score: lastSession.score                           
+                score: lastSession.score
             };
 
             if(lastSession.level){
@@ -470,12 +470,12 @@ var Session = new function(){
                     if(document.querySelector(Constants.BACK_BUTTON_SELECTOR)){
                         var toHomeBtn = document.querySelector(Constants.BACK_BUTTON_SELECTOR).parentNode;
                         
-                        toHomeBtn.addEventListener('touchend', function(e){
+                        toHomeBtn.addEventListener('click', function tohome(e){
                             e.stopPropagation();
                             e.preventDefault();
                             sessionInstance.goToHome();
                             //remove it everytime to prevent memory leak
-                            toHomeBtn.removeEventListener(this);
+                            toHomeBtn.removeEventListener(tohome);
                         });
                     }
 

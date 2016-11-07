@@ -12111,7 +12111,6 @@ var Menu = new function () {
 
         if (!menuElement) {
             menuElement = document.createElement('a');
-            menuElement.addEventListener('touchend', goToHomeCallback, false);
             menuElement.addEventListener("click", goToHomeCallback, false);
             menuElement.setAttribute("id", "gfsdk-more-games");
             document.body.appendChild(menuElement);
@@ -12598,12 +12597,12 @@ var Session = new function () {
                 if (document.querySelector(Constants.BACK_BUTTON_SELECTOR)) {
                     var toHomeBtn = document.querySelector(Constants.BACK_BUTTON_SELECTOR).parentNode;
 
-                    toHomeBtn.addEventListener('touchend', function (e) {
+                    toHomeBtn.addEventListener('click', function tohome(e) {
                         e.stopPropagation();
                         e.preventDefault();
                         sessionInstance.goToHome();
 
-                        toHomeBtn.removeEventListener(this);
+                        toHomeBtn.removeEventListener(tohome);
                     });
                 }
 
