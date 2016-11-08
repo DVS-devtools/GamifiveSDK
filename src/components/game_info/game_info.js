@@ -120,7 +120,7 @@ var GameInfo = function(){
         var urlToCall = [gameInfoUrl, gameInfoInstance.getContentId()].join("");
 
         Logger.log("GameInfo", "getGameInfoFromAPI", "GET", urlToCall);
-        return new JSONPRequest(urlToCall, 10000).prom.then(function(resp){
+        return new JSONPRequest(urlToCall, 15000).prom.then(function(resp){
             if(typeof resp.game_info === 'undefined'){
                 throw new Error('GamifiveSDK: Missing game_info key in' + resp);
             }
