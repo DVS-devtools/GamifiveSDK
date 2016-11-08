@@ -237,7 +237,7 @@ GamifiveSDK.hideMoreGamesButton();
 ```
 <h2>goToHome</h2>
   
-Redirects to Gamifive's Homepage. Call this function when your more games button is clicked (you don't need to call this function if you use the built-in more games button because it already calls this function by default).
+Redirects to Gamifive's Homepage. Call this function when your more games button is clicked.
 
 ```javascript
 // perform a redirect to the homepage
