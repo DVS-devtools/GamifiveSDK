@@ -125,7 +125,7 @@ describe("Session",function(){
 
     });
 
-    it("Session is started, but cannot start two times", function(done){
+    it("Session is started two times but only one session is valid", function(done){
 
         Session.setMock("User", {
             fetch:function(){return Promise.resolve(true)},
@@ -152,10 +152,11 @@ describe("Session",function(){
         Session.start();
         try{
             Session.start();
-        }catch(e) {
-            expect(e).toEqual(Constants.ERROR_SESSION_ALREADY_STARTED);
-            done();
+        } catch(e) {
+            expect(e).not.toBeDefined(Constants.ERROR_SESSION_ALREADY_STARTED);            
         }
+        expect(Session.getConfig().sessions.length).toEqual(1);
+        done();
     });
 
     it("Sessions are ended, but can't be ended two times", function(done){

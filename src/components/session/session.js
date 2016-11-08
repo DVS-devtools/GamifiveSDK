@@ -305,7 +305,7 @@ var Session = new function(){
         // If a previous session exists, it must have been ended
         if (config.sessions && config.sessions.length > 0 && typeof getLastSession().endTime === 'undefined'){
             config.sessions.shift();
-            throw Constants.ERROR_SESSION_ALREADY_STARTED;
+            Logger.warn(Constants.ERROR_SESSION_ALREADY_STARTED);
         }
 
         // ok, you can try to start a new session

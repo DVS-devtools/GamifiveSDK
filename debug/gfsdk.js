@@ -11844,7 +11844,7 @@ var GameInfo = function GameInfo() {
         var urlToCall = [gameInfoUrl, gameInfoInstance.getContentId()].join("");
 
         Logger.log("GameInfo", "getGameInfoFromAPI", "GET", urlToCall);
-        return new JSONPRequest(urlToCall, 10000).prom.then(function (resp) {
+        return new JSONPRequest(urlToCall, 15000).prom.then(function (resp) {
             if (typeof resp.game_info === 'undefined') {
                 throw new Error('GamifiveSDK: Missing game_info key in' + resp);
             }
@@ -12467,7 +12467,7 @@ var Session = new function () {
 
         if (config.sessions && config.sessions.length > 0 && typeof getLastSession().endTime === 'undefined') {
             config.sessions.shift();
-            throw Constants.ERROR_SESSION_ALREADY_STARTED;
+            Logger.warn(Constants.ERROR_SESSION_ALREADY_STARTED);
         }
 
         config.sessions.unshift({
