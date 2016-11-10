@@ -174,9 +174,12 @@ var User = function(){
 
         var url = Utils.queryfy(GET_LIKE, query);
         return Network.xhr('GET', url).then(function(resp){
-
+            try{
             favorites = JSON.parse(resp.response);
             Logger.info('Favourites loaded', favorites);
+            } catch(e){
+                Logger.warn("Fail to load user favorites", resp);
+            }
             return favorites;
         });
     };
