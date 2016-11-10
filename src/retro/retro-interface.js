@@ -52,7 +52,8 @@ var addRetroInterface = function(build){
             }
         } 
     }
-    
+    // Alias for gamefive
+    window.Gamefive = build;
 }
 
 module.exports = addRetroInterface;
