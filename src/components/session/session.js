@@ -137,17 +137,17 @@ var Session = new function(){
                     ]
                 ]
             };
-        }
-
+        }        
+       
         initPromise = Stargate.initialize(SG_CONF)
                .then(function(){
                    return VHost.load();
                })
-               .then(function(){
+               .then(function(){                   
                     Menu.setSpriteImage(VHost.get('IMAGES_SPRITE_GAME'));
                     contentRanking = VHost.get('CONTENT_RANKING');
                     Menu.show();
-                
+                    
                     loadDictionary();
                     
                     var UserTasks = User.fetch().then(User.getFavorites);                                   
@@ -378,21 +378,15 @@ var Session = new function(){
     * ends a session and (if not in lite mode) shows the platform's gameover screen    
     * @function end
     * @memberof Session
-    * @param {Object} data can contain a "score" and/or "level" attribute
-    * @param {Number} data.score - the score of the user in the sesssion
-    * @param {Number} data.level - the level
+    * @param {Object} [data={}] can contain a "score" and/or "level" attribute
+    * @param {Number} [data.score=0] - the score of the user in the sesssion
+    * @param {Number} [data.level=0] - the level
     */
-    this.end = function(data){        
+    this.end = function(data={score:0, level:0}){        
         Logger.info('GamifiveSDK', 'Session', 'end', data);
         
         if (!initPromise){
             throw Constants.ERROR_SESSION_INIT_NOT_CALLED;
-        }
-        // set default object
-        // data = data ? data : {};
-        var dataTypeCheck = getType(data);
-        if (dataTypeCheck === 'undefined' || dataTypeCheck === 'null'){
-            throw new Error(Constants.ERROR_END_SESSION_PARAM + dataTypeCheck);
         }
 
         if (config.sessions.length < 1){
@@ -422,8 +416,6 @@ var Session = new function(){
             } else {
                 throw new Error(Constants.ERROR_SCORE_TYPE + getType(data.score));            
             }
-        } else {
-            throw new Error("GamifiveSDK :: score is mandatory!");
         }
 
         if (data.hasOwnProperty('level')){
@@ -441,16 +433,13 @@ var Session = new function(){
 				'start': lastSession.startTime.getTime(),
 				'duration': lastSession.endTime - lastSession.startTime,
 				'score': lastSession.score,
+                'level': lastSession.level,
 	      		'newapps': 1,
 	      		'appId': GameInfo.getContentId(),
 	      		'label': GameInfo.getInfo().label,
 	      		'userId': User.getUserId(),
                 'format': 'jsonp'
-			};
-
-			if (typeof lastSession.level !== 'undefined'){
-				leaderboardParams.level = lastSession.level;
-			}            
+			};        
            
             var leaderboardCallUrl = API.get('LEADERBOARD_API_URL');
             leaderboardCallUrl = Utils.queryfy(leaderboardCallUrl, leaderboardParams);
@@ -470,11 +459,10 @@ var Session = new function(){
                 duration: lastSession.endTime - lastSession.startTime,
                 score: lastSession.score
             };
-
+            
             if(lastSession.level){
                 gameoverParams.level = lastSession.level;
-            }            
-            
+            }
             gameOver(gameoverParams)
                 .then(DOMUtils.create)
                 .then(function(){

@@ -254,6 +254,24 @@ describe("Session",function(){
         
     });
 
+    it("Session end: could end without parameters", function(done){
+        // Mocking canDownload url
+        var canDownloadMockURL = window.fakewindow.location.origin + "/ww-it" + Constants.CAN_DOWNLOAD_API_URL;
+        canDownloadMockURL = canDownloadMockURL.replace(":ID", GameInfoMock.game_info.contentId);
+
+        jasmine.Ajax.stubRequest(canDownloadMockURL).andReturn({            
+            'response': JSON.stringify({ canDownload:true }),            
+            'status': 200,
+            'contentType': 'text/json'                    
+        });
+       
+        Session.init({});
+
+        Session.start();
+        Session.end();
+        done();
+    });
+
     it("Session end: Score type check number should be ok", function(done){
         // Mocking canDownload url
         var canDownloadMockURL = window.fakewindow.location.origin + "/ww-it" + Constants.CAN_DOWNLOAD_API_URL;
