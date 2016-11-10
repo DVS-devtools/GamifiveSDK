@@ -75,5 +75,6 @@ module.exports = {
     GAMEINFO_JSON_FILENAME:'offlineData.json',
     USER_JSON_FILENAME:'user.json',
     USER_DATA_JSON_FILENAME:'userData.json',
-    VHOST_JSON_FILENAME:'config.json'
+    VHOST_JSON_FILENAME:'config.json',
+    DICTIONARY_JSON_FILENAME:'dict.json'
 }   

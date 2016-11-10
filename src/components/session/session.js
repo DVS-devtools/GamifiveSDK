@@ -144,11 +144,12 @@ var Session = new function(){
                    return VHost.load();
                })
                .then(function(){
-
                     Menu.setSpriteImage(VHost.get('IMAGES_SPRITE_GAME'));
                     contentRanking = VHost.get('CONTENT_RANKING');
                     Menu.show();
                 
+                    loadDictionary();
+                    
                     var UserTasks = User.fetch().then(User.getFavorites);                                   
                     return Promise.all([
                         UserTasks,
@@ -215,6 +216,18 @@ var Session = new function(){
     var getLastSession = function(){
         return config.sessions[0];
     };
+
+    function loadDictionary(){
+        if(!Stargate.isHybrid()) { return Promise.resolve(); }
+        var path = [Stargate.file.BASE_DIR, Constants.DICTIONARY_JSON_FILENAME].join('');
+        return Stargate.file.readFileAsJSON(path)
+            .then(function(dictjson){
+                window.DICTIONARY = dictjson || {};
+            })
+            .catch(function(reason){
+                Logger.warn('Cannot load dict.json', reason);
+            });
+    }
 
     function sync(networkStatus){
         if(networkStatus.type === 'online'){
