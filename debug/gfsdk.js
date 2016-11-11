@@ -12846,6 +12846,13 @@ var _User = function User() {
     var userInstance = this;
     var userInfo = { gameInfo: { info: {} } };
     var favorites = [];
+    if (window.GamifiveInfo && window.GamifiveInfo.user) {
+        Logger.info("Load userInfo from in page data");
+        userInfo = JSON.parse(JSON.stringify(window.GamifiveInfo.user));
+        if (!userInfo.gameInfo) {
+            userInfo.gameInfo = { info: {} };
+        }
+    }
 
     var onUserDataCallback = function onUserDataCallback() {};
 
@@ -13005,6 +13012,7 @@ var _User = function User() {
             Logger.warn("Please call loadUserData(callback) instead of loadUserData()");
         }
         onUserDataCallback = callback;
+
         if (state.init.pending && !state.init.finished) {
             _event2.default.on('INIT_FINISHED', function (action) {
                 Logger.info('GamifiveSDK', 'User', 'loadData');
@@ -13059,7 +13067,7 @@ var _User = function User() {
 
     function getUserDataFromServer() {
         if (Stargate.checkConnection().type !== 'online' || !VHost.get('MOA_API_APPLICATION_OBJECTS_GET')) {
-            return Promise.resolve({});
+            return Promise.resolve(userInfo.gameInfo.info);
         }
         var loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
 
@@ -13485,7 +13493,7 @@ module.exports = addRetroInterface;
 },{"../components/vhost/vhost":339}],341:[function(require,module,exports){
 "use strict";
 
-var pkgInfo = { "version": "2.0.2", "build": "v2.0.2-6-g0297d4f" };module.exports = pkgInfo;
+var pkgInfo = { "version": "2.0.2", "build": "v2.0.2-7-g46a4d05" };module.exports = pkgInfo;
 
 },{}],342:[function(require,module,exports){
 "use strict";

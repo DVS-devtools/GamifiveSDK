@@ -27,9 +27,15 @@ var state = require('../state/state');
 var User = function(){
 
     var userInstance = this;
-    var userInfo = {gameInfo:{info:{} }};
+    var userInfo = {gameInfo:{info:{}}};
     var favorites = [];
-
+    if(window.GamifiveInfo && window.GamifiveInfo.user){
+        Logger.info("Load userInfo from in page data");
+        userInfo = JSON.parse(JSON.stringify(window.GamifiveInfo.user));
+        if(!userInfo.gameInfo){
+            userInfo.gameInfo = {info:{}};
+        }
+    }
     /**
      * This is useful because some developers could call sdk in this way
      * WRONG
@@ -239,6 +245,7 @@ var User = function(){
             Logger.warn("Please call loadUserData(callback) instead of loadUserData()");
         }
         onUserDataCallback = callback;
+        // Init called but still pending
         if(state.init.pending && !state.init.finished){            
             Event.on('INIT_FINISHED', function(action){                
                 Logger.info('GamifiveSDK', 'User', 'loadData');
@@ -247,6 +254,7 @@ var User = function(){
                     onUserDataCallback(userInfo.gameInfo.info);
                 });
             });
+        // Init finished
         } else if(!state.init.pending && state.init.finished){
             getUserDataFromServer().then(function(info){
                 userInfo.gameInfo.info = info;
@@ -313,7 +321,7 @@ var User = function(){
      * @returns {Promise<Object>}
      */
     function getUserDataFromServer(){
-        if (Stargate.checkConnection().type !== 'online' || !VHost.get('MOA_API_APPLICATION_OBJECTS_GET')){ return Promise.resolve({});}
+        if (Stargate.checkConnection().type !== 'online' || !VHost.get('MOA_API_APPLICATION_OBJECTS_GET')){ return Promise.resolve(userInfo.gameInfo.info);}
         var loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
         
         var contentId  = GameInfo.getContentId();
