@@ -36,6 +36,14 @@ var Network = new function(){
         });
     }
 
+    this.synCall = function(method, url){
+        var request = new XMLHttpRequest();
+        request.open(method, url, false);  // `false` makes the request synchronous
+        request.send(null);
+        request.success = (request.status >= 200 && request.status <= 399);
+        return request;
+    }
+
 };
 
 module.exports = Network;

@@ -36,7 +36,7 @@ define(String.prototype, "padRight", "".padEnd);
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"core-js/fn/regexp/escape":4,"core-js/shim":297,"regenerator-runtime/runtime":307}],3:[function(require,module,exports){
 /*
- * Cookies.js - 1.2.2
+ * Cookies.js - 1.2.3
  * https://github.com/ScottHamper/Cookies
  *
  * This is free and unencumbered software released into the public domain.
@@ -190,8 +190,7 @@ define(String.prototype, "padRight", "".padEnd);
 
         return Cookies;
     };
-
-    var cookiesExport = typeof global.document === 'object' ? factory(global) : factory;
+    var cookiesExport = (global && typeof global.document === 'object') ? factory(global) : factory;
 
     // AMD support
     if (typeof define === 'function' && define.amd) {
@@ -8739,8 +8738,9 @@ module.exports = PublicPromise;
   runtime = global.regeneratorRuntime = inModule ? module.exports : {};
 
   function wrap(innerFn, outerFn, self, tryLocsList) {
-    // If outerFn provided, then outerFn.prototype instanceof Generator.
-    var generator = Object.create((outerFn || Generator).prototype);
+    // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
+    var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
+    var generator = Object.create(protoGenerator.prototype);
     var context = new Context(tryLocsList || []);
 
     // The ._invoke method unifies the implementations of the .next,
@@ -9373,10 +9373,6 @@ module.exports = PublicPromise;
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"_process":304}],308:[function(require,module,exports){
-arguments[4][298][0].apply(exports,arguments)
-},{"./utils":309,"babel-polyfill":2,"dup":298,"logger-pro":301}],309:[function(require,module,exports){
-arguments[4][299][0].apply(exports,arguments)
-},{"dup":299}],310:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -9784,12 +9780,12 @@ if ("debug" === 'development') {
 exports.default = Stargate;
 module.exports = exports['default'];
 
-},{"./info":311,"./modules/Connection":312,"./modules/Constants":313,"./modules/Decorators":314,"./modules/EventBus":315,"./modules/Facebook":316,"./modules/File":317,"./modules/Game":318,"./modules/Logger":319,"./modules/Utils":320,"./stargate.conf.js":321,"babel-polyfill":2,"cookies-js":3,"http-francis":308}],311:[function(require,module,exports){
+},{"./info":309,"./modules/Connection":310,"./modules/Constants":311,"./modules/Decorators":312,"./modules/EventBus":313,"./modules/Facebook":314,"./modules/File":315,"./modules/Game":316,"./modules/Logger":317,"./modules/Utils":318,"./stargate.conf.js":319,"babel-polyfill":2,"cookies-js":3,"http-francis":298}],309:[function(require,module,exports){
 "use strict";
 
 var pkgInfo = { "version": "0.1.4", "build": "v0.1.4-0-gb7ec797" };module.exports = pkgInfo;
 
-},{}],312:[function(require,module,exports){
+},{}],310:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -9923,7 +9919,7 @@ var NetworkInfo = function () {
 exports.default = NetworkInfo;
 module.exports = exports['default'];
 
-},{"./EventBus":315,"./Utils":320}],313:[function(require,module,exports){
+},{"./EventBus":313,"./Utils":318}],311:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -9936,7 +9932,7 @@ var Constants = {
 exports.default = Constants;
 module.exports = exports['default'];
 
-},{}],314:[function(require,module,exports){
+},{}],312:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -9981,7 +9977,7 @@ function requireCondition(param, afterFunction) {
 
 exports.requireCondition = requireCondition;
 
-},{}],315:[function(require,module,exports){
+},{}],313:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () {
@@ -10062,7 +10058,7 @@ var EventBus = function () {
 
 module.exports = EventBus;
 
-},{}],316:[function(require,module,exports){
+},{}],314:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10178,7 +10174,7 @@ var Facebook = function () {
 exports.default = Facebook;
 module.exports = exports['default'];
 
-},{"./Logger":319}],317:[function(require,module,exports){
+},{"./Logger":317}],315:[function(require,module,exports){
 'use strict';
 
 var Logger = require('./Logger');
@@ -10504,7 +10500,7 @@ Object.keys(File).map(function (methodName) {
 
 module.exports = File;
 
-},{"./Decorators":314,"./Logger":319}],318:[function(require,module,exports){
+},{"./Decorators":312,"./Logger":317}],316:[function(require,module,exports){
 'use strict';
 
 var fileModule = require('./File');
@@ -11198,7 +11194,7 @@ function updateOfflineData(object) {
 }
 module.exports = Game;
 
-},{"./File":317,"./Logger":319,"./Utils":320,"http-francis":308}],319:[function(require,module,exports){
+},{"./File":315,"./Logger":317,"./Utils":318,"http-francis":298}],317:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -11298,7 +11294,7 @@ var Logger = function () {
 exports.default = Logger;
 module.exports = exports['default'];
 
-},{}],320:[function(require,module,exports){
+},{}],318:[function(require,module,exports){
 'use strict';
 
 function Iterator(array) {
@@ -11329,6 +11325,10 @@ function queryfy(_api, query) {
 
     for (var key in finalQuery) {
         qs += encodeURIComponent(key);
+
+        if (getType(finalQuery[key]) === 'number') {
+            finalQuery[key] = String(finalQuery[key]);
+        }
 
         if (finalQuery[key]) {
             qs += '=' + encodeURIComponent(finalQuery[key]);
@@ -11398,7 +11398,7 @@ module.exports = {
     getType: getType
 };
 
-},{}],321:[function(require,module,exports){
+},{}],319:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -11411,7 +11411,7 @@ var DEFAULT_CONFIGURATION = {
 exports.default = DEFAULT_CONFIGURATION;
 module.exports = exports['default'];
 
-},{}],322:[function(require,module,exports){
+},{}],320:[function(require,module,exports){
 'use strict';
 
 var build = {};
@@ -11443,7 +11443,7 @@ require('../retro/retro-interface.js')(build);
 
 module.exports = build;
 
-},{"../components/fb/fb.js":327,"../components/game_info/game_info.js":329,"../components/logger/logger.js":332,"../components/menu/menu.js":333,"../components/session/session.js":336,"../components/user/user.js":338,"../retro/retro-interface.js":341,"../version":342}],323:[function(require,module,exports){
+},{"../components/fb/fb.js":325,"../components/game_info/game_info.js":327,"../components/logger/logger.js":330,"../components/menu/menu.js":331,"../components/session/session.js":334,"../components/user/user.js":337,"../retro/retro-interface.js":340,"../version":341}],321:[function(require,module,exports){
 'use strict';
 
 var Location = require('../location/location');
@@ -11458,7 +11458,7 @@ module.exports = {
     }
 };
 
-},{"../constants/constants":324,"../location/location":330}],324:[function(require,module,exports){
+},{"../constants/constants":322,"../location/location":328}],322:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -11530,10 +11530,11 @@ module.exports = {
     GAMEINFO_JSON_FILENAME: 'offlineData.json',
     USER_JSON_FILENAME: 'user.json',
     USER_DATA_JSON_FILENAME: 'userData.json',
-    VHOST_JSON_FILENAME: 'config.json'
+    VHOST_JSON_FILENAME: 'config.json',
+    DICTIONARY_JSON_FILENAME: 'dict.json'
 };
 
-},{}],325:[function(require,module,exports){
+},{}],323:[function(require,module,exports){
 'use strict';
 
 var Constants = require('../constants/constants');
@@ -11609,14 +11610,14 @@ var DOMUtils = new function () {
 
 module.exports = DOMUtils;
 
-},{"../constants/constants":324,"../logger/logger":332,"../vhost/vhost":340}],326:[function(require,module,exports){
+},{"../constants/constants":322,"../logger/logger":330,"../vhost/vhost":339}],324:[function(require,module,exports){
 'use strict';
 
 var _stargatejs = require('stargatejs');
 
 module.exports = new _stargatejs.EventBus();;
 
-},{"stargatejs":310}],327:[function(require,module,exports){
+},{"stargatejs":308}],325:[function(require,module,exports){
 'use strict';
 
 var Constants = require('../constants/constants');
@@ -11734,7 +11735,7 @@ var Facebook = new function () {
 
 module.exports = Facebook;
 
-},{"../constants/constants":324,"../ga/ga":328,"../location/location":330,"../logger/logger":332,"stargatejs":310}],328:[function(require,module,exports){
+},{"../constants/constants":322,"../ga/ga":326,"../location/location":328,"../logger/logger":330,"stargatejs":308}],326:[function(require,module,exports){
 'use strict';
 
 var Logger = require('../logger/logger');
@@ -11757,7 +11758,7 @@ var GA = new function () {
 
 module.exports = GA;
 
-},{"../logger/logger":332,"../vhost/vhost":340}],329:[function(require,module,exports){
+},{"../logger/logger":330,"../vhost/vhost":339}],327:[function(require,module,exports){
 'use strict';
 
 if ("debug" === "debug") {
@@ -11910,7 +11911,7 @@ var GameInfo = function GameInfo() {
 
 module.exports = new GameInfo();
 
-},{"../../../test/mocks/gameInfoMock":343,"../api/api":323,"../constants/constants":324,"../location/location":330,"../logger/logger":332,"../network/network":334,"http-francis":298,"stargatejs":310}],330:[function(require,module,exports){
+},{"../../../test/mocks/gameInfoMock":342,"../api/api":321,"../constants/constants":322,"../location/location":328,"../logger/logger":330,"../network/network":332,"http-francis":298,"stargatejs":308}],328:[function(require,module,exports){
 'use strict';
 
 var Logger = require('../logger/logger');
@@ -12009,7 +12010,7 @@ var Location = new function () {
 
 module.exports = Location;
 
-},{"../logger/logger":332,"../vhost/vhost":340,"./windowConf":331,"stargatejs":310}],331:[function(require,module,exports){
+},{"../logger/logger":330,"../vhost/vhost":339,"./windowConf":329,"stargatejs":308}],329:[function(require,module,exports){
 'use strict';
 
 module.exports = function () {
@@ -12030,12 +12031,12 @@ module.exports = function () {
     };
 };
 
-},{}],332:[function(require,module,exports){
+},{}],330:[function(require,module,exports){
 "use strict";
 
 module.exports = window.console;
 
-},{}],333:[function(require,module,exports){
+},{}],331:[function(require,module,exports){
 'use strict';
 
 var Constants = require('../constants/constants');
@@ -12139,7 +12140,7 @@ var Menu = new function () {
 
 module.exports = Menu;
 
-},{"../constants/constants":324,"../ga/ga":328,"../location/location":330,"../logger/logger":332}],334:[function(require,module,exports){
+},{"../constants/constants":322,"../ga/ga":326,"../location/location":328,"../logger/logger":330}],332:[function(require,module,exports){
 'use strict';
 
 var Logger = require('../logger/logger');
@@ -12169,11 +12170,19 @@ var Network = new function () {
             xhr.send();
         });
     };
+
+    this.synCall = function (method, url) {
+        var request = new XMLHttpRequest();
+        request.open(method, url, false);
+        request.send(null);
+        request.success = request.status >= 200 && request.status <= 399;
+        return request;
+    };
 }();
 
 module.exports = Network;
 
-},{"../logger/logger":332,"promise-polyfill":305}],335:[function(require,module,exports){
+},{"../logger/logger":330,"promise-polyfill":305}],333:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -12202,7 +12211,7 @@ exports.default = new function NewtonService() {
 }();
 module.exports = exports['default'];
 
-},{"newton-adapter":303}],336:[function(require,module,exports){
+},{"newton-adapter":303}],334:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12278,6 +12287,7 @@ var Session = new function () {
     };
 
     this.init = function (params) {
+        _event2.default.trigger('INIT_START', { type: 'INIT_START' });
         if ("debug" === "debug") {
             Logger.warn("GFSDK: Running in debug mode!");
         }
@@ -12320,10 +12330,11 @@ var Session = new function () {
         initPromise = Stargate.initialize(SG_CONF).then(function () {
             return VHost.load();
         }).then(function () {
-
             Menu.setSpriteImage(VHost.get('IMAGES_SPRITE_GAME'));
             contentRanking = VHost.get('CONTENT_RANKING');
             Menu.show();
+
+            loadDictionary();
 
             var UserTasks = User.fetch().then(User.getFavorites);
             return Promise.all([UserTasks, GameInfo.fetch()]);
@@ -12373,9 +12384,9 @@ var Session = new function () {
         }).then(function () {
             Logger.log('GamifiveSDK', 'register sync function for gameover/leaderboard results');
             Stargate.addListener('connectionchange', sync);
-            _event2.default.trigger('INIT_FINISHED');
+            _event2.default.trigger('INIT_FINISHED', { type: 'INIT_FINISHED' });
         }).catch(function (reason) {
-            _event2.default.trigger('INIT_ERROR', reason);
+            _event2.default.trigger('INIT_ERROR', { type: 'INIT_ERROR', reason: reason });
             Logger.error('GamifiveSDK init error: ', reason);
             initialized = false;
             throw reason;
@@ -12387,6 +12398,18 @@ var Session = new function () {
     var getLastSession = function getLastSession() {
         return config.sessions[0];
     };
+
+    function loadDictionary() {
+        if (!Stargate.isHybrid()) {
+            return Promise.resolve();
+        }
+        var path = [Stargate.file.BASE_DIR, Constants.DICTIONARY_JSON_FILENAME].join('');
+        return Stargate.file.readFileAsJSON(path).then(function (dictjson) {
+            window.DICTIONARY = dictjson || {};
+        }).catch(function (reason) {
+            Logger.warn('Cannot load dict.json', reason);
+        });
+    }
 
     function sync(networkStatus) {
         if (networkStatus.type === 'online') {
@@ -12503,16 +12526,13 @@ var Session = new function () {
         Menu.hide();
     };
 
-    this.end = function (data) {
+    this.end = function () {
+        var data = arguments.length <= 0 || arguments[0] === undefined ? { score: 0, level: 0 } : arguments[0];
+
         Logger.info('GamifiveSDK', 'Session', 'end', data);
 
         if (!initPromise) {
             throw Constants.ERROR_SESSION_INIT_NOT_CALLED;
-        }
-
-        var dataTypeCheck = getType(data);
-        if (dataTypeCheck === 'undefined' || dataTypeCheck === 'null') {
-            throw new Error(Constants.ERROR_END_SESSION_PARAM + dataTypeCheck);
         }
 
         if (config.sessions.length < 1) {
@@ -12542,8 +12562,6 @@ var Session = new function () {
             } else {
                 throw new Error(Constants.ERROR_SCORE_TYPE + getType(data.score));
             }
-        } else {
-            throw new Error("GamifiveSDK :: score is mandatory!");
         }
 
         if (data.hasOwnProperty('level')) {
@@ -12560,16 +12578,13 @@ var Session = new function () {
                 'start': lastSession.startTime.getTime(),
                 'duration': lastSession.endTime - lastSession.startTime,
                 'score': lastSession.score,
+                'level': lastSession.level,
                 'newapps': 1,
                 'appId': GameInfo.getContentId(),
                 'label': GameInfo.getInfo().label,
                 'userId': User.getUserId(),
                 'format': 'jsonp'
             };
-
-            if (typeof lastSession.level !== 'undefined') {
-                leaderboardParams.level = lastSession.level;
-            }
 
             var leaderboardCallUrl = API.get('LEADERBOARD_API_URL');
             leaderboardCallUrl = _stargatejs.Utils.queryfy(leaderboardCallUrl, leaderboardParams);
@@ -12591,7 +12606,6 @@ var Session = new function () {
             if (lastSession.level) {
                 gameoverParams.level = lastSession.level;
             }
-
             gameOver(gameoverParams).then(DOMUtils.create).then(function () {
 
                 if (document.querySelector(Constants.BACK_BUTTON_SELECTOR)) {
@@ -12749,7 +12763,17 @@ var Session = new function () {
 
 module.exports = Session;
 
-},{"../api/api":323,"../constants/constants":324,"../dom/dom-utils":325,"../event/event":326,"../fb/fb":327,"../game_info/game_info":329,"../location/location":330,"../logger/logger":332,"../menu/menu":333,"../network/network":334,"../newton/newton":335,"../tracking_utils/tracking_utils":337,"../user/user":338,"../vhost/vhost":340,"promise-polyfill":305,"stargatejs":310}],337:[function(require,module,exports){
+},{"../api/api":321,"../constants/constants":322,"../dom/dom-utils":323,"../event/event":324,"../fb/fb":325,"../game_info/game_info":327,"../location/location":328,"../logger/logger":330,"../menu/menu":331,"../network/network":332,"../newton/newton":333,"../tracking_utils/tracking_utils":336,"../user/user":337,"../vhost/vhost":339,"promise-polyfill":305,"stargatejs":308}],335:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+    init: {
+        pending: false,
+        finished: false
+    }
+};
+
+},{}],336:[function(require,module,exports){
 'use strict';
 
 var Location = require('../location/location');
@@ -12778,7 +12802,7 @@ module.exports.calculateContentRanking = function (GameInfo, User, VHost, eventC
     };
 };
 
-},{"../location/location":330}],338:[function(require,module,exports){
+},{"../location/location":328}],337:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12815,20 +12839,23 @@ var getType = _stargatejs.Utils.getType;
 var API = require('../api/api');
 var DOMUtils = require('../dom/dom-utils');
 var NewtonService = require('../newton/newton');
+var state = require('../state/state');
 
 var _User = function User() {
 
     var userInstance = this;
-
-    var userInfo;
+    var userInfo = { gameInfo: { info: {} } };
     var favorites = [];
 
-    var onUserDataCallback;
-    _event2.default.on('INIT_FINISHED', function () {
-        userInstance.flag = true;
-        if (typeof onUserDataCallback === 'function') {
-            userInstance.__loadData__().then(onUserDataCallback);
-        }
+    var onUserDataCallback = function onUserDataCallback() {};
+
+    _event2.default.on('INIT_START', function (action) {
+        state.init.pending = true;
+    });
+
+    _event2.default.on('INIT_FINISHED', function (action) {
+        state.init.pending = false;
+        state.init.finished = true;
     });
 
     this.getInfo = function () {
@@ -12867,12 +12894,6 @@ var _User = function User() {
                     Logger.log('GamifiveSDK', 'User', 'load complete');
                 } else {
                     Logger.warn(_constants2.default.ERROR_USER_FETCH_FAIL + resp.status + ' ' + resp.statusText + ' ');
-                }
-
-                if (typeof callback === 'function') {
-                    userInstance.loadData(function () {
-                        callback(userInfo);
-                    });
                 }
                 return userInfo;
             });
@@ -12930,9 +12951,12 @@ var _User = function User() {
 
         var url = _stargatejs.Utils.queryfy(GET_LIKE, query);
         return Network.xhr('GET', url).then(function (resp) {
-
-            favorites = JSON.parse(resp.response);
-            Logger.info('Favourites loaded', favorites);
+            try {
+                favorites = JSON.parse(resp.response);
+                Logger.info('Favourites loaded', favorites);
+            } catch (e) {
+                Logger.warn("Fail to load user favorites", resp);
+            }
             return favorites;
         });
     };
@@ -12943,117 +12967,62 @@ var _User = function User() {
         });
     };
 
-    this.saveData = function (info, callback) {
-        if (!userInstance.flag) {
-            Logger.warn("Could not save user data before init finished");
-            return {};
-        }
-
-        if (!NewtonService.isUserLogged()) {
-            Logger.warn("Could not save user data: Newton user not logged");
-            return {};
-        }
-
-        if (!callback) {
-            callback = function callback() {};
-        }
-        var contentId = GameInfo.getContentId();
-        var userId = userInstance.getUserId();
-        var userDataId = VarCheck.get(GameInfo.getInfo(), ['user', 'gameInfo', '_id']) || '';
-
-        if (typeof userInfo.gameInfo === 'undefined') {
-            userInfo.gameInfo = {};
-        }
-
-        var data = {
-            UpdatedAt: new Date(),
-            info: JSON.stringify(info)
-        };
-        Logger.info('GamifiveSDK', 'User', 'saveData', info);
-        userInfo.gameInfo.info = info;
-        var setOnServerTask = setOnServer({ userId: userId, contentId: contentId, userDataId: userDataId }, data);
-        var setOnLocalTask = setOnLocal({ userId: userId, contentId: contentId }, data);
-        return Promise.all([setOnServerTask, setOnLocalTask]).then(callback);
-    };
-
-    this.__loadData__ = function () {
+    this.saveData = function (info) {
+        var callback = arguments.length <= 1 || arguments[1] === undefined ? function () {} : arguments[1];
 
         if (!userInfo.gameInfo) {
-            userInfo.gameInfo = {};
+            userInfo.gameInfo = { info: {} };
         }
 
-        if (!userInfo.logged) {
-            Logger.info('GamifiveSDK', 'User', 'not logged', userInfo.logged);
-            return Promise.resolve({});
+        userInfo.gameInfo.info = info;
+        if (state.init.pending && !state.init.finished) {
+            _event2.default.on('INIT_FINISHED', function () {
+                Logger.info('GamifiveSDK', 'User', 'saveData', userInfo.gameInfo.info);
+
+                var data = {
+                    UpdatedAt: new Date(),
+                    info: JSON.stringify(userInfo.gameInfo.info)
+                };
+                return setUserDataOnServer(data).then(callback);
+            });
+        } else if (!state.init.pending && state.init.finished) {
+            var data = {
+                UpdatedAt: new Date(),
+                info: JSON.stringify(userInfo.gameInfo.info)
+            };
+            return setUserDataOnServer(data).then(callback);
+        } else {
+            Logger.warn("GamifiveSDK: you can't call saveUserData before init. You should 1) init 2) loadUserData 3) then you can save");
         }
-
-        var contentId = GameInfo.getContentId();
-        var userId = userInstance.getUserId();
-
-        var params = { userId: userId, contentId: contentId };
-
-        return Promise.all([getFromServer(params), getFromLocal(params)]).then(function (results) {
-            var serverData = results[0];
-            var localData = results[1];
-            var finalData;
-
-            if (!serverData.UpdatedAt && !localData.UpdatedAt) {
-                finalData = { info: JSON.stringify({}) };
-            }
-
-            if (!serverData.UpdatedAt && localData.UpdatedAt) {
-                finalData = localData;
-            }
-
-            if (serverData.UpdatedAt && !localData.UpdatedAt) {
-                finalData = serverData;
-                setOnLocal(params, serverData);
-            }
-
-            if (serverData.UpdatedAt && localData.UpdatedAt) {
-                if (new Date(serverData.UpdatedAt) > new Date(localData.UpdatedAt)) {
-                    finalData = serverData;
-                    setOnLocal(params, serverData);
-                } else {
-                    finalData = localData;
-                    setOnServer(params, localData);
-                }
-            }
-
-            return finalData;
-        }).then(updateUserDataInMemory);
     };
 
     this.loadData = function (callback) {
-
-        if (!NewtonService.isUserLogged()) {
-            Logger.warn("Could not load user data: Newton user not logged");
-            return {};
+        if (!userInfo.gameInfo) {
+            userInfo.gameInfo = { info: {} };
         }
-
-        Logger.info('GamifiveSDK', 'User', 'loadData');
-
-        if (!callback || typeof callback !== 'function') {
+        if (!callback) {
             callback = function callback() {};
-            Logger.warn('GamifiveSDK', 'please use loadUserData(callback) instead of loadUserData()');
+            Logger.warn("Please call loadUserData(callback) instead of loadUserData()");
         }
-
         onUserDataCallback = callback;
-
-        if (userInstance.flag) {
-            userInstance.__loadData__().then(callback);
+        if (state.init.pending && !state.init.finished) {
+            _event2.default.on('INIT_FINISHED', function (action) {
+                Logger.info('GamifiveSDK', 'User', 'loadData');
+                getUserDataFromServer().then(function (info) {
+                    userInfo.gameInfo.info = info;
+                    onUserDataCallback(userInfo.gameInfo.info);
+                });
+            });
+        } else if (!state.init.pending && state.init.finished) {
+            getUserDataFromServer().then(function (info) {
+                userInfo.gameInfo.info = info;
+                onUserDataCallback(userInfo.gameInfo.info);
+            });
+        } else {
+            Logger.warn("GamifiveSDK", "you can't call loadUserData before init");
         }
-
-        if (userInfo && userInfo.gameInfo && userInfo.gameInfo.info) {
-            return userInfo.gameInfo.info;
-        }
-        return {};
-    };
-
-    function updateUserDataInMemory(data) {
-        userInfo.gameInfo.info = JSON.parse(data.info);
         return userInfo.gameInfo.info;
-    }
+    };
 
     this.clearData = function (callback) {
         Logger.info('GamifiveSDK', 'User', 'clearData');
@@ -13069,41 +13038,53 @@ var _User = function User() {
         }
     };
 
-    function getFromServer(params) {
-        if (Stargate.checkConnection().type !== 'online') {
+    function parseResponse(resp) {
+        if (resp.success) {
+            var responseData = resp.response;
+            try {
+                responseData = JSON.parse(responseData);
+            } catch (e) {
+                Logger.error('Fail to get ', urlToCall, e);
+                throw e;
+            }
+
+            var data = VarCheck.get(responseData, ['response', 'data']);
+            if (data && getType(data) === 'array' && data.length > 0) {
+                return data[0];
+            } else {
+                return {};
+            }
+        }
+    }
+
+    function getUserDataFromServer() {
+        if (Stargate.checkConnection().type !== 'online' || !VHost.get('MOA_API_APPLICATION_OBJECTS_GET')) {
             return Promise.resolve({});
         }
         var loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
 
+        var contentId = GameInfo.getContentId();
+        var userId = userInstance.getUserId();
+        var userDataId = VarCheck.get(GameInfo.getInfo(), ['user', 'gameInfo', '_id']) || '';
+        var params = { userId: userId, contentId: contentId, userDataId: userDataId };
         var urlToCall = loadUserDataUrl.replace(':QUERY', JSON.stringify({ contentId: params.contentId })).replace(':ID', '').replace(':ACCESS_TOKEN', '').replace(':EXTERNAL_TOKEN', params.userId).replace(':COLLECTION', 'gameInfo');
 
         urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random() * 1000);
-        Logger.log('GamifiveSDK', 'User', 'getFromServer', 'url to call', urlToCall);
-        return Network.xhr('GET', urlToCall).then(function (resp, req) {
-            if (resp.success) {
-                var responseData = resp.response;
-                try {
-                    responseData = JSON.parse(responseData);
-                } catch (e) {
-                    Logger.error('Fail to get ', url, e);
-                    throw e;
-                }
+        Logger.log('GamifiveSDK', 'User', 'getUserDataFromServer', 'url to call', urlToCall);
 
-                var data = VarCheck.get(responseData, ['response', 'data']);
-                if (data && getType(data) === 'array' && data.length > 0) {
-                    return data[0];
-                } else {
-                    return {};
-                }
-            }
-        });
+        return Network.xhr('GET', urlToCall).then(parseResponse);
     }
 
-    function setOnServer(params, data) {
-        if (Stargate.checkConnection().type !== 'online') {
-            Logger.log('GamifiveSDK', 'userData cannot not be set on server');
-            return;
+    function setUserDataOnServer(data) {
+        if (Stargate.checkConnection().type !== 'online' && !VHost.get('MOA_API_APPLICATION_OBJECTS_SET')) {
+            Logger.log('GamifiveSDK', 'userData cannot not be set on server: offline or api endpoint not set');
+            return Promise.resolve(userInfo.gameInfo.info);
         }
+        var contentId = GameInfo.getContentId();
+        var userId = userInstance.getUserId();
+        var userDataId = VarCheck.get(GameInfo.getInfo(), ['user', 'gameInfo', '_id']) || '';
+        var params = { userId: userId, contentId: contentId, userDataId: userDataId };
+
         var saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
         var urlToCall = saveUserDataUrl.replace(':QUERY', JSON.stringify({ contentId: params.contentId })).replace(':ID', params.userDataId).replace(':ACCESS_TOKEN', '').replace(':EXTERNAL_TOKEN', params.userId).replace(':COLLECTION', 'gameInfo');
 
@@ -13111,7 +13092,6 @@ var _User = function User() {
 
         Logger.log('GamifiveSDK', 'try to set on server', urlToCall);
         return Network.xhr('GET', urlToCall).then(function (resp) {
-
             if (resp.success) {
                 var newtonResponse = JSON.parse(resp.response);
                 if (newtonResponse.response.data) {
@@ -13124,35 +13104,6 @@ var _User = function User() {
             }
             return data;
         });
-    }
-
-    function setOnLocal(params, data) {
-        if (Stargate.isHybrid() && window.location.protocol === 'cdvfile:') {
-            var path = [Stargate.file.BASE_DIR, _constants2.default.USER_DATA_JSON_FILENAME].join('');
-            return Stargate.file.readFileAsJSON(path).then(function (userData) {
-                data.UpdatedAt = new Date();
-                Logger.log('GamifiveSDK', 'userData set with success on local', data);
-                if (!userData[params.userId]) {
-                    userData[params.userId] = {};
-                }
-                userData[params.userId][params.contentId] = data;
-                return Stargate.file.write(path, JSON.stringify(userData));
-            });
-        } else {
-            return Promise.resolve();
-        }
-    }
-
-    function getFromLocal(params) {
-        if (Stargate.isHybrid()) {
-            var path = [Stargate.file.BASE_DIR, _constants2.default.USER_DATA_JSON_FILENAME].join('');
-            return Stargate.file.readFileAsJSON(path).then(function (userData) {
-                var data = VarCheck.get(userData, [params.userId, params.contentId]);
-                return data ? data : {};
-            });
-        } else {
-            return Promise.resolve({});
-        }
     }
 
     this.toggleLike = function () {
@@ -13286,7 +13237,7 @@ var _User = function User() {
 
 module.exports = new _User();
 
-},{"../../../test/mocks/userCheck":344,"../api/api":323,"../constants/constants":324,"../dom/dom-utils":325,"../event/event":326,"../game_info/game_info":329,"../location/location":330,"../logger/logger":332,"../menu/menu":333,"../network/network":334,"../newton/newton":335,"../user/user":338,"../varcheck/varcheck":339,"../vhost/vhost":340,"http-francis":298,"stargatejs":310}],339:[function(require,module,exports){
+},{"../../../test/mocks/userCheck":343,"../api/api":321,"../constants/constants":322,"../dom/dom-utils":323,"../event/event":324,"../game_info/game_info":327,"../location/location":328,"../logger/logger":330,"../menu/menu":331,"../network/network":332,"../newton/newton":333,"../state/state":335,"../user/user":337,"../varcheck/varcheck":338,"../vhost/vhost":339,"http-francis":298,"stargatejs":308}],338:[function(require,module,exports){
 'use strict';
 
 var VarCheck = new function () {
@@ -13311,7 +13262,7 @@ var VarCheck = new function () {
 
 module.exports = VarCheck;
 
-},{}],340:[function(require,module,exports){
+},{}],339:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -13464,7 +13415,7 @@ var VHost = new function () {
 
 module.exports = VHost;
 
-},{"../../../gen/vhost/vhost-keys.js":1,"../api/api":323,"../constants/constants":324,"../game_info/game_info":329,"../logger/logger":332,"../menu/menu":333,"../network/network":334,"../user/user":338,"../vhost/vhost":340,"promise-polyfill":305,"stargatejs":310}],341:[function(require,module,exports){
+},{"../../../gen/vhost/vhost-keys.js":1,"../api/api":321,"../constants/constants":322,"../game_info/game_info":327,"../logger/logger":330,"../menu/menu":331,"../network/network":332,"../user/user":337,"../vhost/vhost":339,"promise-polyfill":305,"stargatejs":308}],340:[function(require,module,exports){
 'use strict';
 
 var addRetroInterface = function addRetroInterface(build) {
@@ -13512,19 +13463,31 @@ var addRetroInterface = function addRetroInterface(build) {
             },
             share: function share() {
                 build.share.apply(null, arguments);
+            },
+            addClass: function addClass(id, theClass) {
+                if (!id || !theClass) {
+                    return;
+                }
+                var element = document.getElementById(id);
+                if (!element) {
+                    return;
+                }
+                element.classList.add(theClass);
             }
         };
     }
+
+    window.Gamefive = build;
 };
 
 module.exports = addRetroInterface;
 
-},{"../components/vhost/vhost":340}],342:[function(require,module,exports){
+},{"../components/vhost/vhost":339}],341:[function(require,module,exports){
 "use strict";
 
-var pkgInfo = { "version": "2.0.1", "build": "v2.0.1-19-gd4041cc" };module.exports = pkgInfo;
+var pkgInfo = { "version": "2.0.2", "build": "v2.0.2-6-g0297d4f" };module.exports = pkgInfo;
 
-},{}],343:[function(require,module,exports){
+},{}],342:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -13618,7 +13581,7 @@ module.exports = {
    }
 };
 
-},{}],344:[function(require,module,exports){
+},{}],343:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -13750,5 +13713,5 @@ module.exports = {
     "logged": 1
 };
 
-},{}]},{},[322])(322)
+},{}]},{},[320])(320)
 });

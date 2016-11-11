@@ -93,6 +93,7 @@ var Session = new function(){
     * @param {Boolean} params.debug 
     */
     this.init = function(params){
+        Event.trigger('INIT_START', {type:'INIT_START'});
         if(process.env.NODE_ENV === "debug"){
             Logger.warn("GFSDK: Running in debug mode!")
         }
@@ -137,8 +138,8 @@ var Session = new function(){
                     ]
                 ]
             };
-        }        
-       
+        }
+        
         initPromise = Stargate.initialize(SG_CONF)
                .then(function(){
                    return VHost.load();
@@ -200,11 +201,11 @@ var Session = new function(){
                     initialized = true;  
                     return initialized;                    
                }).then(function(){  
-                   Logger.log('GamifiveSDK', 'register sync function for gameover/leaderboard results');
-                   Stargate.addListener('connectionchange', sync);                   
-                   Event.trigger('INIT_FINISHED');
+                    Logger.log('GamifiveSDK', 'register sync function for gameover/leaderboard results');
+                    Stargate.addListener('connectionchange', sync);                   
+                    Event.trigger('INIT_FINISHED', {type:'INIT_FINISHED'});
                }).catch(function(reason){
-                    Event.trigger('INIT_ERROR', reason);
+                    Event.trigger('INIT_ERROR', {type:'INIT_ERROR', reason:reason});
                     Logger.error('GamifiveSDK init error: ', reason);
                     initialized = false;
                     throw reason;
