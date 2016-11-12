@@ -4,8 +4,8 @@ src/components/session/session.js:148:IMAGES_SPRITE_GAME
 src/components/session/session.js:149:CONTENT_RANKING
 src/components/session/session.js:167:NEWTON_SECRETID
 src/components/tracking_utils/tracking_utils.js:14:CONTENT_RANKING
-src/components/user/user.js:324:MOA_API_APPLICATION_OBJECTS_GET
-src/components/user/user.js:325:MOA_API_APPLICATION_OBJECTS_GET
-src/components/user/user.js:360:MOA_API_APPLICATION_OBJECTS_SET
-src/components/user/user.js:369:MOA_API_APPLICATION_OBJECTS_SET
-src/components/user/user.js:97:MOA_API_USER_CHECK
+src/components/user/user.js:106:MOA_API_USER_CHECK
+src/components/user/user.js:354:MOA_API_APPLICATION_OBJECTS_GET
+src/components/user/user.js:355:MOA_API_APPLICATION_OBJECTS_GET
+src/components/user/user.js:386:MOA_API_APPLICATION_OBJECTS_SET
+src/components/user/user.js:395:MOA_API_APPLICATION_OBJECTS_SET

@@ -1,0 +1,335 @@
+/**
+* GamifiveSDKUtils Module
+* @class GamifiveSDKUtils
+* @version 0.4
+*/
+
+var GamifiveSDKUtils = new function() {
+
+	/**
+	* Get date now (cross-browser compatibility)
+	* @function dateNow
+	* @memberof GamifiveSDKUtils
+	*/
+	this.dateNow = function(){
+		if (!Date.now) {
+			return new Date().getTime();
+		} else {
+			return Date.now();
+		}
+	}
+
+	/**
+	* Copy properties from one object to another object
+	* @function copyProperties
+	* @memberof GamifiveSDKUtils
+	* @param {object} source
+	* @param {object} dest
+	*/
+	this.copyProperties = function(source, dest) {
+	    for (var attr in source) {
+	        dest[attr] = source[attr];
+	    }
+	    return dest;
+	}
+
+	/**
+	* Get query string of an element's "src" attribute
+	* @function getScriptParams
+	* @memberof GamifiveSDKUtils
+	* @param {object} selector - selector of element (i.e. #gfsdk)
+	*/
+	this.getScriptParams = function(selector) {
+		var stag = document.querySelector(selector);
+		var obj = {}, queryString;
+		if (stag) {
+			queryString = stag.src.replace(/^[^\?]+\??/,'');
+			obj = this.dequerify(queryString);
+		}
+		return obj;
+	}
+
+	/**
+	* Cookie management
+	* @function cookie
+	* @memberof GamifiveSDKUtils
+	*/
+	this.cookie = {
+		get: function (sKey) {
+			var regex = new RegExp(
+				"(?:(?:^|.*;)\\s*"
+				+ encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&")
+				+ "\\s*\\=\\s*([^;]*).*$)|^.*$"
+			)
+			var documentCookie = document.cookie.replace(regex, "$1")
+			return decodeURIComponent(documentCookie) || null;
+		},
+		set: function (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
+			if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) { return false; }
+			var sExpires = "";
+			if (vEnd) {
+				switch (vEnd.constructor) {
+					case Number:
+						sExpires = vEnd === Infinity ? "; expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + vEnd;
+						break;
+					case String:
+						sExpires = "; expires=" + vEnd;
+						break;
+					case Date:
+						sExpires = "; expires=" + vEnd.toUTCString();
+						break;
+				}
+			}
+			document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires
+								+ (sDomain ? "; domain=" + sDomain : "")
+								+ (sPath ? "; path=" + sPath : "")
+								+ (bSecure ? "; secure" : "");
+			return true;
+		},
+		remove: function (sKey, sPath, sDomain) {
+			if (!sKey || !this.has(sKey)) return false;
+			document.cookie = encodeURIComponent(sKey)
+								+ "=; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+								+ ( sDomain ? "; domain=" + sDomain : "")
+								+ ( sPath ? "; path=" + sPath : "");
+			return true;
+		},
+		has: function (sKey) {
+			var regex = "(?:^|;\\s*)"
+						+ encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&")
+						+ "\\s*\\=";
+			return new RegExp(regex).test(document.cookie);
+		}
+	};
+
+	/**
+	* Get domain name and localization
+	* @function getAbsoluteUrl
+	* @memberof GamifiveSDKUtils
+	*/
+	this.getAbsoluteUrl = function() {
+		if (typeof Stargate !== 'undefined'
+			&& Stargate.isInitialized() 
+			&& typeof Stargate.conf !== 'undefined'
+			&& typeof Stargate.conf.getWebappOrigin === 'function'){
+			var stargateUrl = Stargate.conf.getWebappOrigin();
+			if (stargateUrl[stargateUrl.length - 1] != '/'){
+				stargateUrl += '/';
+			}
+			return stargateUrl;
+		}
+
+		if(typeof GamifiveInfo !== 'undefined' && 
+			!!GamifiveInfo.dest_domain){
+			var destDomain = GamifiveInfo.dest_domain;
+			if (destDomain[destDomain.length - 1] != '/'){
+				destDomain += '/';
+			}
+			return destDomain;
+		}
+		else if (!window.location.origin) {
+			var pathName = '';
+			if (typeof GamifiveInfo !== 'undefined') {
+				pathName = GamifiveInfo.dest_domain.split("/")[1];
+			}
+			var toReturn = window.location.protocol + "//" + window.location.hostname;
+			if (window.location.port){
+				toReturn += ':' + window.location.port;
+			}  
+			if (pathName != ''){
+				toReturn += '/' + pathName;
+			}
+			toReturn += '/';
+			return toReturn;
+		}
+		else {
+			return window.location.origin + "/";
+		}
+	}
+
+	/**
+	* Make XMLHttpRequest
+	* @function xhr
+	* @param {string} method - method of request (GET, POST...)
+	* @param {string} url - url of request
+	* @param {function} callback - callback called when request finished and response is ready
+	* @memberof GamifiveSDKUtils
+	*/
+	var doXhr = function(method, url, callback, data){
+
+		if (method.toUpperCase() !== 'JSONP'){
+
+			var xhr = new XMLHttpRequest();
+
+	        xhr.onreadystatechange = function() {
+	            if ( xhr.readyState === 4 ) {
+	            	var resp;
+	            	try {
+	            		resp = xhr.response.replace(/(\n|\r)/gm,"");
+	            		resp = JSON.parse(resp);
+	            	} catch(e) {}
+	            	resp.success = (xhr.status >= 200 && xhr.status <= 399);
+	                if (callback) callback(resp , xhr);
+	            }
+	        };
+	        xhr.open(method, url);
+
+		    xhr.send();
+
+	        return xhr;
+		} else {
+			var script = document.createElement('script');
+
+			url += (url.indexOf('?') < 0 ? '?' : '&') + 'callback=window.handle_jsonp&format=jsonp';
+
+			script.src = url;
+
+			window.handle_jsonp = function(data){
+				callback(data);
+				//delete window.handle_jsonp;
+				//script.parentElement.removeChild(script);
+			}
+
+			document.getElementsByTagName('head')[0].appendChild(script);
+		}
+	}
+
+	this.xhr = (typeof tryXhr === 'function') ? tryXhr : doXhr;
+
+
+    /**
+	* Convert an object to a query string
+	* @function querify
+	* @param {object} obj - object to be converted
+	* @memberof GamifiveSDKUtils
+	*/
+	this.querify = function(obj) {
+		if (!obj) return '';
+		var str = new Array(Object.keys(obj).length),
+			index = 0;
+		for(var p in obj) {
+			if (obj.hasOwnProperty(p)) str[index++] = p + "=" + obj[p];
+		}
+		return '?' + str.join("&");
+	}
+
+	/**
+	* Convert a query string to an object
+	* @function dequerify
+	* @param {string} query - string to be converted
+	* @memberof GamifiveSDKUtils
+	*/
+	this.dequerify = function(query) {
+		var params = new Object();
+		if (!query) return params; // return empty object
+
+		query = query.replace('?', '');
+		var pairs = query.split(/[;&]/);
+
+		for (var i=0; i<pairs.length; i++) {
+			var keyVal = pairs[i].split('=');
+			if (!keyVal || keyVal.length != 2) continue;
+			var key = unescape(keyVal[0]);
+			var val = unescape(keyVal[1]);
+			val = val.replace(/\+/g, ' ');
+			params[key] = val;
+		}
+		return params;
+	}
+
+	/**
+	* Enable log
+	* @function enableLog
+	* @memberof GamifiveSDKUtils
+	* @param {boolean} enable
+	*/
+	var flagLog = false;
+	this.enableLog = function(enable) {
+		flagLog = !!enable;
+	}
+
+	/**
+	* Log
+	* @function log
+	* @memberof GamifiveSDKUtils
+	* @param content
+	*/
+	this.log = function() {
+		if(flagLog){
+			var printable = new Array(arguments.length);
+			for(var k=0; k < arguments.length; k++){
+				printable[k] = arguments[k];
+			}
+			console.log(printable);
+		}
+	}
+
+	/**
+	* Debug
+	* @function error
+	* @memberof GamifiveSDKUtils
+	* @param content
+	*/
+	this.debug = function() {
+		if(flagLog){
+			var printable = new Array(arguments.length);
+			for(var k=0; k < arguments.length; k++){
+				printable[k] = arguments[k];
+			}
+			console.debug(printable);
+		}
+	}
+
+	/**
+	* Error
+	* @function error
+	* @memberof GamifiveSDKUtils
+	* @param content
+	*/
+	this.error = function() {
+		var printable = new Array(arguments.length);
+		for(var k=0; k < arguments.length; k++){
+			printable[k] = arguments[k];
+		}
+		console.error(printable);
+	}
+
+	/**
+	* Verify if an element has class
+	* @function hasClass
+	* @memberof GamifiveSDKUtils
+	* @param {string} id - id of element
+	* @param {string} className - class name
+	*/
+  	this.hasClass = function(id, className) {
+		return (' ' + document.getElementById(id).className + ' ').indexOf(' ' + className + ' ') > -1;
+	}
+
+	/**
+	* Show element
+	* @function show
+	* @memberof GamifiveSDKUtils
+	* @param {string} id - id of element
+	*/
+	this.show = function(id){
+		if(!!document.getElementById(id)){
+			if(this.hasClass(id, "hide")){
+				document.getElementById(id).className = document.getElementById(id).className.replace(/\bhide\b/,'');
+			}
+		}
+	}
+
+	/**
+	* Hide element
+	* @function hide
+	* @memberof GamifiveSDKUtils
+	* @param {string} id - id of element
+	*/
+	this.hide = function(id){
+		if(!!document.getElementById(id)){
+			if(!this.hasClass(id, "hide")){
+				document.getElementById(id).className += " hide";
+			}
+		}
+	}
+}
