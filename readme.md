@@ -1,4 +1,8 @@
-<h1>GamifiveSDK 0.4</h1>
+[![Build Status](https://travis-ci.org/BuongiornoMIP/GamifiveSDK.svg?branch=refactoring)](https://travis-ci.org/BuongiornoMIP/GamifiveSDK)
+
+[![Coverage Status](https://coveralls.io/repos/github/BuongiornoMIP/GamifiveSDK/badge.svg?branch=refactoring)](https://coveralls.io/github/BuongiornoMIP/GamifiveSDK?branch=refactoring)
+
+<h1>GamifiveSDK 2.x.x</h1>
 <p>This is the how-to for game developers for integrating GamifiveSDK into their games.</p>
 
 <b>Note:</b> the SDK was previously called GamefiveSDK, now it has been aliased as GamifiveSDK so both names can be used.
@@ -9,7 +13,7 @@
 Include the minified sdk within a SCRIPT tag with id <i>'gfsdk'</i>, inside HEAD tag of your HTML code game:
 
 ```html
-<script id="gfsdk" src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/dist/gfsdk.min.js"></script>	
+<script id="gfsdk" src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/2.x.x/dist/gfsdk.min.js"></script>
 ```
 
 <h2>2) Initializing the SDK</h2>
@@ -175,11 +179,19 @@ GamifiveSDK.saveUserData internally uses JSON.stringify and actually saves the o
 
 
 <h2>loadUserData</h2>  
-Retrieves the JSON string containing the player's progress and returns it as a JavaScript Object. 
+Retrieves the JSON string containing the player's progress and returns it as a JavaScript Object.
+This method make a call to our server and **must be called AFTER GamifiveSDK.init();**
   
 ```javascript
 // returns an object containing the player's progress
-var playerProgress = GamifiveSDK.loadUserData(); 
+
+GamifiveSDK.init();
+GamifiveSDK.loadUserData(function(userProgress){
+    // here your code N.B. userProgress is always an object
+    // so the first time will be empty
+    // you could check if it's empty with somenthing like this Object.keys(userProgress).length === 0
+    console.log(userProgress.level1)
+}); 
 ```
 
 Beware that JSON.stringify (used inside GamifiveSDK.saveUserData) ignores undefined properties, so if you try to save
@@ -225,7 +237,7 @@ GamifiveSDK.hideMoreGamesButton();
 ```
 <h2>goToHome</h2>
   
-Redirects to Gamifive's Homepage. Call this function when your more games button is clicked (you don't need to call this function if you use the built-in more games button because it already calls this function by default).
+Redirects to Gamifive's Homepage. Call this function when your more games button is clicked.
 
 ```javascript
 // perform a redirect to the homepage
@@ -415,3 +427,99 @@ Otherwise, the following error message is displayed:
     GamifiveSDK,ERROR,missing score value
 ```
 
+## Full implementation example
+```javascript
+// returns an object containing the player's progress
+
+GamifiveSDK.onStartSession(function(){
+    // do somenthing when a session starts
+});
+
+GamifiveSDK.init({ lite: true }); // could be an empty object: default lite = false
+
+GamifiveSDK.loadUserData(function(userProgress){
+    // here your code N.B. userProgress is always an object
+    // so the first time will be empty
+    // you could check if it's empty with somenthing like this Object.keys(userProgress).length === 0
+    if(userProgress.level1 && userProgress.level1.unlocked){
+        // skip level1 or whatever
+    }
+}); 
+
+GamifiveSDK.startSession();
+
+//persist user data on our server
+GamifiveSDK.saveUserData({ 
+    level1: { 
+        unlocked: true, 
+        stars: 3
+    }, 
+    level2: {
+        unlocked: false, 
+        stars: 0
+    } 
+});
+
+GamifiveSDK.endSession({ score: 5, level: 3 });
+```
+# Set the debug environment
+
+1. Include the debug SDK version in your index.html (do not forget to change debug with dist before send the package) :)
+```javascript
+    <script src="static.newton.pm/js/v2.2.3/newton.min.js"></script> 
+    <script src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/2.x.x/debug/gfsdk.js"></script>
+```
+2. Serve statically the game forlder with appsworld.gamifive-app.com as origin
+
+For the second point you need:
+
+### 2.1 Install NodeJS and NPM in your system.
+
+- Mac Users can follow this guide: http://blog.teamtreehouse.com/install-node-js-npm-mac
+- Windows Users can follow this one: http://blog.teamtreehouse.com/install-node-js-npm-windows
+(Some other of billions guides on the web anyway will be ok)
+
+### 2.2  Install http-server npm package globally
+
+```javascript
+    npm install http-server -g
+```
+
+### 2.3 Edit your hosts file
+
+Add this line
+```javascript
+   127.0.0.1 local.appsworld.gamifive-app.com
+```
+
+into your hosts file
+
+ ```javascript
+/private/etc/hosts file (Mac)
+C:\Windows\System32\drivers\etc\hosts (Windows)
+```  
+
+
+On Mac you can simply append this line at the end of the file in this way:
+ ```javascript
+sudo -i # Enter the password
+sudo echo '127.0.0.1 local.appsworld.gamifive-app.com' >> /private/etc/hosts;
+exit
+```
+
+(Guide to edit hosts file on any platform http://www.howtogeek.com/howto/27350/beginner-geek-how-to-edit-your-hosts-file/)
+
+### 2.4 Serve the gamepath
+
+Serve the gamepath in this way from the cmd line
+```javascript
+   http-server <myAwesomeGameFolder> -p 5050 -a local.appsworld.gamifive-app.com
+```
+
+Then open the browser to
+```javascript
+    http://local.appsworld.gamifive-app.com:5050/index.html
+``` 
+
+That's it! Now you can test your implementation of the SDK. 
+Open a issue on github if you want encounter any issues

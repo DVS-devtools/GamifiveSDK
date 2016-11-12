@@ -1,0 +1,23 @@
+{
+  "name": "gamifivesdk",
+  "description": "",
+  "main": "src/index_web.js",
+  "authors": [
+    "ffognani <fabio.fognani@buongiorno.com>"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/BuongiornoMIP/GamifiveSDK",
+  "moduleType": [
+    "node"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "barney": "git+http://review.buongiorno.com/frontdev/barney#~2.3.0"
+  }
+}

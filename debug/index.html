@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> GFSDK v2.x.x | Sandbox </title>
+        <script src="http://static.newton.pm/js/v2.2.3/newton.min.js"></script>
+        <script src="gfsdk.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-2"> </div>
+                <div class="col-md-8">
+                    <h1>Sample:</h1>
+                    <div style="color:lawngreen; background: black; padding:20px; margin:10px;">
+                        GamifiveSDK.onStartSession(function(){ console.log('onStart session called'); });
+                        GamifiveSDK.init(); // lite:true|false
+                        GamifiveSDK.loadUserData(function(userData){ console.log('got userData', userData);  }); //load from server
+                        GamifiveSDK.startSession();
+                        GamifiveSDK.saveUserData({ level1:{ stars: 3, unlocked:true } }); // save on server
+                        GamifiveSDK.endSession({ score: 5, level: 3 }); // show gameover if 'lite' is false
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <a href="/poggio" target="_blank" class="btn btn-primary btn-block" role="button">Login with poggio (if you have to test premium things)</a>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-inline">
+                                <button id="onStartSession" class="btn btn-default">Register on Start session callback</button>
+                                <button id="init" class="btn btn-default">Init</button>
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" id="option-init" value="lite"> Lite
+                                </label>
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" id="option-debug" value="lite"> Debug
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-inline">
+                                <button id="loadUserData"   class="btn btn-default">loadUserData</button>
+                                <input  id="userDataLoaded" type="text" readonly/>
+                                <button id="saveUserData"   class="btn btn-default">saveUserData</button>
+                                <input  id="userDataToSave" type="text" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-inline">
+                                <div class="form-group">
+                                    <button id="startSession" class="btn btn-default">startSession</button>
+                                    <button id="endSession" class="btn btn-default">endSession</button>
+                                </div>
+                                <div class="form-group">
+                                    <label for="score">Score</label>
+                                    <input id="score" type="number" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="level">Level</label>
+                                    <input id="level" type="number" />
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </body>
+    <script type="text/javascript">
+
+        var userDataToSave = document.getElementById('userDataToSave');
+        var userDataLoaded = document.getElementById('userDataLoaded');
+        var optionInit = document.getElementById('option-init');
+        var optionDebug = document.getElementById('option-debug');
+        var score = document.getElementById('score');
+        var level = document.getElementById('level');
+
+        function saveUserData(){
+            var toSave = new Function("return ("+userDataToSave.value+")")();
+            GamifiveSDK.saveUserData(toSave);
+        }
+
+        function loadUserData(){
+            GamifiveSDK.loadUserData(function(someData){
+                userDataLoaded.value = JSON.stringify(someData);
+            });
+        }
+
+        function endSession(){
+            var params = {score: Number(score.value), level: Number(level.value)};
+            GamifiveSDK.endSession(params);
+        }
+
+        function startSession(){
+            GamifiveSDK.startSession();
+        }
+
+        function init(){
+            var options = {
+              lite: optionInit.checked,
+              debug: optionDebug.checked
+            };
+            GamifiveSDK.init(options);
+        }
+
+        function onStartSession(){
+            GamifiveSDK.onStartSession(function(){ window.alert("on start session callback"); });
+        }
+
+        var Interface = {
+            init:init,
+            saveUserData:saveUserData,
+            loadUserData:loadUserData,
+            startSession:startSession,
+            endSession:endSession,
+            onStartSession:onStartSession
+        };
+
+        var buttons = [].slice.call(document.querySelectorAll('button'));
+        buttons.map(function(btn){
+            btn.addEventListener('click', Interface[btn.id], false);
+        });
+
+    </script>
+</html>
