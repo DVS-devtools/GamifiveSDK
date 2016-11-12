@@ -194,19 +194,6 @@ GamifiveSDK.loadUserData(function(userProgress){
 }); 
 ```
 
-Beware that JSON.stringify (used inside GamifiveSDK.saveUserData) ignores undefined properties, so if you try to save
-
-```javascript
-GamifiveSDK.saveUserData({A: undefined, B: 2}); 
-```
-when you read the object back, you get
-
-```javascript
-var myProgress = GamifiveSDK.loadUserData();
-console.log(myProgress); 
->> {B: 2}
-```
-
 <h2>clearUserData</h2>
 Deletes the player's progress.
 
