@@ -14,7 +14,8 @@ module.exports = {
         'margin-top': '-22px',
         'z-index': '9',
         'width': '60px',
-        'position': 'absolute'
+        'position': 'absolute',
+        'cursor':'pointer'
     },
     IMMUTABLE_MENU_STYLE_PROPERTIES: [
         'background-image',
@@ -75,5 +76,6 @@ module.exports = {
     GAMEINFO_JSON_FILENAME:'offlineData.json',
     USER_JSON_FILENAME:'user.json',
     USER_DATA_JSON_FILENAME:'userData.json',
-    VHOST_JSON_FILENAME:'config.json'
+    VHOST_JSON_FILENAME:'config.json',
+    DICTIONARY_JSON_FILENAME:'dict.json'
 }   

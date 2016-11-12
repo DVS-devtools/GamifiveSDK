@@ -43,10 +43,17 @@ var addRetroInterface = function(build){
             },
             share:function(){
                 build.share.apply(null, arguments);
+            },
+            addClass:function(id, theClass){
+                if(!id || !theClass){ return; }
+                var element = document.getElementById(id);
+                if(!element){ return; }
+                element.classList.add(theClass);
             }
         } 
     }
-    
+    // Alias for gamefive
+    window.GamefiveSDK = build;
 }
 
 module.exports = addRetroInterface;

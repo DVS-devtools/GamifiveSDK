@@ -93,6 +93,7 @@ var Session = new function(){
     * @param {Boolean} params.debug 
     */
     this.init = function(params){
+        Event.trigger('INIT_START', {type:'INIT_START'});
         if(process.env.NODE_ENV === "debug"){
             Logger.warn("GFSDK: Running in debug mode!")
         }
@@ -138,17 +139,18 @@ var Session = new function(){
                 ]
             };
         }
-
+        
         initPromise = Stargate.initialize(SG_CONF)
                .then(function(){
                    return VHost.load();
                })
-               .then(function(){
-
+               .then(function(){                   
                     Menu.setSpriteImage(VHost.get('IMAGES_SPRITE_GAME'));
                     contentRanking = VHost.get('CONTENT_RANKING');
                     Menu.show();
-                
+                    
+                    loadDictionary();
+                    
                     var UserTasks = User.fetch().then(User.getFavorites);                                   
                     return Promise.all([
                         UserTasks,
@@ -199,11 +201,11 @@ var Session = new function(){
                     initialized = true;  
                     return initialized;                    
                }).then(function(){  
-                   Logger.log('GamifiveSDK', 'register sync function for gameover/leaderboard results');
-                   Stargate.addListener('connectionchange', sync);                   
-                   Event.trigger('INIT_FINISHED');
+                    Logger.log('GamifiveSDK', 'register sync function for gameover/leaderboard results');
+                    Stargate.addListener('connectionchange', sync);                   
+                    Event.trigger('INIT_FINISHED', {type:'INIT_FINISHED'});
                }).catch(function(reason){
-                    Event.trigger('INIT_ERROR', reason);
+                    Event.trigger('INIT_ERROR', {type:'INIT_ERROR', reason:reason});
                     Logger.error('GamifiveSDK init error: ', reason);
                     initialized = false;
                     throw reason;
@@ -215,6 +217,18 @@ var Session = new function(){
     var getLastSession = function(){
         return config.sessions[0];
     };
+
+    function loadDictionary(){
+        if(!Stargate.isHybrid()) { return Promise.resolve(); }
+        var path = [Stargate.file.BASE_DIR, Constants.DICTIONARY_JSON_FILENAME].join('');
+        return Stargate.file.readFileAsJSON(path)
+            .then(function(dictjson){
+                window.DICTIONARY = dictjson || {};
+            })
+            .catch(function(reason){
+                Logger.warn('Cannot load dict.json', reason);
+            });
+    }
 
     function sync(networkStatus){
         if(networkStatus.type === 'online'){
@@ -305,7 +319,7 @@ var Session = new function(){
         // If a previous session exists, it must have been ended
         if (config.sessions && config.sessions.length > 0 && typeof getLastSession().endTime === 'undefined'){
             config.sessions.shift();
-            throw Constants.ERROR_SESSION_ALREADY_STARTED;
+            Logger.warn(Constants.ERROR_SESSION_ALREADY_STARTED);
         }
 
         // ok, you can try to start a new session
@@ -365,21 +379,15 @@ var Session = new function(){
     * ends a session and (if not in lite mode) shows the platform's gameover screen    
     * @function end
     * @memberof Session
-    * @param {Object} data can contain a "score" and/or "level" attribute
-    * @param {Number} data.score - the score of the user in the sesssion
-    * @param {Number} data.level - the level
+    * @param {Object} [data={}] can contain a "score" and/or "level" attribute
+    * @param {Number} [data.score=0] - the score of the user in the sesssion
+    * @param {Number} [data.level=0] - the level
     */
-    this.end = function(data){        
+    this.end = function(data={score:0, level:0}){        
         Logger.info('GamifiveSDK', 'Session', 'end', data);
         
         if (!initPromise){
             throw Constants.ERROR_SESSION_INIT_NOT_CALLED;
-        }
-        // set default object
-        // data = data ? data : {};
-        var dataTypeCheck = getType(data);
-        if (dataTypeCheck === 'undefined' || dataTypeCheck === 'null'){
-            throw new Error(Constants.ERROR_END_SESSION_PARAM + dataTypeCheck);
         }
 
         if (config.sessions.length < 1){
@@ -409,8 +417,6 @@ var Session = new function(){
             } else {
                 throw new Error(Constants.ERROR_SCORE_TYPE + getType(data.score));            
             }
-        } else {
-            throw new Error("GamifiveSDK :: score is mandatory!");
         }
 
         if (data.hasOwnProperty('level')){
@@ -428,16 +434,13 @@ var Session = new function(){
 				'start': lastSession.startTime.getTime(),
 				'duration': lastSession.endTime - lastSession.startTime,
 				'score': lastSession.score,
+                'level': lastSession.level,
 	      		'newapps': 1,
 	      		'appId': GameInfo.getContentId(),
 	      		'label': GameInfo.getInfo().label,
 	      		'userId': User.getUserId(),
                 'format': 'jsonp'
-			};
-
-			if (typeof lastSession.level !== 'undefined'){
-				leaderboardParams.level = lastSession.level;
-			}            
+			};        
            
             var leaderboardCallUrl = API.get('LEADERBOARD_API_URL');
             leaderboardCallUrl = Utils.queryfy(leaderboardCallUrl, leaderboardParams);
@@ -457,16 +460,19 @@ var Session = new function(){
                 duration: lastSession.endTime - lastSession.startTime,
                 score: lastSession.score
             };
-
+            
             if(lastSession.level){
                 gameoverParams.level = lastSession.level;
-            }            
-            
+            }
             gameOver(gameoverParams)
                 .then(DOMUtils.create)
                 .then(function(){
+                    // metaviewport fix
+                    var metaViewportTag = window.document.querySelector("meta[name=viewport]");
+                    if(metaViewportTag){
+                        metaViewportTag.setAttribute("content","width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no");
+                    }  
                     // attach listener to back button
-                    
                     if(document.querySelector(Constants.BACK_BUTTON_SELECTOR)){
                         var toHomeBtn = document.querySelector(Constants.BACK_BUTTON_SELECTOR).parentNode;
                         
