@@ -29,11 +29,21 @@ var User = function(){
     var userInstance = this;
     var userInfo = {gameInfo:{info:null}};
     var favorites = [];
+
+    // retro compatibility
     if(window.GamifiveInfo && window.GamifiveInfo.user){
         Logger.info("Load userInfo from in page data");
         userInfo = JSON.parse(JSON.stringify(window.GamifiveInfo.user));
         if(!userInfo.gameInfo){
-            userInfo.gameInfo = {info:{}};
+            userInfo.gameInfo = {info:null};
+        } else {
+            if(getType(userInfo.gameInfo.info) === 'string'){
+                try{
+                    userInfo.gameInfo.info = JSON.parse(userInfo.gameInfo.info);
+                } catch(e){
+                    userInfo.gameInfo.info = null;
+                }
+            }
         }
     }
     /**
@@ -76,8 +86,7 @@ var User = function(){
     */
     this.reset = function(){
         userInfo = {};
-    };
-    userInstance.reset();
+    };    
 
     this.getUserId = function(){
         return userInfo.user;
@@ -177,8 +186,8 @@ var User = function(){
         var url = Utils.queryfy(GET_LIKE, query);
         return Network.xhr('GET', url).then(function(resp){
             try{
-            favorites = JSON.parse(resp.response);
-            Logger.info('Favourites loaded', favorites);
+                favorites = JSON.parse(resp.response);
+                Logger.info('Favourites loaded', favorites);
             } catch(e){
                 Logger.warn("Fail to load user favorites", resp);
             }
@@ -199,14 +208,25 @@ var User = function(){
     * saves some user's data
     * @public
     * @function saveData
-    * @param {Object} info - 
+    * @param {Object} info - should be an object
     * @param {Function} callback - call when finshed 
     * @memberof User
     * @returns {Promise}
     */
     this.saveData = function(info, callback=function(){}){
-        if(!userInfo.gameInfo){userInfo.gameInfo = {info:{}}}
-        //save on local
+        if(!userInfo.gameInfo){userInfo.gameInfo = {info:null}}
+        
+        if(getType(info) === 'string'){            
+            Logger.warn("GamifiveSDK:The data to be saved should be an object! got a:", getType(info));
+            try{
+                Logger.warn("GamifiveSDK:try to parse the string");
+                info = JSON.parse(info);
+            } catch(e){
+                Logger.error("GamifiveSDK:could not save the data: not even json parseable", info);
+                info = null;
+            }
+        }
+
         userInfo.gameInfo.info = info;
         if(state.init.pending && !state.init.finished){
             Event.on('INIT_FINISHED', function(){
@@ -239,10 +259,10 @@ var User = function(){
     * @returns {Promise|object}
     */
     this.loadData = function(callback){
-        if(!userInfo.gameInfo){userInfo.gameInfo = {info:{}}}
+        if(!userInfo.gameInfo){userInfo.gameInfo = {info:null}}
         if(!callback){
             callback = function(){}
-            Logger.warn("Please call loadUserData(callback) instead of loadUserData()");
+            Logger.warn("GamifiveSDK: Please call loadUserData(callback) instead of loadUserData()");
         }
         onUserDataCallback = callback;
         // Init called but still pending
@@ -262,7 +282,10 @@ var User = function(){
             });
         } else {
             Logger.warn("GamifiveSDK", "you can't call loadUserData before init");
-        }        
+        }
+        if(getType(userInfo.gameInfo.info) === 'object' && Object.keys(userInfo.gameInfo.info).length === 0){
+            return undefined;
+        }  
         return userInfo.gameInfo.info;
     };
 
@@ -275,14 +298,15 @@ var User = function(){
     * @param {Function} callback - called when finished
     */
     this.clearData = function(callback){
-        Logger.info('GamifiveSDK', 'User', 'clearData');
-        // doSaveUserData(null, callback);
+        Logger.info('GamifiveSDK', 'clearUserData');
+        userInfo.gameInfo.info = null;
+        return setUserDataOnServer(null);
         // delete from server and on local
     };
 
     /**
      * Get the user type: guest free or premium
-     * @returns {string}
+     * @returns {String}
      */
     this.getUserType = function(){
         if(!userInfo.user){
@@ -306,9 +330,15 @@ var User = function(){
             // First time could be like this: {response:{data:null}}                   
             var data = VarCheck.get(responseData, ['response', 'data']);
             if(data && getType(data) === 'array' && data.length > 0){
-                return data[0];
+                var parsed = {};
+                try{
+                    parsed = JSON.parse(data[0].info);
+                } catch(e){
+                    Logger.warn("GamifiveSDK cannot parsed userData", e);
+                }
+                return parsed;
             } else {
-                return {};
+                return undefined;
             }
         }
     }
@@ -338,12 +368,7 @@ var User = function(){
         // unique parameter in qs to avoid cache 
         urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random() * 1000);
         Logger.log('GamifiveSDK', 'User', 'getUserDataFromServer', 'url to call', urlToCall);
-        
-        /*
-        //Make it sync
-        var resp = Network.synCall('GET', urlToCall);
-        return parseResponse(resp);
-        */        
+             
         return Network.xhr('GET', urlToCall)
             .then(parseResponse);
     }
@@ -355,6 +380,7 @@ var User = function(){
      * @param {String} params.userDataId
      * @param {String} params.userId
      * @param {Object} data - the data to be saved
+     * @param {String} data.info - a json object stringified
      */
     function setUserDataOnServer(data){
         if (Stargate.checkConnection().type !== 'online' && !VHost.get('MOA_API_APPLICATION_OBJECTS_SET')){
@@ -402,7 +428,7 @@ var User = function(){
         var SET_LIKE = API.get('USER_SET_LIKE');
         var DELETE_LIKE = API.get('USER_DELETE_LIKE');
         
-        var isFavourite = User.isGameFavorite(GameInfo.getContentId());
+        var isFavourite = userInstance.isGameFavorite(GameInfo.getContentId());
 
         var query = {
             content_id: GameInfo.getContentId(),
