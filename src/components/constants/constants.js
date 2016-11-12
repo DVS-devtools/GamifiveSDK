@@ -14,7 +14,8 @@ module.exports = {
         'margin-top': '-22px',
         'z-index': '9',
         'width': '60px',
-        'position': 'absolute'
+        'position': 'absolute',
+        'cursor':'pointer'
     },
     IMMUTABLE_MENU_STYLE_PROPERTIES: [
         'background-image',
