@@ -467,8 +467,12 @@ var Session = new function(){
             gameOver(gameoverParams)
                 .then(DOMUtils.create)
                 .then(function(){
+                    // metaviewport fix
+                    var metaViewportTag = window.document.querySelector("meta[name=viewport]");
+                    if(metaViewportTag){
+                        metaViewportTag.setAttribute("content","width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no");
+                    }  
                     // attach listener to back button
-                    
                     if(document.querySelector(Constants.BACK_BUTTON_SELECTOR)){
                         var toHomeBtn = document.querySelector(Constants.BACK_BUTTON_SELECTOR).parentNode;
                         
