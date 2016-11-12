@@ -27,7 +27,7 @@ var state = require('../state/state');
 var User = function(){
 
     var userInstance = this;
-    var userInfo = {gameInfo:{info:{}}};
+    var userInfo = {gameInfo:{info:null}};
     var favorites = [];
     if(window.GamifiveInfo && window.GamifiveInfo.user){
         Logger.info("Load userInfo from in page data");
