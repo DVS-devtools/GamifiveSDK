@@ -14,7 +14,7 @@ import { Utils } from 'stargatejs';
 const { getType } = Utils;
 import Event from '../event/event';
 import { JSONPRequest } from 'http-francis';
-
+import { store } from '../storage/storage';
 var API = require('../api/api');
 var DOMUtils  = require('../dom/dom-utils');
 var NewtonService = require('../newton/newton');
@@ -27,22 +27,30 @@ var state = require('../state/state');
 var User = function(){
 
     var userInstance = this;
-    var userInfo = {gameInfo:{info:null}};
+    var userInfo = {
+        gameInfo:{
+            CreatedAt: String(new Date(0)),
+            UpdatedAt: String(new Date(0)),
+            ProductId: "",
+            contentId: "",
+            domain: "",
+            Creator: "",
+            _id: "",
+            info:null
+        }
+    };
     var favorites = [];
 
     // retro compatibility
     if(window.GamifiveInfo && window.GamifiveInfo.user){
-        Logger.info("Load userInfo from in page data");
-        userInfo = JSON.parse(JSON.stringify(window.GamifiveInfo.user));
-        if(!userInfo.gameInfo){
-            userInfo.gameInfo = {info:null};
-        } else {
-            if(getType(userInfo.gameInfo.info) === 'string'){
-                try{
-                    userInfo.gameInfo.info = JSON.parse(userInfo.gameInfo.info);
-                } catch(e){
-                    userInfo.gameInfo.info = null;
-                }
+        Logger.info("GamifiveSDK:Load userInfo from in page data");
+        let userInfoCloned = JSON.parse(JSON.stringify(window.GamifiveInfo.user));
+        userInfo = {...userInfo, ...userInfoCloned};    
+        if(getType(userInfo.gameInfo.info) === 'string'){
+            try{
+                userInfo.gameInfo.info = JSON.parse(userInfo.gameInfo.info);
+            } catch(e){
+                userInfo.gameInfo.info = null;
             }
         }
     }
@@ -110,13 +118,11 @@ var User = function(){
             // userInfoUrl = userInfoUrl.replace(":TS", "");
             return Network.xhr('GET', userInfoUrl).then(function(resp, req){
                 if(!!resp && resp.success){
-                    var responseData = resp.response;
-
-                    if (typeof responseData === typeof ''){
-                        responseData = JSON.parse(responseData);
+                    let responseData;
+                    if (getType(resp.response) === 'string'){
+                        responseData = JSON.parse(resp.response);
                     }
-
-                    userInfo = Utils.extend(userInfo, responseData);
+                    userInfo = {...userInfo, ...responseData};
                     Logger.log('GamifiveSDK', 'User', 'load complete');
                 } else {
                     Logger.warn(Constants.ERROR_USER_FETCH_FAIL + resp.status + ' ' + resp.statusText + ' ');
@@ -129,10 +135,10 @@ var User = function(){
                 // The file should be saved by webapp
                 var filePath = [Stargate.file.BASE_DIR, Constants.USER_JSON_FILENAME].join('');
                 return Stargate.file.readFileAsJSON(filePath)
-                .then(function(responseData) {
-                        userInfo = Utils.extend(userInfo, responseData);
-                        if (typeof callback === 'function') { callback(userInfo); }
-                    });
+                        .then(function(responseData) {
+                                userInfo = {...userInfo, ...responseData};
+                                if (typeof callback === 'function') { callback(userInfo); }
+                        });
             }            
         }
     };
@@ -166,7 +172,7 @@ var User = function(){
 
     /**
      * get user favourites from api
-     * @returns {promise<Object>}
+     * @returns {Promise<Object>}
      */
     this.getFavorites = function(){
         if(Stargate.checkConnection().type !== 'online'){
@@ -213,9 +219,7 @@ var User = function(){
     * @memberof User
     * @returns {Promise}
     */
-    this.saveData = function(info, callback=function(){}){
-        if(!userInfo.gameInfo){userInfo.gameInfo = {info:null}}
-        
+    this.saveData = function(info, callback=function(){}){        
         if(getType(info) === 'string'){            
             Logger.warn("GamifiveSDK:The data to be saved should be an object! got a:", getType(info));
             try{
@@ -224,71 +228,105 @@ var User = function(){
             } catch(e){
                 Logger.error("GamifiveSDK:could not save the data: not even json parseable", info);
                 info = null;
+                return false;
             }
         }
 
-        userInfo.gameInfo.info = info;
+        userInfo.gameInfo = {...userInfo.gameInfo, info:info, UpdatedAt: String(new Date())};
+
         if(state.init.pending && !state.init.finished){
             Event.on('INIT_FINISHED', function(){
-                Logger.info('GamifiveSDK', 'User', 'saveData', userInfo.gameInfo.info);                     
-
-                var data = {                    
-                    UpdatedAt: new Date(),
-                    info: JSON.stringify(userInfo.gameInfo.info)
-                };
-                return setUserDataOnServer(data)
-                    .then(callback);
+                Logger.info('GamifiveSDK', 'User', 'saveData', userInfo.gameInfo.info);
+                setUserDataOnLocal(userInfo.gameInfo);
+                setUserDataOnServer(userInfo.gameInfo);
             });
         } else if(!state.init.pending && state.init.finished) {
-            var data = {                    
-                UpdatedAt: new Date(),
-                info: JSON.stringify(userInfo.gameInfo.info)
-            };
-            return setUserDataOnServer(data)
-                .then(callback);
+
+            setUserDataOnLocal(userInfo.gameInfo);
+            setUserDataOnServer(userInfo.gameInfo);
+
         } else {
-            Logger.warn("GamifiveSDK: you can't call saveUserData before init. You should 1) init 2) loadUserData 3) then you can save");
+            Logger.warn("GamifiveSDK: you can't call saveUserData before init. You should 1) GamifiveSDK.init 2) GamifiveSDK.loadUserData 3) then you can save");
         }
     };
-    
+
     /**
     * Loads user's game progress
     * @function loadData    
     * @memberof User
     * @param callback    
-    * @returns {Promise|object}
+    * @returns {Promise|Object}
     */
     this.loadData = function(callback){
-        if(!userInfo.gameInfo){userInfo.gameInfo = {info:null}}
         if(!callback){
             callback = function(){}
-            Logger.warn("GamifiveSDK: Please call loadUserData(callback) instead of loadUserData()");
+            Logger.warn("GamifiveSDK: loadUserData() is deprecated from v2, please call loadUserData(callback)");
         }
         onUserDataCallback = callback;
         // Init called but still pending
         if(state.init.pending && !state.init.finished){            
             Event.on('INIT_FINISHED', function(action){                
                 Logger.info('GamifiveSDK', 'User', 'loadData');
-                getUserDataFromServer().then(function(info){
-                    userInfo.gameInfo.info = info;
-                    onUserDataCallback(userInfo.gameInfo.info);
-                });
+                Promise.all([getUserDataFromLocal(), getUserDataFromServer()])
+                    .then(syncUserData)
+                    .then(function(newGameInfo){
+                        if(newGameInfo){
+                            userInfo.gameInfo = newGameInfo;
+                        }  
+                        onUserDataCallback(userInfo.gameInfo.info);
+                    });     
             });
         // Init finished
         } else if(!state.init.pending && state.init.finished){
-            getUserDataFromServer().then(function(info){
-                userInfo.gameInfo.info = info;
-                onUserDataCallback(userInfo.gameInfo.info);
-            });
+            Logger.info('GamifiveSDK', 'User', 'loadData');
+            Promise.all([getUserDataFromLocal(), getUserDataFromServer()])
+                .then(syncUserData)
+                .then(function(newGameInfo){
+                    if(newGameInfo){
+                        userInfo.gameInfo = newGameInfo;
+                    }                    
+                    onUserDataCallback(userInfo.gameInfo.info);
+                });
+            
         } else {
             Logger.warn("GamifiveSDK", "you can't call loadUserData before init");
         }
+
         if(getType(userInfo.gameInfo.info) === 'object' && Object.keys(userInfo.gameInfo.info).length === 0){
             return undefined;
-        }  
+        }
+
         return userInfo.gameInfo.info;
     };
-
+    
+    /**
+     * Synchronize the local and server gameInfo object
+     * @param {Array} results - the local and the server gameinfo object
+     * @returns {Object} return the most updated gameInfo object
+     */
+    function syncUserData(results){
+        Logger.info("GamifiveSDK: sync userData");
+        let [localGameInfo, serverGameInfo] = results;
+        if(localGameInfo && serverGameInfo){
+            let localUpdatedAt = new Date(localGameInfo.UpdatedAt);
+            let serverUpdatedAt = new Date(serverGameInfo.UpdatedAt);
+            // local is more relevant
+            if(localUpdatedAt > serverUpdatedAt){
+                Logger.info("GamifiveSDK: sync userData", "local won");
+                return localGameInfo;    
+            } else if(localUpdatedAt < serverUpdatedAt){
+            // server is more relevant
+                Logger.info("GamifiveSDK: sync userData", "server won");
+                return serverGameInfo;
+            }
+        } else if(localGameInfo && !serverGameInfo){
+            Logger.info("GamifiveSDK: sync userData", "local won", "no serverGameInfo");
+            return localGameInfo;
+        } else if(!localGameInfo && serverGameInfo){
+            Logger.info("GamifiveSDK: sync userData", "server won", "no localGameInfo");
+            return serverGameInfo;
+        }
+    }
 
     /**
     * Clear some user's data
@@ -299,9 +337,12 @@ var User = function(){
     */
     this.clearData = function(callback){
         Logger.info('GamifiveSDK', 'clearUserData');
-        userInfo.gameInfo.info = null;
-        return setUserDataOnServer(null);
         // delete from server and on local
+        userInfo.gameInfo = {...userInfo.gameInfo, info:null, UpdatedAt: String(new Date())};
+        return Promise.all([
+            setUserDataOnServer(userInfo.gameInfo), 
+            setUserDataOnLocal(userInfo.gameInfo)
+        ]).then(callback);
     };
 
     /**
@@ -318,27 +359,26 @@ var User = function(){
         }
     };
 
-    function parseResponse(resp){
+    function parseUserDataResponse(resp){
         if(resp.success){
             var responseData = resp.response;
             try{
                 responseData = JSON.parse(responseData);
             } catch(e){
-                Logger.error('Fail to get ', urlToCall, e);
+                Logger.error('Fail to get ', resp);
                 throw e;
             }
             // First time could be like this: {response:{data:null}}                   
             var data = VarCheck.get(responseData, ['response', 'data']);
             if(data && getType(data) === 'array' && data.length > 0){
-                var parsed = {};
+                var parsed = undefined;
                 try{
-                    parsed = JSON.parse(data[0].info);
+                    data[0].info = JSON.parse(data[0].info);
                 } catch(e){
+                    data[0].info = null;
                     Logger.warn("GamifiveSDK cannot parsed userData", e);
                 }
-                return parsed;
-            } else {
-                return undefined;
+                return data[0];
             }
         }
     }
@@ -351,7 +391,7 @@ var User = function(){
      * @returns {Promise<Object>}
      */
     function getUserDataFromServer(){
-        if (Stargate.checkConnection().type !== 'online' || !VHost.get('MOA_API_APPLICATION_OBJECTS_GET')){ return Promise.resolve(userInfo.gameInfo.info);}
+        if (!VHost.get('MOA_API_APPLICATION_OBJECTS_GET')){ return Promise.resolve(userInfo.gameInfo);}
         var loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
         
         var contentId  = GameInfo.getContentId();
@@ -370,22 +410,18 @@ var User = function(){
         Logger.log('GamifiveSDK', 'User', 'getUserDataFromServer', 'url to call', urlToCall);
              
         return Network.xhr('GET', urlToCall)
-            .then(parseResponse);
+            .then(parseUserDataResponse);
     }
 
     /**
      * Set UserData on Server
-     * @param {Object} params
-     * @param {String} params.contentId
-     * @param {String} params.userDataId
-     * @param {String} params.userId
-     * @param {Object} data - the data to be saved
-     * @param {String} data.info - a json object stringified
+     * @param {Object} data - the data to be saved in gameInfo format
+     * @param {String} data.info - a json object
      */
     function setUserDataOnServer(data){
-        if (Stargate.checkConnection().type !== 'online' && !VHost.get('MOA_API_APPLICATION_OBJECTS_SET')){
-            Logger.log('GamifiveSDK', 'userData cannot not be set on server: offline or api endpoint not set');
-            return Promise.resolve(userInfo.gameInfo.info);
+        if (!VHost.get('MOA_API_APPLICATION_OBJECTS_SET')){
+            Logger.log('GamifiveSDK', 'userData cannot not be set on server: api endpoint disabled');
+            return Promise.resolve(userInfo.gameInfo);
         }
         var contentId  = GameInfo.getContentId();
         var userId     = userInstance.getUserId();
@@ -399,8 +435,14 @@ var User = function(){
                             .replace(':ACCESS_TOKEN', '')
                             .replace(':EXTERNAL_TOKEN', params.userId)
                             .replace(':COLLECTION', 'gameInfo');
-                     
-        urlToCall = Utils.queryfy(urlToCall, { info: data.info, domain: Location.getOrigin(), contentId: params.contentId });
+        let infoSerialized;
+        if(getType(data.info) === 'object' || getType(data.info) === "null"){
+            infoSerialized = JSON.stringify(data.info);
+        } else {
+            Logger.warn("GamifiveSDK: bad info type: ", getType(data.info));
+        }
+
+        urlToCall = Utils.queryfy(urlToCall, { info: infoSerialized, domain: Location.getOrigin(), contentId: params.contentId });
 
         /**
         * ATTENZIONE 
@@ -411,7 +453,7 @@ var User = function(){
             if(resp.success){
                 var newtonResponse = JSON.parse(resp.response);
                 if(newtonResponse.response.data){
-                    Logger.log('GamifiveSDK', 'userData set with success on server', resp);
+                    Logger.log('GamifiveSDK', 'userData set with success on server');
                 } else {
                     // NEWTON error
                     Logger.log('GamifiveSDK', 'userData FAIL to be set on server', newtonResponse.response.message);
@@ -422,6 +464,16 @@ var User = function(){
             }
             return data;
         });
+    }
+
+    function setUserDataOnLocal(){
+        let key = `${userInstance.getUserId()}-${GameInfo.getContentId()}`;
+        return store.setItem(key, userInfo.gameInfo);
+    }
+
+    function getUserDataFromLocal(){
+        let key = `${userInstance.getUserId()}-${GameInfo.getContentId()}`;
+        return store.getItem(key);
     }
 
     this.toggleLike = function(){
@@ -498,6 +550,12 @@ var User = function(){
             GameInfo: null,
             Menu: null
         };
+
+        this.setUserDataOnServer = setUserDataOnServer;
+        this.getUserDataFromServer = getUserDataFromServer;
+        this.setUserDataOnLocal = setUserDataOnLocal;
+        this.getUserDataFromLocal = getUserDataFromLocal;
+        this.syncUserData = syncUserData;
 
         this.setMock = function(what, mock){            
             switch(what){

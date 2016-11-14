@@ -281,16 +281,6 @@ GamifiveSDK.init({
 });
 ```
 
-<b>Note:</b> when using the SDK in <i>lite</i> version you don't have to use <i>onStartSession</i> for starting your game, it is sufficient to call <i>startSession</i> for tracking the session's time and score.
-
-
-<h1>Debug mode</h1>
-
-Here is a brief description of the error and debug messages that are meant to be displayed in the JavaScript console of your browser when using GamifiveSDK in debug mode. 
-
-We remind you that in order to use GamifiveSDK in debug mode, you have to call <i>Gamifive.init</i> with <i>debug: true</i> in the configuration argument.
-
-
 <h2>Lite Mode</h2>
 
 We remind you that in order to use GamifiveSDK in lite mode, you have to call <i>Gamifive.init</i> with <i>lite: true</i> in the configuration argument.
@@ -298,17 +288,14 @@ We remind you that in order to use GamifiveSDK in lite mode, you have to call <i
 
 <h3>GamifiveSDK.init</h3>
 
-No debug messages are displayed when calling <i>GamifiveSDK.init</i>.
 
 <h3>GamifiveSDK.onStartSession</h3>
 
-We remind you that you don't have to call <i>GamifiveSDK.onStartSession()</i> when using the lite mode of GamifiveSDK.
+Register a callback function any time a session start
 
-When calling <i>GamifiveSDK.onStartSession()</i> in lite mode, the following error message is displayed:
-
-```javascript
-    GamifiveSDK,ERROR,in lite mode, onStartSession must not be used
-```
+GamifiveSDK.onStartSession(function yourFunction(){
+    //do things everytime a session start
+});
 
 <h3>GamifiveSDK.startSession</h3>
 
