@@ -162,6 +162,9 @@ var Session = new function(){
                     
                     var env = Stargate.isHybrid() ? 'hybrid' : 'webapp';
                     var enableNewton = true;
+                    if(env === 'hybrid' && Stargate.checkConnection().type !== 'online'){
+                        enableNewton = false;
+                    }
 
                     NewtonService.init({
                            secretId: VHost.get('NEWTON_SECRETID'),
