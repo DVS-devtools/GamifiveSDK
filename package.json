@@ -70,7 +70,7 @@
   "dependencies": {
     "http-francis": "^0.1.6",
     "localforage": "^1.4.3",
-    "newton-adapter": "^1.3.1",
+    "newton-adapter": "^1.5.0",
     "promise-polyfill": "^5.0.0",
     "stargatejs": "^0.2.0"
   },

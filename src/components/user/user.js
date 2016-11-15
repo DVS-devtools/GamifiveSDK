@@ -391,6 +391,11 @@ var User = function(){
      * @returns {Promise<Object>}
      */
     function getUserDataFromServer(){
+        if(!NewtonService.isUserLogged()){
+            Logger.log('GamifiveSDK', 'userData cannot not get on server: user not logged');
+            return Promise.resolve(userInfo.gameInfo);
+        }
+
         if (!VHost.get('MOA_API_APPLICATION_OBJECTS_GET')){ return Promise.resolve(userInfo.gameInfo);}
         var loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
         
@@ -417,8 +422,14 @@ var User = function(){
      * Set UserData on Server
      * @param {Object} data - the data to be saved in gameInfo format
      * @param {String} data.info - a json object
+     * @returns {Promise<Object>} - the gameInfo object with data and metadata
      */
     function setUserDataOnServer(data){
+        if(!NewtonService.isUserLogged()){
+            Logger.log('GamifiveSDK', 'userData cannot not be set on server: user not logged');
+            return Promise.resolve(userInfo.gameInfo);
+        }
+
         if (!VHost.get('MOA_API_APPLICATION_OBJECTS_SET')){
             Logger.log('GamifiveSDK', 'userData cannot not be set on server: api endpoint disabled');
             return Promise.resolve(userInfo.gameInfo);
@@ -467,11 +478,19 @@ var User = function(){
     }
 
     function setUserDataOnLocal(){
+        if(!NewtonService.isUserLogged()){
+            Logger.log('GamifiveSDK', 'userData cannot not be set on local: user not logged');
+            return Promise.resolve(userInfo.gameInfo);
+        }
         let key = `${userInstance.getUserId()}-${GameInfo.getContentId()}`;
         return store.setItem(key, userInfo.gameInfo);
     }
 
     function getUserDataFromLocal(){
+        if(!NewtonService.isUserLogged()){
+            Logger.log('GamifiveSDK', 'userData cannot not be get on local: user not logged');
+            return Promise.resolve(userInfo.gameInfo);
+        }
         let key = `${userInstance.getUserId()}-${GameInfo.getContentId()}`;
         return store.getItem(key);
     }
