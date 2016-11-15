@@ -191,14 +191,13 @@ var Session = new function(){
                     });
 
                     NewtonService.trackEvent({
-                        name: 'SdkInitFinished',
-                        rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'), 
+                        name: 'SdkInitFinished',                        
                         properties:{
                             action: 'Yes',
                             category: 'Play',
                             game_title: GameInfo.getInfo().game.title,
                             label: GameInfo.getContentId(),
-                            valuable: 'Yes'                            
+                            valuable: 'No'                            
                         }
                     });           
                     initialized = true;  
