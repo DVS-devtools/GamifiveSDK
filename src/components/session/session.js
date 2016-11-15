@@ -193,8 +193,8 @@ var Session = new function(){
                     NewtonService.trackEvent({
                         name: 'SdkInitFinished',                        
                         properties:{
-                            action: 'Yes',
-                            category: 'Play',
+                            action: 'No',
+                            category: 'SDK_OK',
                             game_title: GameInfo.getInfo().game.title,
                             label: GameInfo.getContentId(),
                             valuable: 'No'                            
@@ -208,6 +208,17 @@ var Session = new function(){
                     Event.trigger('INIT_FINISHED', {type:'INIT_FINISHED'});
                }).catch(function(reason){
                     Event.trigger('INIT_ERROR', {type:'INIT_ERROR', reason:reason});
+                    NewtonService.trackEvent({
+                        name: 'SdkInitError',                        
+                        properties:{
+                            action: 'No',
+                            category: 'SDK_ERROR',
+                            game_title: GameInfo.getInfo().game.title,
+                            label: GameInfo.getContentId(),
+                            valuable: 'No',
+                            reason:reason
+                        }
+                    });    
                     Logger.error('GamifiveSDK init error: ', reason);
                     initialized = false;
                     throw reason;
@@ -381,7 +392,7 @@ var Session = new function(){
     * ends a session and (if not in lite mode) shows the platform's gameover screen    
     * @function end
     * @memberof Session
-    * @param {Object} [data={}] can contain a "score" and/or "level" attribute
+    * @param {Object} data can contain a "score" and/or "level" attribute
     * @param {Number} [data.score=0] - the score of the user in the sesssion
     * @param {Number} [data.level=0] - the level
     */
