@@ -34,7 +34,7 @@ define(String.prototype, "padRight", "".padEnd);
   [][key] && define(Array, key, Function.call.bind([][key]));
 });
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"core-js/fn/regexp/escape":4,"core-js/shim":297,"regenerator-runtime/runtime":307}],3:[function(require,module,exports){
+},{"core-js/fn/regexp/escape":4,"core-js/shim":297,"regenerator-runtime/runtime":308}],3:[function(require,module,exports){
 /*
  * Cookies.js - 1.2.3
  * https://github.com/ScottHamper/Cookies
@@ -6597,7 +6597,7 @@ exports.getImageRaw = getImageRaw;
 exports.getJSON = getJSON;
 exports.JSONPRequest = JSONPRequest;
 
-},{"./utils":299,"babel-polyfill":2,"logger-pro":301}],299:[function(require,module,exports){
+},{"./utils":299,"babel-polyfill":2,"logger-pro":302}],299:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6695,6 +6695,2310 @@ exports.dequeryfy = dequeryfy;
 exports.getType = getType;
 
 },{}],300:[function(require,module,exports){
+(function (global){
+/*!
+    localForage -- Offline Storage, Improved
+    Version 1.4.3
+    https://mozilla.github.io/localForage
+    (c) 2013-2016 Mozilla, Apache License 2.0
+*/
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.localforage = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw (f.code="MODULE_NOT_FOUND", f)}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+'use strict';
+var immediate = _dereq_(2);
+
+/* istanbul ignore next */
+function INTERNAL() {}
+
+var handlers = {};
+
+var REJECTED = ['REJECTED'];
+var FULFILLED = ['FULFILLED'];
+var PENDING = ['PENDING'];
+
+module.exports = exports = Promise;
+
+function Promise(resolver) {
+  if (typeof resolver !== 'function') {
+    throw new TypeError('resolver must be a function');
+  }
+  this.state = PENDING;
+  this.queue = [];
+  this.outcome = void 0;
+  if (resolver !== INTERNAL) {
+    safelyResolveThenable(this, resolver);
+  }
+}
+
+Promise.prototype["catch"] = function (onRejected) {
+  return this.then(null, onRejected);
+};
+Promise.prototype.then = function (onFulfilled, onRejected) {
+  if (typeof onFulfilled !== 'function' && this.state === FULFILLED ||
+    typeof onRejected !== 'function' && this.state === REJECTED) {
+    return this;
+  }
+  var promise = new this.constructor(INTERNAL);
+  if (this.state !== PENDING) {
+    var resolver = this.state === FULFILLED ? onFulfilled : onRejected;
+    unwrap(promise, resolver, this.outcome);
+  } else {
+    this.queue.push(new QueueItem(promise, onFulfilled, onRejected));
+  }
+
+  return promise;
+};
+function QueueItem(promise, onFulfilled, onRejected) {
+  this.promise = promise;
+  if (typeof onFulfilled === 'function') {
+    this.onFulfilled = onFulfilled;
+    this.callFulfilled = this.otherCallFulfilled;
+  }
+  if (typeof onRejected === 'function') {
+    this.onRejected = onRejected;
+    this.callRejected = this.otherCallRejected;
+  }
+}
+QueueItem.prototype.callFulfilled = function (value) {
+  handlers.resolve(this.promise, value);
+};
+QueueItem.prototype.otherCallFulfilled = function (value) {
+  unwrap(this.promise, this.onFulfilled, value);
+};
+QueueItem.prototype.callRejected = function (value) {
+  handlers.reject(this.promise, value);
+};
+QueueItem.prototype.otherCallRejected = function (value) {
+  unwrap(this.promise, this.onRejected, value);
+};
+
+function unwrap(promise, func, value) {
+  immediate(function () {
+    var returnValue;
+    try {
+      returnValue = func(value);
+    } catch (e) {
+      return handlers.reject(promise, e);
+    }
+    if (returnValue === promise) {
+      handlers.reject(promise, new TypeError('Cannot resolve promise with itself'));
+    } else {
+      handlers.resolve(promise, returnValue);
+    }
+  });
+}
+
+handlers.resolve = function (self, value) {
+  var result = tryCatch(getThen, value);
+  if (result.status === 'error') {
+    return handlers.reject(self, result.value);
+  }
+  var thenable = result.value;
+
+  if (thenable) {
+    safelyResolveThenable(self, thenable);
+  } else {
+    self.state = FULFILLED;
+    self.outcome = value;
+    var i = -1;
+    var len = self.queue.length;
+    while (++i < len) {
+      self.queue[i].callFulfilled(value);
+    }
+  }
+  return self;
+};
+handlers.reject = function (self, error) {
+  self.state = REJECTED;
+  self.outcome = error;
+  var i = -1;
+  var len = self.queue.length;
+  while (++i < len) {
+    self.queue[i].callRejected(error);
+  }
+  return self;
+};
+
+function getThen(obj) {
+  // Make sure we only access the accessor once as required by the spec
+  var then = obj && obj.then;
+  if (obj && typeof obj === 'object' && typeof then === 'function') {
+    return function appyThen() {
+      then.apply(obj, arguments);
+    };
+  }
+}
+
+function safelyResolveThenable(self, thenable) {
+  // Either fulfill, reject or reject with error
+  var called = false;
+  function onError(value) {
+    if (called) {
+      return;
+    }
+    called = true;
+    handlers.reject(self, value);
+  }
+
+  function onSuccess(value) {
+    if (called) {
+      return;
+    }
+    called = true;
+    handlers.resolve(self, value);
+  }
+
+  function tryToUnwrap() {
+    thenable(onSuccess, onError);
+  }
+
+  var result = tryCatch(tryToUnwrap);
+  if (result.status === 'error') {
+    onError(result.value);
+  }
+}
+
+function tryCatch(func, value) {
+  var out = {};
+  try {
+    out.value = func(value);
+    out.status = 'success';
+  } catch (e) {
+    out.status = 'error';
+    out.value = e;
+  }
+  return out;
+}
+
+exports.resolve = resolve;
+function resolve(value) {
+  if (value instanceof this) {
+    return value;
+  }
+  return handlers.resolve(new this(INTERNAL), value);
+}
+
+exports.reject = reject;
+function reject(reason) {
+  var promise = new this(INTERNAL);
+  return handlers.reject(promise, reason);
+}
+
+exports.all = all;
+function all(iterable) {
+  var self = this;
+  if (Object.prototype.toString.call(iterable) !== '[object Array]') {
+    return this.reject(new TypeError('must be an array'));
+  }
+
+  var len = iterable.length;
+  var called = false;
+  if (!len) {
+    return this.resolve([]);
+  }
+
+  var values = new Array(len);
+  var resolved = 0;
+  var i = -1;
+  var promise = new this(INTERNAL);
+
+  while (++i < len) {
+    allResolver(iterable[i], i);
+  }
+  return promise;
+  function allResolver(value, i) {
+    self.resolve(value).then(resolveFromAll, function (error) {
+      if (!called) {
+        called = true;
+        handlers.reject(promise, error);
+      }
+    });
+    function resolveFromAll(outValue) {
+      values[i] = outValue;
+      if (++resolved === len && !called) {
+        called = true;
+        handlers.resolve(promise, values);
+      }
+    }
+  }
+}
+
+exports.race = race;
+function race(iterable) {
+  var self = this;
+  if (Object.prototype.toString.call(iterable) !== '[object Array]') {
+    return this.reject(new TypeError('must be an array'));
+  }
+
+  var len = iterable.length;
+  var called = false;
+  if (!len) {
+    return this.resolve([]);
+  }
+
+  var i = -1;
+  var promise = new this(INTERNAL);
+
+  while (++i < len) {
+    resolver(iterable[i]);
+  }
+  return promise;
+  function resolver(value) {
+    self.resolve(value).then(function (response) {
+      if (!called) {
+        called = true;
+        handlers.resolve(promise, response);
+      }
+    }, function (error) {
+      if (!called) {
+        called = true;
+        handlers.reject(promise, error);
+      }
+    });
+  }
+}
+
+},{"2":2}],2:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+var Mutation = global.MutationObserver || global.WebKitMutationObserver;
+
+var scheduleDrain;
+
+{
+  if (Mutation) {
+    var called = 0;
+    var observer = new Mutation(nextTick);
+    var element = global.document.createTextNode('');
+    observer.observe(element, {
+      characterData: true
+    });
+    scheduleDrain = function () {
+      element.data = (called = ++called % 2);
+    };
+  } else if (!global.setImmediate && typeof global.MessageChannel !== 'undefined') {
+    var channel = new global.MessageChannel();
+    channel.port1.onmessage = nextTick;
+    scheduleDrain = function () {
+      channel.port2.postMessage(0);
+    };
+  } else if ('document' in global && 'onreadystatechange' in global.document.createElement('script')) {
+    scheduleDrain = function () {
+
+      // Create a <script> element; its readystatechange event will be fired asynchronously once it is inserted
+      // into the document. Do so, thus queuing up the task. Remember to clean up once it's been called.
+      var scriptEl = global.document.createElement('script');
+      scriptEl.onreadystatechange = function () {
+        nextTick();
+
+        scriptEl.onreadystatechange = null;
+        scriptEl.parentNode.removeChild(scriptEl);
+        scriptEl = null;
+      };
+      global.document.documentElement.appendChild(scriptEl);
+    };
+  } else {
+    scheduleDrain = function () {
+      setTimeout(nextTick, 0);
+    };
+  }
+}
+
+var draining;
+var queue = [];
+//named nextTick for less confusing stack traces
+function nextTick() {
+  draining = true;
+  var i, oldQueue;
+  var len = queue.length;
+  while (len) {
+    oldQueue = queue;
+    queue = [];
+    i = -1;
+    while (++i < len) {
+      oldQueue[i]();
+    }
+    len = queue.length;
+  }
+  draining = false;
+}
+
+module.exports = immediate;
+function immediate(task) {
+  if (queue.push(task) === 1 && !draining) {
+    scheduleDrain();
+  }
+}
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],3:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+if (typeof global.Promise !== 'function') {
+  global.Promise = _dereq_(1);
+}
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"1":1}],4:[function(_dereq_,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function getIDB() {
+    /* global indexedDB,webkitIndexedDB,mozIndexedDB,OIndexedDB,msIndexedDB */
+    try {
+        if (typeof indexedDB !== 'undefined') {
+            return indexedDB;
+        }
+        if (typeof webkitIndexedDB !== 'undefined') {
+            return webkitIndexedDB;
+        }
+        if (typeof mozIndexedDB !== 'undefined') {
+            return mozIndexedDB;
+        }
+        if (typeof OIndexedDB !== 'undefined') {
+            return OIndexedDB;
+        }
+        if (typeof msIndexedDB !== 'undefined') {
+            return msIndexedDB;
+        }
+    } catch (e) {}
+}
+
+var idb = getIDB();
+
+function isIndexedDBValid() {
+    try {
+        // Initialize IndexedDB; fall back to vendor-prefixed versions
+        // if needed.
+        if (!idb) {
+            return false;
+        }
+        // We mimic PouchDB here; just UA test for Safari (which, as of
+        // iOS 8/Yosemite, doesn't properly support IndexedDB).
+        // IndexedDB support is broken and different from Blink's.
+        // This is faster than the test case (and it's sync), so we just
+        // do this. *SIGH*
+        // http://bl.ocks.org/nolanlawson/raw/c83e9039edf2278047e9/
+        //
+        // We test for openDatabase because IE Mobile identifies itself
+        // as Safari. Oh the lulz...
+        if (typeof openDatabase !== 'undefined' && typeof navigator !== 'undefined' && navigator.userAgent && /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)) {
+            return false;
+        }
+
+        return idb && typeof idb.open === 'function' &&
+        // Some Samsung/HTC Android 4.0-4.3 devices
+        // have older IndexedDB specs; if this isn't available
+        // their IndexedDB is too old for us to use.
+        // (Replaces the onupgradeneeded test.)
+        typeof IDBKeyRange !== 'undefined';
+    } catch (e) {
+        return false;
+    }
+}
+
+function isWebSQLValid() {
+    return typeof openDatabase === 'function';
+}
+
+function isLocalStorageValid() {
+    try {
+        return typeof localStorage !== 'undefined' && 'setItem' in localStorage && localStorage.setItem;
+    } catch (e) {
+        return false;
+    }
+}
+
+// Abstracts constructing a Blob object, so it also works in older
+// browsers that don't support the native Blob constructor. (i.e.
+// old QtWebKit versions, at least).
+// Abstracts constructing a Blob object, so it also works in older
+// browsers that don't support the native Blob constructor. (i.e.
+// old QtWebKit versions, at least).
+function createBlob(parts, properties) {
+    /* global BlobBuilder,MSBlobBuilder,MozBlobBuilder,WebKitBlobBuilder */
+    parts = parts || [];
+    properties = properties || {};
+    try {
+        return new Blob(parts, properties);
+    } catch (e) {
+        if (e.name !== 'TypeError') {
+            throw e;
+        }
+        var Builder = typeof BlobBuilder !== 'undefined' ? BlobBuilder : typeof MSBlobBuilder !== 'undefined' ? MSBlobBuilder : typeof MozBlobBuilder !== 'undefined' ? MozBlobBuilder : WebKitBlobBuilder;
+        var builder = new Builder();
+        for (var i = 0; i < parts.length; i += 1) {
+            builder.append(parts[i]);
+        }
+        return builder.getBlob(properties.type);
+    }
+}
+
+// This is CommonJS because lie is an external dependency, so Rollup
+// can just ignore it.
+if (typeof Promise === 'undefined' && typeof _dereq_ !== 'undefined') {
+    _dereq_(3);
+}
+var Promise$1 = Promise;
+
+function executeCallback(promise, callback) {
+    if (callback) {
+        promise.then(function (result) {
+            callback(null, result);
+        }, function (error) {
+            callback(error);
+        });
+    }
+}
+
+function executeTwoCallbacks(promise, callback, errorCallback) {
+    if (typeof callback === 'function') {
+        promise.then(callback);
+    }
+
+    if (typeof errorCallback === 'function') {
+        promise["catch"](errorCallback);
+    }
+}
+
+// Some code originally from async_storage.js in
+// [Gaia](https://github.com/mozilla-b2g/gaia).
+
+var DETECT_BLOB_SUPPORT_STORE = 'local-forage-detect-blob-support';
+var supportsBlobs;
+var dbContexts;
+var toString = Object.prototype.toString;
+
+// Transform a binary string to an array buffer, because otherwise
+// weird stuff happens when you try to work with the binary string directly.
+// It is known.
+// From http://stackoverflow.com/questions/14967647/ (continues on next line)
+// encode-decode-image-with-base64-breaks-image (2013-04-21)
+function _binStringToArrayBuffer(bin) {
+    var length = bin.length;
+    var buf = new ArrayBuffer(length);
+    var arr = new Uint8Array(buf);
+    for (var i = 0; i < length; i++) {
+        arr[i] = bin.charCodeAt(i);
+    }
+    return buf;
+}
+
+//
+// Blobs are not supported in all versions of IndexedDB, notably
+// Chrome <37 and Android <5. In those versions, storing a blob will throw.
+//
+// Various other blob bugs exist in Chrome v37-42 (inclusive).
+// Detecting them is expensive and confusing to users, and Chrome 37-42
+// is at very low usage worldwide, so we do a hacky userAgent check instead.
+//
+// content-type bug: https://code.google.com/p/chromium/issues/detail?id=408120
+// 404 bug: https://code.google.com/p/chromium/issues/detail?id=447916
+// FileReader bug: https://code.google.com/p/chromium/issues/detail?id=447836
+//
+// Code borrowed from PouchDB. See:
+// https://github.com/pouchdb/pouchdb/blob/9c25a23/src/adapters/idb/blobSupport.js
+//
+function _checkBlobSupportWithoutCaching(txn) {
+    return new Promise$1(function (resolve) {
+        var blob = createBlob(['']);
+        txn.objectStore(DETECT_BLOB_SUPPORT_STORE).put(blob, 'key');
+
+        txn.onabort = function (e) {
+            // If the transaction aborts now its due to not being able to
+            // write to the database, likely due to the disk being full
+            e.preventDefault();
+            e.stopPropagation();
+            resolve(false);
+        };
+
+        txn.oncomplete = function () {
+            var matchedChrome = navigator.userAgent.match(/Chrome\/(\d+)/);
+            var matchedEdge = navigator.userAgent.match(/Edge\//);
+            // MS Edge pretends to be Chrome 42:
+            // https://msdn.microsoft.com/en-us/library/hh869301%28v=vs.85%29.aspx
+            resolve(matchedEdge || !matchedChrome || parseInt(matchedChrome[1], 10) >= 43);
+        };
+    })["catch"](function () {
+        return false; // error, so assume unsupported
+    });
+}
+
+function _checkBlobSupport(idb) {
+    if (typeof supportsBlobs === 'boolean') {
+        return Promise$1.resolve(supportsBlobs);
+    }
+    return _checkBlobSupportWithoutCaching(idb).then(function (value) {
+        supportsBlobs = value;
+        return supportsBlobs;
+    });
+}
+
+function _deferReadiness(dbInfo) {
+    var dbContext = dbContexts[dbInfo.name];
+
+    // Create a deferred object representing the current database operation.
+    var deferredOperation = {};
+
+    deferredOperation.promise = new Promise$1(function (resolve) {
+        deferredOperation.resolve = resolve;
+    });
+
+    // Enqueue the deferred operation.
+    dbContext.deferredOperations.push(deferredOperation);
+
+    // Chain its promise to the database readiness.
+    if (!dbContext.dbReady) {
+        dbContext.dbReady = deferredOperation.promise;
+    } else {
+        dbContext.dbReady = dbContext.dbReady.then(function () {
+            return deferredOperation.promise;
+        });
+    }
+}
+
+function _advanceReadiness(dbInfo) {
+    var dbContext = dbContexts[dbInfo.name];
+
+    // Dequeue a deferred operation.
+    var deferredOperation = dbContext.deferredOperations.pop();
+
+    // Resolve its promise (which is part of the database readiness
+    // chain of promises).
+    if (deferredOperation) {
+        deferredOperation.resolve();
+    }
+}
+
+function _getConnection(dbInfo, upgradeNeeded) {
+    return new Promise$1(function (resolve, reject) {
+
+        if (dbInfo.db) {
+            if (upgradeNeeded) {
+                _deferReadiness(dbInfo);
+                dbInfo.db.close();
+            } else {
+                return resolve(dbInfo.db);
+            }
+        }
+
+        var dbArgs = [dbInfo.name];
+
+        if (upgradeNeeded) {
+            dbArgs.push(dbInfo.version);
+        }
+
+        var openreq = idb.open.apply(idb, dbArgs);
+
+        if (upgradeNeeded) {
+            openreq.onupgradeneeded = function (e) {
+                var db = openreq.result;
+                try {
+                    db.createObjectStore(dbInfo.storeName);
+                    if (e.oldVersion <= 1) {
+                        // Added when support for blob shims was added
+                        db.createObjectStore(DETECT_BLOB_SUPPORT_STORE);
+                    }
+                } catch (ex) {
+                    if (ex.name === 'ConstraintError') {
+                        console.warn('The database "' + dbInfo.name + '"' + ' has been upgraded from version ' + e.oldVersion + ' to version ' + e.newVersion + ', but the storage "' + dbInfo.storeName + '" already exists.');
+                    } else {
+                        throw ex;
+                    }
+                }
+            };
+        }
+
+        openreq.onerror = function () {
+            reject(openreq.error);
+        };
+
+        openreq.onsuccess = function () {
+            resolve(openreq.result);
+            _advanceReadiness(dbInfo);
+        };
+    });
+}
+
+function _getOriginalConnection(dbInfo) {
+    return _getConnection(dbInfo, false);
+}
+
+function _getUpgradedConnection(dbInfo) {
+    return _getConnection(dbInfo, true);
+}
+
+function _isUpgradeNeeded(dbInfo, defaultVersion) {
+    if (!dbInfo.db) {
+        return true;
+    }
+
+    var isNewStore = !dbInfo.db.objectStoreNames.contains(dbInfo.storeName);
+    var isDowngrade = dbInfo.version < dbInfo.db.version;
+    var isUpgrade = dbInfo.version > dbInfo.db.version;
+
+    if (isDowngrade) {
+        // If the version is not the default one
+        // then warn for impossible downgrade.
+        if (dbInfo.version !== defaultVersion) {
+            console.warn('The database "' + dbInfo.name + '"' + ' can\'t be downgraded from version ' + dbInfo.db.version + ' to version ' + dbInfo.version + '.');
+        }
+        // Align the versions to prevent errors.
+        dbInfo.version = dbInfo.db.version;
+    }
+
+    if (isUpgrade || isNewStore) {
+        // If the store is new then increment the version (if needed).
+        // This will trigger an "upgradeneeded" event which is required
+        // for creating a store.
+        if (isNewStore) {
+            var incVersion = dbInfo.db.version + 1;
+            if (incVersion > dbInfo.version) {
+                dbInfo.version = incVersion;
+            }
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+// encode a blob for indexeddb engines that don't support blobs
+function _encodeBlob(blob) {
+    return new Promise$1(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onerror = reject;
+        reader.onloadend = function (e) {
+            var base64 = btoa(e.target.result || '');
+            resolve({
+                __local_forage_encoded_blob: true,
+                data: base64,
+                type: blob.type
+            });
+        };
+        reader.readAsBinaryString(blob);
+    });
+}
+
+// decode an encoded blob
+function _decodeBlob(encodedBlob) {
+    var arrayBuff = _binStringToArrayBuffer(atob(encodedBlob.data));
+    return createBlob([arrayBuff], { type: encodedBlob.type });
+}
+
+// is this one of our fancy encoded blobs?
+function _isEncodedBlob(value) {
+    return value && value.__local_forage_encoded_blob;
+}
+
+// Specialize the default `ready()` function by making it dependent
+// on the current database operations. Thus, the driver will be actually
+// ready when it's been initialized (default) *and* there are no pending
+// operations on the database (initiated by some other instances).
+function _fullyReady(callback) {
+    var self = this;
+
+    var promise = self._initReady().then(function () {
+        var dbContext = dbContexts[self._dbInfo.name];
+
+        if (dbContext && dbContext.dbReady) {
+            return dbContext.dbReady;
+        }
+    });
+
+    executeTwoCallbacks(promise, callback, callback);
+    return promise;
+}
+
+// Open the IndexedDB database (automatically creates one if one didn't
+// previously exist), using any options set in the config.
+function _initStorage(options) {
+    var self = this;
+    var dbInfo = {
+        db: null
+    };
+
+    if (options) {
+        for (var i in options) {
+            dbInfo[i] = options[i];
+        }
+    }
+
+    // Initialize a singleton container for all running localForages.
+    if (!dbContexts) {
+        dbContexts = {};
+    }
+
+    // Get the current context of the database;
+    var dbContext = dbContexts[dbInfo.name];
+
+    // ...or create a new context.
+    if (!dbContext) {
+        dbContext = {
+            // Running localForages sharing a database.
+            forages: [],
+            // Shared database.
+            db: null,
+            // Database readiness (promise).
+            dbReady: null,
+            // Deferred operations on the database.
+            deferredOperations: []
+        };
+        // Register the new context in the global container.
+        dbContexts[dbInfo.name] = dbContext;
+    }
+
+    // Register itself as a running localForage in the current context.
+    dbContext.forages.push(self);
+
+    // Replace the default `ready()` function with the specialized one.
+    if (!self._initReady) {
+        self._initReady = self.ready;
+        self.ready = _fullyReady;
+    }
+
+    // Create an array of initialization states of the related localForages.
+    var initPromises = [];
+
+    function ignoreErrors() {
+        // Don't handle errors here,
+        // just makes sure related localForages aren't pending.
+        return Promise$1.resolve();
+    }
+
+    for (var j = 0; j < dbContext.forages.length; j++) {
+        var forage = dbContext.forages[j];
+        if (forage !== self) {
+            // Don't wait for itself...
+            initPromises.push(forage._initReady()["catch"](ignoreErrors));
+        }
+    }
+
+    // Take a snapshot of the related localForages.
+    var forages = dbContext.forages.slice(0);
+
+    // Initialize the connection process only when
+    // all the related localForages aren't pending.
+    return Promise$1.all(initPromises).then(function () {
+        dbInfo.db = dbContext.db;
+        // Get the connection or open a new one without upgrade.
+        return _getOriginalConnection(dbInfo);
+    }).then(function (db) {
+        dbInfo.db = db;
+        if (_isUpgradeNeeded(dbInfo, self._defaultConfig.version)) {
+            // Reopen the database for upgrading.
+            return _getUpgradedConnection(dbInfo);
+        }
+        return db;
+    }).then(function (db) {
+        dbInfo.db = dbContext.db = db;
+        self._dbInfo = dbInfo;
+        // Share the final connection amongst related localForages.
+        for (var k = 0; k < forages.length; k++) {
+            var forage = forages[k];
+            if (forage !== self) {
+                // Self is already up-to-date.
+                forage._dbInfo.db = dbInfo.db;
+                forage._dbInfo.version = dbInfo.version;
+            }
+        }
+    });
+}
+
+function getItem(key, callback) {
+    var self = this;
+
+    // Cast the key to a string, as that's all we can set as a key.
+    if (typeof key !== 'string') {
+        console.warn(key + ' used as a key, but it is not a string.');
+        key = String(key);
+    }
+
+    var promise = new Promise$1(function (resolve, reject) {
+        self.ready().then(function () {
+            var dbInfo = self._dbInfo;
+            var store = dbInfo.db.transaction(dbInfo.storeName, 'readonly').objectStore(dbInfo.storeName);
+            var req = store.get(key);
+
+            req.onsuccess = function () {
+                var value = req.result;
+                if (value === undefined) {
+                    value = null;
+                }
+                if (_isEncodedBlob(value)) {
+                    value = _decodeBlob(value);
+                }
+                resolve(value);
+            };
+
+            req.onerror = function () {
+                reject(req.error);
+            };
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+// Iterate over all items stored in database.
+function iterate(iterator, callback) {
+    var self = this;
+
+    var promise = new Promise$1(function (resolve, reject) {
+        self.ready().then(function () {
+            var dbInfo = self._dbInfo;
+            var store = dbInfo.db.transaction(dbInfo.storeName, 'readonly').objectStore(dbInfo.storeName);
+
+            var req = store.openCursor();
+            var iterationNumber = 1;
+
+            req.onsuccess = function () {
+                var cursor = req.result;
+
+                if (cursor) {
+                    var value = cursor.value;
+                    if (_isEncodedBlob(value)) {
+                        value = _decodeBlob(value);
+                    }
+                    var result = iterator(value, cursor.key, iterationNumber++);
+
+                    if (result !== void 0) {
+                        resolve(result);
+                    } else {
+                        cursor["continue"]();
+                    }
+                } else {
+                    resolve();
+                }
+            };
+
+            req.onerror = function () {
+                reject(req.error);
+            };
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+
+    return promise;
+}
+
+function setItem(key, value, callback) {
+    var self = this;
+
+    // Cast the key to a string, as that's all we can set as a key.
+    if (typeof key !== 'string') {
+        console.warn(key + ' used as a key, but it is not a string.');
+        key = String(key);
+    }
+
+    var promise = new Promise$1(function (resolve, reject) {
+        var dbInfo;
+        self.ready().then(function () {
+            dbInfo = self._dbInfo;
+            if (toString.call(value) === '[object Blob]') {
+                return _checkBlobSupport(dbInfo.db).then(function (blobSupport) {
+                    if (blobSupport) {
+                        return value;
+                    }
+                    return _encodeBlob(value);
+                });
+            }
+            return value;
+        }).then(function (value) {
+            var transaction = dbInfo.db.transaction(dbInfo.storeName, 'readwrite');
+            var store = transaction.objectStore(dbInfo.storeName);
+
+            // The reason we don't _save_ null is because IE 10 does
+            // not support saving the `null` type in IndexedDB. How
+            // ironic, given the bug below!
+            // See: https://github.com/mozilla/localForage/issues/161
+            if (value === null) {
+                value = undefined;
+            }
+
+            transaction.oncomplete = function () {
+                // Cast to undefined so the value passed to
+                // callback/promise is the same as what one would get out
+                // of `getItem()` later. This leads to some weirdness
+                // (setItem('foo', undefined) will return `null`), but
+                // it's not my fault localStorage is our baseline and that
+                // it's weird.
+                if (value === undefined) {
+                    value = null;
+                }
+
+                resolve(value);
+            };
+            transaction.onabort = transaction.onerror = function () {
+                var err = req.error ? req.error : req.transaction.error;
+                reject(err);
+            };
+
+            var req = store.put(value, key);
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+function removeItem(key, callback) {
+    var self = this;
+
+    // Cast the key to a string, as that's all we can set as a key.
+    if (typeof key !== 'string') {
+        console.warn(key + ' used as a key, but it is not a string.');
+        key = String(key);
+    }
+
+    var promise = new Promise$1(function (resolve, reject) {
+        self.ready().then(function () {
+            var dbInfo = self._dbInfo;
+            var transaction = dbInfo.db.transaction(dbInfo.storeName, 'readwrite');
+            var store = transaction.objectStore(dbInfo.storeName);
+
+            // We use a Grunt task to make this safe for IE and some
+            // versions of Android (including those used by Cordova).
+            // Normally IE won't like `.delete()` and will insist on
+            // using `['delete']()`, but we have a build step that
+            // fixes this for us now.
+            var req = store["delete"](key);
+            transaction.oncomplete = function () {
+                resolve();
+            };
+
+            transaction.onerror = function () {
+                reject(req.error);
+            };
+
+            // The request will be also be aborted if we've exceeded our storage
+            // space.
+            transaction.onabort = function () {
+                var err = req.error ? req.error : req.transaction.error;
+                reject(err);
+            };
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+function clear(callback) {
+    var self = this;
+
+    var promise = new Promise$1(function (resolve, reject) {
+        self.ready().then(function () {
+            var dbInfo = self._dbInfo;
+            var transaction = dbInfo.db.transaction(dbInfo.storeName, 'readwrite');
+            var store = transaction.objectStore(dbInfo.storeName);
+            var req = store.clear();
+
+            transaction.oncomplete = function () {
+                resolve();
+            };
+
+            transaction.onabort = transaction.onerror = function () {
+                var err = req.error ? req.error : req.transaction.error;
+                reject(err);
+            };
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+function length(callback) {
+    var self = this;
+
+    var promise = new Promise$1(function (resolve, reject) {
+        self.ready().then(function () {
+            var dbInfo = self._dbInfo;
+            var store = dbInfo.db.transaction(dbInfo.storeName, 'readonly').objectStore(dbInfo.storeName);
+            var req = store.count();
+
+            req.onsuccess = function () {
+                resolve(req.result);
+            };
+
+            req.onerror = function () {
+                reject(req.error);
+            };
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+function key(n, callback) {
+    var self = this;
+
+    var promise = new Promise$1(function (resolve, reject) {
+        if (n < 0) {
+            resolve(null);
+
+            return;
+        }
+
+        self.ready().then(function () {
+            var dbInfo = self._dbInfo;
+            var store = dbInfo.db.transaction(dbInfo.storeName, 'readonly').objectStore(dbInfo.storeName);
+
+            var advanced = false;
+            var req = store.openCursor();
+            req.onsuccess = function () {
+                var cursor = req.result;
+                if (!cursor) {
+                    // this means there weren't enough keys
+                    resolve(null);
+
+                    return;
+                }
+
+                if (n === 0) {
+                    // We have the first key, return it if that's what they
+                    // wanted.
+                    resolve(cursor.key);
+                } else {
+                    if (!advanced) {
+                        // Otherwise, ask the cursor to skip ahead n
+                        // records.
+                        advanced = true;
+                        cursor.advance(n);
+                    } else {
+                        // When we get here, we've got the nth key.
+                        resolve(cursor.key);
+                    }
+                }
+            };
+
+            req.onerror = function () {
+                reject(req.error);
+            };
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+function keys(callback) {
+    var self = this;
+
+    var promise = new Promise$1(function (resolve, reject) {
+        self.ready().then(function () {
+            var dbInfo = self._dbInfo;
+            var store = dbInfo.db.transaction(dbInfo.storeName, 'readonly').objectStore(dbInfo.storeName);
+
+            var req = store.openCursor();
+            var keys = [];
+
+            req.onsuccess = function () {
+                var cursor = req.result;
+
+                if (!cursor) {
+                    resolve(keys);
+                    return;
+                }
+
+                keys.push(cursor.key);
+                cursor["continue"]();
+            };
+
+            req.onerror = function () {
+                reject(req.error);
+            };
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+var asyncStorage = {
+    _driver: 'asyncStorage',
+    _initStorage: _initStorage,
+    iterate: iterate,
+    getItem: getItem,
+    setItem: setItem,
+    removeItem: removeItem,
+    clear: clear,
+    length: length,
+    key: key,
+    keys: keys
+};
+
+// Sadly, the best way to save binary data in WebSQL/localStorage is serializing
+// it to Base64, so this is how we store it to prevent very strange errors with less
+// verbose ways of binary <-> string data storage.
+var BASE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+var BLOB_TYPE_PREFIX = '~~local_forage_type~';
+var BLOB_TYPE_PREFIX_REGEX = /^~~local_forage_type~([^~]+)~/;
+
+var SERIALIZED_MARKER = '__lfsc__:';
+var SERIALIZED_MARKER_LENGTH = SERIALIZED_MARKER.length;
+
+// OMG the serializations!
+var TYPE_ARRAYBUFFER = 'arbf';
+var TYPE_BLOB = 'blob';
+var TYPE_INT8ARRAY = 'si08';
+var TYPE_UINT8ARRAY = 'ui08';
+var TYPE_UINT8CLAMPEDARRAY = 'uic8';
+var TYPE_INT16ARRAY = 'si16';
+var TYPE_INT32ARRAY = 'si32';
+var TYPE_UINT16ARRAY = 'ur16';
+var TYPE_UINT32ARRAY = 'ui32';
+var TYPE_FLOAT32ARRAY = 'fl32';
+var TYPE_FLOAT64ARRAY = 'fl64';
+var TYPE_SERIALIZED_MARKER_LENGTH = SERIALIZED_MARKER_LENGTH + TYPE_ARRAYBUFFER.length;
+
+var toString$1 = Object.prototype.toString;
+
+function stringToBuffer(serializedString) {
+    // Fill the string into a ArrayBuffer.
+    var bufferLength = serializedString.length * 0.75;
+    var len = serializedString.length;
+    var i;
+    var p = 0;
+    var encoded1, encoded2, encoded3, encoded4;
+
+    if (serializedString[serializedString.length - 1] === '=') {
+        bufferLength--;
+        if (serializedString[serializedString.length - 2] === '=') {
+            bufferLength--;
+        }
+    }
+
+    var buffer = new ArrayBuffer(bufferLength);
+    var bytes = new Uint8Array(buffer);
+
+    for (i = 0; i < len; i += 4) {
+        encoded1 = BASE_CHARS.indexOf(serializedString[i]);
+        encoded2 = BASE_CHARS.indexOf(serializedString[i + 1]);
+        encoded3 = BASE_CHARS.indexOf(serializedString[i + 2]);
+        encoded4 = BASE_CHARS.indexOf(serializedString[i + 3]);
+
+        /*jslint bitwise: true */
+        bytes[p++] = encoded1 << 2 | encoded2 >> 4;
+        bytes[p++] = (encoded2 & 15) << 4 | encoded3 >> 2;
+        bytes[p++] = (encoded3 & 3) << 6 | encoded4 & 63;
+    }
+    return buffer;
+}
+
+// Converts a buffer to a string to store, serialized, in the backend
+// storage library.
+function bufferToString(buffer) {
+    // base64-arraybuffer
+    var bytes = new Uint8Array(buffer);
+    var base64String = '';
+    var i;
+
+    for (i = 0; i < bytes.length; i += 3) {
+        /*jslint bitwise: true */
+        base64String += BASE_CHARS[bytes[i] >> 2];
+        base64String += BASE_CHARS[(bytes[i] & 3) << 4 | bytes[i + 1] >> 4];
+        base64String += BASE_CHARS[(bytes[i + 1] & 15) << 2 | bytes[i + 2] >> 6];
+        base64String += BASE_CHARS[bytes[i + 2] & 63];
+    }
+
+    if (bytes.length % 3 === 2) {
+        base64String = base64String.substring(0, base64String.length - 1) + '=';
+    } else if (bytes.length % 3 === 1) {
+        base64String = base64String.substring(0, base64String.length - 2) + '==';
+    }
+
+    return base64String;
+}
+
+// Serialize a value, afterwards executing a callback (which usually
+// instructs the `setItem()` callback/promise to be executed). This is how
+// we store binary data with localStorage.
+function serialize(value, callback) {
+    var valueType = '';
+    if (value) {
+        valueType = toString$1.call(value);
+    }
+
+    // Cannot use `value instanceof ArrayBuffer` or such here, as these
+    // checks fail when running the tests using casper.js...
+    //
+    // TODO: See why those tests fail and use a better solution.
+    if (value && (valueType === '[object ArrayBuffer]' || value.buffer && toString$1.call(value.buffer) === '[object ArrayBuffer]')) {
+        // Convert binary arrays to a string and prefix the string with
+        // a special marker.
+        var buffer;
+        var marker = SERIALIZED_MARKER;
+
+        if (value instanceof ArrayBuffer) {
+            buffer = value;
+            marker += TYPE_ARRAYBUFFER;
+        } else {
+            buffer = value.buffer;
+
+            if (valueType === '[object Int8Array]') {
+                marker += TYPE_INT8ARRAY;
+            } else if (valueType === '[object Uint8Array]') {
+                marker += TYPE_UINT8ARRAY;
+            } else if (valueType === '[object Uint8ClampedArray]') {
+                marker += TYPE_UINT8CLAMPEDARRAY;
+            } else if (valueType === '[object Int16Array]') {
+                marker += TYPE_INT16ARRAY;
+            } else if (valueType === '[object Uint16Array]') {
+                marker += TYPE_UINT16ARRAY;
+            } else if (valueType === '[object Int32Array]') {
+                marker += TYPE_INT32ARRAY;
+            } else if (valueType === '[object Uint32Array]') {
+                marker += TYPE_UINT32ARRAY;
+            } else if (valueType === '[object Float32Array]') {
+                marker += TYPE_FLOAT32ARRAY;
+            } else if (valueType === '[object Float64Array]') {
+                marker += TYPE_FLOAT64ARRAY;
+            } else {
+                callback(new Error('Failed to get type for BinaryArray'));
+            }
+        }
+
+        callback(marker + bufferToString(buffer));
+    } else if (valueType === '[object Blob]') {
+        // Conver the blob to a binaryArray and then to a string.
+        var fileReader = new FileReader();
+
+        fileReader.onload = function () {
+            // Backwards-compatible prefix for the blob type.
+            var str = BLOB_TYPE_PREFIX + value.type + '~' + bufferToString(this.result);
+
+            callback(SERIALIZED_MARKER + TYPE_BLOB + str);
+        };
+
+        fileReader.readAsArrayBuffer(value);
+    } else {
+        try {
+            callback(JSON.stringify(value));
+        } catch (e) {
+            console.error("Couldn't convert value into a JSON string: ", value);
+
+            callback(null, e);
+        }
+    }
+}
+
+// Deserialize data we've inserted into a value column/field. We place
+// special markers into our strings to mark them as encoded; this isn't
+// as nice as a meta field, but it's the only sane thing we can do whilst
+// keeping localStorage support intact.
+//
+// Oftentimes this will just deserialize JSON content, but if we have a
+// special marker (SERIALIZED_MARKER, defined above), we will extract
+// some kind of arraybuffer/binary data/typed array out of the string.
+function deserialize(value) {
+    // If we haven't marked this string as being specially serialized (i.e.
+    // something other than serialized JSON), we can just return it and be
+    // done with it.
+    if (value.substring(0, SERIALIZED_MARKER_LENGTH) !== SERIALIZED_MARKER) {
+        return JSON.parse(value);
+    }
+
+    // The following code deals with deserializing some kind of Blob or
+    // TypedArray. First we separate out the type of data we're dealing
+    // with from the data itself.
+    var serializedString = value.substring(TYPE_SERIALIZED_MARKER_LENGTH);
+    var type = value.substring(SERIALIZED_MARKER_LENGTH, TYPE_SERIALIZED_MARKER_LENGTH);
+
+    var blobType;
+    // Backwards-compatible blob type serialization strategy.
+    // DBs created with older versions of localForage will simply not have the blob type.
+    if (type === TYPE_BLOB && BLOB_TYPE_PREFIX_REGEX.test(serializedString)) {
+        var matcher = serializedString.match(BLOB_TYPE_PREFIX_REGEX);
+        blobType = matcher[1];
+        serializedString = serializedString.substring(matcher[0].length);
+    }
+    var buffer = stringToBuffer(serializedString);
+
+    // Return the right type based on the code/type set during
+    // serialization.
+    switch (type) {
+        case TYPE_ARRAYBUFFER:
+            return buffer;
+        case TYPE_BLOB:
+            return createBlob([buffer], { type: blobType });
+        case TYPE_INT8ARRAY:
+            return new Int8Array(buffer);
+        case TYPE_UINT8ARRAY:
+            return new Uint8Array(buffer);
+        case TYPE_UINT8CLAMPEDARRAY:
+            return new Uint8ClampedArray(buffer);
+        case TYPE_INT16ARRAY:
+            return new Int16Array(buffer);
+        case TYPE_UINT16ARRAY:
+            return new Uint16Array(buffer);
+        case TYPE_INT32ARRAY:
+            return new Int32Array(buffer);
+        case TYPE_UINT32ARRAY:
+            return new Uint32Array(buffer);
+        case TYPE_FLOAT32ARRAY:
+            return new Float32Array(buffer);
+        case TYPE_FLOAT64ARRAY:
+            return new Float64Array(buffer);
+        default:
+            throw new Error('Unkown type: ' + type);
+    }
+}
+
+var localforageSerializer = {
+    serialize: serialize,
+    deserialize: deserialize,
+    stringToBuffer: stringToBuffer,
+    bufferToString: bufferToString
+};
+
+/*
+ * Includes code from:
+ *
+ * base64-arraybuffer
+ * https://github.com/niklasvh/base64-arraybuffer
+ *
+ * Copyright (c) 2012 Niklas von Hertzen
+ * Licensed under the MIT license.
+ */
+// Open the WebSQL database (automatically creates one if one didn't
+// previously exist), using any options set in the config.
+function _initStorage$1(options) {
+    var self = this;
+    var dbInfo = {
+        db: null
+    };
+
+    if (options) {
+        for (var i in options) {
+            dbInfo[i] = typeof options[i] !== 'string' ? options[i].toString() : options[i];
+        }
+    }
+
+    var dbInfoPromise = new Promise$1(function (resolve, reject) {
+        // Open the database; the openDatabase API will automatically
+        // create it for us if it doesn't exist.
+        try {
+            dbInfo.db = openDatabase(dbInfo.name, String(dbInfo.version), dbInfo.description, dbInfo.size);
+        } catch (e) {
+            return reject(e);
+        }
+
+        // Create our key/value table if it doesn't exist.
+        dbInfo.db.transaction(function (t) {
+            t.executeSql('CREATE TABLE IF NOT EXISTS ' + dbInfo.storeName + ' (id INTEGER PRIMARY KEY, key unique, value)', [], function () {
+                self._dbInfo = dbInfo;
+                resolve();
+            }, function (t, error) {
+                reject(error);
+            });
+        });
+    });
+
+    dbInfo.serializer = localforageSerializer;
+    return dbInfoPromise;
+}
+
+function getItem$1(key, callback) {
+    var self = this;
+
+    // Cast the key to a string, as that's all we can set as a key.
+    if (typeof key !== 'string') {
+        console.warn(key + ' used as a key, but it is not a string.');
+        key = String(key);
+    }
+
+    var promise = new Promise$1(function (resolve, reject) {
+        self.ready().then(function () {
+            var dbInfo = self._dbInfo;
+            dbInfo.db.transaction(function (t) {
+                t.executeSql('SELECT * FROM ' + dbInfo.storeName + ' WHERE key = ? LIMIT 1', [key], function (t, results) {
+                    var result = results.rows.length ? results.rows.item(0).value : null;
+
+                    // Check to see if this is serialized content we need to
+                    // unpack.
+                    if (result) {
+                        result = dbInfo.serializer.deserialize(result);
+                    }
+
+                    resolve(result);
+                }, function (t, error) {
+
+                    reject(error);
+                });
+            });
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+function iterate$1(iterator, callback) {
+    var self = this;
+
+    var promise = new Promise$1(function (resolve, reject) {
+        self.ready().then(function () {
+            var dbInfo = self._dbInfo;
+
+            dbInfo.db.transaction(function (t) {
+                t.executeSql('SELECT * FROM ' + dbInfo.storeName, [], function (t, results) {
+                    var rows = results.rows;
+                    var length = rows.length;
+
+                    for (var i = 0; i < length; i++) {
+                        var item = rows.item(i);
+                        var result = item.value;
+
+                        // Check to see if this is serialized content
+                        // we need to unpack.
+                        if (result) {
+                            result = dbInfo.serializer.deserialize(result);
+                        }
+
+                        result = iterator(result, item.key, i + 1);
+
+                        // void(0) prevents problems with redefinition
+                        // of `undefined`.
+                        if (result !== void 0) {
+                            resolve(result);
+                            return;
+                        }
+                    }
+
+                    resolve();
+                }, function (t, error) {
+                    reject(error);
+                });
+            });
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+function setItem$1(key, value, callback) {
+    var self = this;
+
+    // Cast the key to a string, as that's all we can set as a key.
+    if (typeof key !== 'string') {
+        console.warn(key + ' used as a key, but it is not a string.');
+        key = String(key);
+    }
+
+    var promise = new Promise$1(function (resolve, reject) {
+        self.ready().then(function () {
+            // The localStorage API doesn't return undefined values in an
+            // "expected" way, so undefined is always cast to null in all
+            // drivers. See: https://github.com/mozilla/localForage/pull/42
+            if (value === undefined) {
+                value = null;
+            }
+
+            // Save the original value to pass to the callback.
+            var originalValue = value;
+
+            var dbInfo = self._dbInfo;
+            dbInfo.serializer.serialize(value, function (value, error) {
+                if (error) {
+                    reject(error);
+                } else {
+                    dbInfo.db.transaction(function (t) {
+                        t.executeSql('INSERT OR REPLACE INTO ' + dbInfo.storeName + ' (key, value) VALUES (?, ?)', [key, value], function () {
+                            resolve(originalValue);
+                        }, function (t, error) {
+                            reject(error);
+                        });
+                    }, function (sqlError) {
+                        // The transaction failed; check
+                        // to see if it's a quota error.
+                        if (sqlError.code === sqlError.QUOTA_ERR) {
+                            // We reject the callback outright for now, but
+                            // it's worth trying to re-run the transaction.
+                            // Even if the user accepts the prompt to use
+                            // more storage on Safari, this error will
+                            // be called.
+                            //
+                            // TODO: Try to re-run the transaction.
+                            reject(sqlError);
+                        }
+                    });
+                }
+            });
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+function removeItem$1(key, callback) {
+    var self = this;
+
+    // Cast the key to a string, as that's all we can set as a key.
+    if (typeof key !== 'string') {
+        console.warn(key + ' used as a key, but it is not a string.');
+        key = String(key);
+    }
+
+    var promise = new Promise$1(function (resolve, reject) {
+        self.ready().then(function () {
+            var dbInfo = self._dbInfo;
+            dbInfo.db.transaction(function (t) {
+                t.executeSql('DELETE FROM ' + dbInfo.storeName + ' WHERE key = ?', [key], function () {
+                    resolve();
+                }, function (t, error) {
+
+                    reject(error);
+                });
+            });
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+// Deletes every item in the table.
+// TODO: Find out if this resets the AUTO_INCREMENT number.
+function clear$1(callback) {
+    var self = this;
+
+    var promise = new Promise$1(function (resolve, reject) {
+        self.ready().then(function () {
+            var dbInfo = self._dbInfo;
+            dbInfo.db.transaction(function (t) {
+                t.executeSql('DELETE FROM ' + dbInfo.storeName, [], function () {
+                    resolve();
+                }, function (t, error) {
+                    reject(error);
+                });
+            });
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+// Does a simple `COUNT(key)` to get the number of items stored in
+// localForage.
+function length$1(callback) {
+    var self = this;
+
+    var promise = new Promise$1(function (resolve, reject) {
+        self.ready().then(function () {
+            var dbInfo = self._dbInfo;
+            dbInfo.db.transaction(function (t) {
+                // Ahhh, SQL makes this one soooooo easy.
+                t.executeSql('SELECT COUNT(key) as c FROM ' + dbInfo.storeName, [], function (t, results) {
+                    var result = results.rows.item(0).c;
+
+                    resolve(result);
+                }, function (t, error) {
+
+                    reject(error);
+                });
+            });
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+// Return the key located at key index X; essentially gets the key from a
+// `WHERE id = ?`. This is the most efficient way I can think to implement
+// this rarely-used (in my experience) part of the API, but it can seem
+// inconsistent, because we do `INSERT OR REPLACE INTO` on `setItem()`, so
+// the ID of each key will change every time it's updated. Perhaps a stored
+// procedure for the `setItem()` SQL would solve this problem?
+// TODO: Don't change ID on `setItem()`.
+function key$1(n, callback) {
+    var self = this;
+
+    var promise = new Promise$1(function (resolve, reject) {
+        self.ready().then(function () {
+            var dbInfo = self._dbInfo;
+            dbInfo.db.transaction(function (t) {
+                t.executeSql('SELECT key FROM ' + dbInfo.storeName + ' WHERE id = ? LIMIT 1', [n + 1], function (t, results) {
+                    var result = results.rows.length ? results.rows.item(0).key : null;
+                    resolve(result);
+                }, function (t, error) {
+                    reject(error);
+                });
+            });
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+function keys$1(callback) {
+    var self = this;
+
+    var promise = new Promise$1(function (resolve, reject) {
+        self.ready().then(function () {
+            var dbInfo = self._dbInfo;
+            dbInfo.db.transaction(function (t) {
+                t.executeSql('SELECT key FROM ' + dbInfo.storeName, [], function (t, results) {
+                    var keys = [];
+
+                    for (var i = 0; i < results.rows.length; i++) {
+                        keys.push(results.rows.item(i).key);
+                    }
+
+                    resolve(keys);
+                }, function (t, error) {
+
+                    reject(error);
+                });
+            });
+        })["catch"](reject);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+var webSQLStorage = {
+    _driver: 'webSQLStorage',
+    _initStorage: _initStorage$1,
+    iterate: iterate$1,
+    getItem: getItem$1,
+    setItem: setItem$1,
+    removeItem: removeItem$1,
+    clear: clear$1,
+    length: length$1,
+    key: key$1,
+    keys: keys$1
+};
+
+// Config the localStorage backend, using options set in the config.
+function _initStorage$2(options) {
+    var self = this;
+    var dbInfo = {};
+    if (options) {
+        for (var i in options) {
+            dbInfo[i] = options[i];
+        }
+    }
+
+    dbInfo.keyPrefix = dbInfo.name + '/';
+
+    if (dbInfo.storeName !== self._defaultConfig.storeName) {
+        dbInfo.keyPrefix += dbInfo.storeName + '/';
+    }
+
+    self._dbInfo = dbInfo;
+    dbInfo.serializer = localforageSerializer;
+
+    return Promise$1.resolve();
+}
+
+// Remove all keys from the datastore, effectively destroying all data in
+// the app's key/value store!
+function clear$2(callback) {
+    var self = this;
+    var promise = self.ready().then(function () {
+        var keyPrefix = self._dbInfo.keyPrefix;
+
+        for (var i = localStorage.length - 1; i >= 0; i--) {
+            var key = localStorage.key(i);
+
+            if (key.indexOf(keyPrefix) === 0) {
+                localStorage.removeItem(key);
+            }
+        }
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+// Retrieve an item from the store. Unlike the original async_storage
+// library in Gaia, we don't modify return values at all. If a key's value
+// is `undefined`, we pass that value to the callback function.
+function getItem$2(key, callback) {
+    var self = this;
+
+    // Cast the key to a string, as that's all we can set as a key.
+    if (typeof key !== 'string') {
+        console.warn(key + ' used as a key, but it is not a string.');
+        key = String(key);
+    }
+
+    var promise = self.ready().then(function () {
+        var dbInfo = self._dbInfo;
+        var result = localStorage.getItem(dbInfo.keyPrefix + key);
+
+        // If a result was found, parse it from the serialized
+        // string into a JS object. If result isn't truthy, the key
+        // is likely undefined and we'll pass it straight to the
+        // callback.
+        if (result) {
+            result = dbInfo.serializer.deserialize(result);
+        }
+
+        return result;
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+// Iterate over all items in the store.
+function iterate$2(iterator, callback) {
+    var self = this;
+
+    var promise = self.ready().then(function () {
+        var dbInfo = self._dbInfo;
+        var keyPrefix = dbInfo.keyPrefix;
+        var keyPrefixLength = keyPrefix.length;
+        var length = localStorage.length;
+
+        // We use a dedicated iterator instead of the `i` variable below
+        // so other keys we fetch in localStorage aren't counted in
+        // the `iterationNumber` argument passed to the `iterate()`
+        // callback.
+        //
+        // See: github.com/mozilla/localForage/pull/435#discussion_r38061530
+        var iterationNumber = 1;
+
+        for (var i = 0; i < length; i++) {
+            var key = localStorage.key(i);
+            if (key.indexOf(keyPrefix) !== 0) {
+                continue;
+            }
+            var value = localStorage.getItem(key);
+
+            // If a result was found, parse it from the serialized
+            // string into a JS object. If result isn't truthy, the
+            // key is likely undefined and we'll pass it straight
+            // to the iterator.
+            if (value) {
+                value = dbInfo.serializer.deserialize(value);
+            }
+
+            value = iterator(value, key.substring(keyPrefixLength), iterationNumber++);
+
+            if (value !== void 0) {
+                return value;
+            }
+        }
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+// Same as localStorage's key() method, except takes a callback.
+function key$2(n, callback) {
+    var self = this;
+    var promise = self.ready().then(function () {
+        var dbInfo = self._dbInfo;
+        var result;
+        try {
+            result = localStorage.key(n);
+        } catch (error) {
+            result = null;
+        }
+
+        // Remove the prefix from the key, if a key is found.
+        if (result) {
+            result = result.substring(dbInfo.keyPrefix.length);
+        }
+
+        return result;
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+function keys$2(callback) {
+    var self = this;
+    var promise = self.ready().then(function () {
+        var dbInfo = self._dbInfo;
+        var length = localStorage.length;
+        var keys = [];
+
+        for (var i = 0; i < length; i++) {
+            if (localStorage.key(i).indexOf(dbInfo.keyPrefix) === 0) {
+                keys.push(localStorage.key(i).substring(dbInfo.keyPrefix.length));
+            }
+        }
+
+        return keys;
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+// Supply the number of keys in the datastore to the callback function.
+function length$2(callback) {
+    var self = this;
+    var promise = self.keys().then(function (keys) {
+        return keys.length;
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+// Remove an item from the store, nice and simple.
+function removeItem$2(key, callback) {
+    var self = this;
+
+    // Cast the key to a string, as that's all we can set as a key.
+    if (typeof key !== 'string') {
+        console.warn(key + ' used as a key, but it is not a string.');
+        key = String(key);
+    }
+
+    var promise = self.ready().then(function () {
+        var dbInfo = self._dbInfo;
+        localStorage.removeItem(dbInfo.keyPrefix + key);
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+// Set a key's value and run an optional callback once the value is set.
+// Unlike Gaia's implementation, the callback function is passed the value,
+// in case you want to operate on that value only after you're sure it
+// saved, or something like that.
+function setItem$2(key, value, callback) {
+    var self = this;
+
+    // Cast the key to a string, as that's all we can set as a key.
+    if (typeof key !== 'string') {
+        console.warn(key + ' used as a key, but it is not a string.');
+        key = String(key);
+    }
+
+    var promise = self.ready().then(function () {
+        // Convert undefined values to null.
+        // https://github.com/mozilla/localForage/pull/42
+        if (value === undefined) {
+            value = null;
+        }
+
+        // Save the original value to pass to the callback.
+        var originalValue = value;
+
+        return new Promise$1(function (resolve, reject) {
+            var dbInfo = self._dbInfo;
+            dbInfo.serializer.serialize(value, function (value, error) {
+                if (error) {
+                    reject(error);
+                } else {
+                    try {
+                        localStorage.setItem(dbInfo.keyPrefix + key, value);
+                        resolve(originalValue);
+                    } catch (e) {
+                        // localStorage capacity exceeded.
+                        // TODO: Make this a specific error/event.
+                        if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+                            reject(e);
+                        }
+                        reject(e);
+                    }
+                }
+            });
+        });
+    });
+
+    executeCallback(promise, callback);
+    return promise;
+}
+
+var localStorageWrapper = {
+    _driver: 'localStorageWrapper',
+    _initStorage: _initStorage$2,
+    // Default API, from Gaia/localStorage.
+    iterate: iterate$2,
+    getItem: getItem$2,
+    setItem: setItem$2,
+    removeItem: removeItem$2,
+    clear: clear$2,
+    length: length$2,
+    key: key$2,
+    keys: keys$2
+};
+
+// Custom drivers are stored here when `defineDriver()` is called.
+// They are shared across all instances of localForage.
+var CustomDrivers = {};
+
+var DriverType = {
+    INDEXEDDB: 'asyncStorage',
+    LOCALSTORAGE: 'localStorageWrapper',
+    WEBSQL: 'webSQLStorage'
+};
+
+var DefaultDriverOrder = [DriverType.INDEXEDDB, DriverType.WEBSQL, DriverType.LOCALSTORAGE];
+
+var LibraryMethods = ['clear', 'getItem', 'iterate', 'key', 'keys', 'length', 'removeItem', 'setItem'];
+
+var DefaultConfig = {
+    description: '',
+    driver: DefaultDriverOrder.slice(),
+    name: 'localforage',
+    // Default DB size is _JUST UNDER_ 5MB, as it's the highest size
+    // we can use without a prompt.
+    size: 4980736,
+    storeName: 'keyvaluepairs',
+    version: 1.0
+};
+
+var driverSupport = {};
+// Check to see if IndexedDB is available and if it is the latest
+// implementation; it's our preferred backend library. We use "_spec_test"
+// as the name of the database because it's not the one we'll operate on,
+// but it's useful to make sure its using the right spec.
+// See: https://github.com/mozilla/localForage/issues/128
+driverSupport[DriverType.INDEXEDDB] = isIndexedDBValid();
+
+driverSupport[DriverType.WEBSQL] = isWebSQLValid();
+
+driverSupport[DriverType.LOCALSTORAGE] = isLocalStorageValid();
+
+var isArray = Array.isArray || function (arg) {
+    return Object.prototype.toString.call(arg) === '[object Array]';
+};
+
+function callWhenReady(localForageInstance, libraryMethod) {
+    localForageInstance[libraryMethod] = function () {
+        var _args = arguments;
+        return localForageInstance.ready().then(function () {
+            return localForageInstance[libraryMethod].apply(localForageInstance, _args);
+        });
+    };
+}
+
+function extend() {
+    for (var i = 1; i < arguments.length; i++) {
+        var arg = arguments[i];
+
+        if (arg) {
+            for (var key in arg) {
+                if (arg.hasOwnProperty(key)) {
+                    if (isArray(arg[key])) {
+                        arguments[0][key] = arg[key].slice();
+                    } else {
+                        arguments[0][key] = arg[key];
+                    }
+                }
+            }
+        }
+    }
+
+    return arguments[0];
+}
+
+function isLibraryDriver(driverName) {
+    for (var driver in DriverType) {
+        if (DriverType.hasOwnProperty(driver) && DriverType[driver] === driverName) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+var LocalForage = function () {
+    function LocalForage(options) {
+        _classCallCheck(this, LocalForage);
+
+        this.INDEXEDDB = DriverType.INDEXEDDB;
+        this.LOCALSTORAGE = DriverType.LOCALSTORAGE;
+        this.WEBSQL = DriverType.WEBSQL;
+
+        this._defaultConfig = extend({}, DefaultConfig);
+        this._config = extend({}, this._defaultConfig, options);
+        this._driverSet = null;
+        this._initDriver = null;
+        this._ready = false;
+        this._dbInfo = null;
+
+        this._wrapLibraryMethodsWithReady();
+        this.setDriver(this._config.driver);
+    }
+
+    // Set any config values for localForage; can be called anytime before
+    // the first API call (e.g. `getItem`, `setItem`).
+    // We loop through options so we don't overwrite existing config
+    // values.
+
+
+    LocalForage.prototype.config = function config(options) {
+        // If the options argument is an object, we use it to set values.
+        // Otherwise, we return either a specified config value or all
+        // config values.
+        if ((typeof options === 'undefined' ? 'undefined' : _typeof(options)) === 'object') {
+            // If localforage is ready and fully initialized, we can't set
+            // any new configuration values. Instead, we return an error.
+            if (this._ready) {
+                return new Error("Can't call config() after localforage " + 'has been used.');
+            }
+
+            for (var i in options) {
+                if (i === 'storeName') {
+                    options[i] = options[i].replace(/\W/g, '_');
+                }
+
+                this._config[i] = options[i];
+            }
+
+            // after all config options are set and
+            // the driver option is used, try setting it
+            if ('driver' in options && options.driver) {
+                this.setDriver(this._config.driver);
+            }
+
+            return true;
+        } else if (typeof options === 'string') {
+            return this._config[options];
+        } else {
+            return this._config;
+        }
+    };
+
+    // Used to define a custom driver, shared across all instances of
+    // localForage.
+
+
+    LocalForage.prototype.defineDriver = function defineDriver(driverObject, callback, errorCallback) {
+        var promise = new Promise$1(function (resolve, reject) {
+            try {
+                var driverName = driverObject._driver;
+                var complianceError = new Error('Custom driver not compliant; see ' + 'https://mozilla.github.io/localForage/#definedriver');
+                var namingError = new Error('Custom driver name already in use: ' + driverObject._driver);
+
+                // A driver name should be defined and not overlap with the
+                // library-defined, default drivers.
+                if (!driverObject._driver) {
+                    reject(complianceError);
+                    return;
+                }
+                if (isLibraryDriver(driverObject._driver)) {
+                    reject(namingError);
+                    return;
+                }
+
+                var customDriverMethods = LibraryMethods.concat('_initStorage');
+                for (var i = 0; i < customDriverMethods.length; i++) {
+                    var customDriverMethod = customDriverMethods[i];
+                    if (!customDriverMethod || !driverObject[customDriverMethod] || typeof driverObject[customDriverMethod] !== 'function') {
+                        reject(complianceError);
+                        return;
+                    }
+                }
+
+                var supportPromise = Promise$1.resolve(true);
+                if ('_support' in driverObject) {
+                    if (driverObject._support && typeof driverObject._support === 'function') {
+                        supportPromise = driverObject._support();
+                    } else {
+                        supportPromise = Promise$1.resolve(!!driverObject._support);
+                    }
+                }
+
+                supportPromise.then(function (supportResult) {
+                    driverSupport[driverName] = supportResult;
+                    CustomDrivers[driverName] = driverObject;
+                    resolve();
+                }, reject);
+            } catch (e) {
+                reject(e);
+            }
+        });
+
+        executeTwoCallbacks(promise, callback, errorCallback);
+        return promise;
+    };
+
+    LocalForage.prototype.driver = function driver() {
+        return this._driver || null;
+    };
+
+    LocalForage.prototype.getDriver = function getDriver(driverName, callback, errorCallback) {
+        var self = this;
+        var getDriverPromise = Promise$1.resolve().then(function () {
+            if (isLibraryDriver(driverName)) {
+                switch (driverName) {
+                    case self.INDEXEDDB:
+                        return asyncStorage;
+                    case self.LOCALSTORAGE:
+                        return localStorageWrapper;
+                    case self.WEBSQL:
+                        return webSQLStorage;
+                }
+            } else if (CustomDrivers[driverName]) {
+                return CustomDrivers[driverName];
+            } else {
+                throw new Error('Driver not found.');
+            }
+        });
+        executeTwoCallbacks(getDriverPromise, callback, errorCallback);
+        return getDriverPromise;
+    };
+
+    LocalForage.prototype.getSerializer = function getSerializer(callback) {
+        var serializerPromise = Promise$1.resolve(localforageSerializer);
+        executeTwoCallbacks(serializerPromise, callback);
+        return serializerPromise;
+    };
+
+    LocalForage.prototype.ready = function ready(callback) {
+        var self = this;
+
+        var promise = self._driverSet.then(function () {
+            if (self._ready === null) {
+                self._ready = self._initDriver();
+            }
+
+            return self._ready;
+        });
+
+        executeTwoCallbacks(promise, callback, callback);
+        return promise;
+    };
+
+    LocalForage.prototype.setDriver = function setDriver(drivers, callback, errorCallback) {
+        var self = this;
+
+        if (!isArray(drivers)) {
+            drivers = [drivers];
+        }
+
+        var supportedDrivers = this._getSupportedDrivers(drivers);
+
+        function setDriverToConfig() {
+            self._config.driver = self.driver();
+        }
+
+        function initDriver(supportedDrivers) {
+            return function () {
+                var currentDriverIndex = 0;
+
+                function driverPromiseLoop() {
+                    while (currentDriverIndex < supportedDrivers.length) {
+                        var driverName = supportedDrivers[currentDriverIndex];
+                        currentDriverIndex++;
+
+                        self._dbInfo = null;
+                        self._ready = null;
+
+                        return self.getDriver(driverName).then(function (driver) {
+                            self._extend(driver);
+                            setDriverToConfig();
+
+                            self._ready = self._initStorage(self._config);
+                            return self._ready;
+                        })["catch"](driverPromiseLoop);
+                    }
+
+                    setDriverToConfig();
+                    var error = new Error('No available storage method found.');
+                    self._driverSet = Promise$1.reject(error);
+                    return self._driverSet;
+                }
+
+                return driverPromiseLoop();
+            };
+        }
+
+        // There might be a driver initialization in progress
+        // so wait for it to finish in order to avoid a possible
+        // race condition to set _dbInfo
+        var oldDriverSetDone = this._driverSet !== null ? this._driverSet["catch"](function () {
+            return Promise$1.resolve();
+        }) : Promise$1.resolve();
+
+        this._driverSet = oldDriverSetDone.then(function () {
+            var driverName = supportedDrivers[0];
+            self._dbInfo = null;
+            self._ready = null;
+
+            return self.getDriver(driverName).then(function (driver) {
+                self._driver = driver._driver;
+                setDriverToConfig();
+                self._wrapLibraryMethodsWithReady();
+                self._initDriver = initDriver(supportedDrivers);
+            });
+        })["catch"](function () {
+            setDriverToConfig();
+            var error = new Error('No available storage method found.');
+            self._driverSet = Promise$1.reject(error);
+            return self._driverSet;
+        });
+
+        executeTwoCallbacks(this._driverSet, callback, errorCallback);
+        return this._driverSet;
+    };
+
+    LocalForage.prototype.supports = function supports(driverName) {
+        return !!driverSupport[driverName];
+    };
+
+    LocalForage.prototype._extend = function _extend(libraryMethodsAndProperties) {
+        extend(this, libraryMethodsAndProperties);
+    };
+
+    LocalForage.prototype._getSupportedDrivers = function _getSupportedDrivers(drivers) {
+        var supportedDrivers = [];
+        for (var i = 0, len = drivers.length; i < len; i++) {
+            var driverName = drivers[i];
+            if (this.supports(driverName)) {
+                supportedDrivers.push(driverName);
+            }
+        }
+        return supportedDrivers;
+    };
+
+    LocalForage.prototype._wrapLibraryMethodsWithReady = function _wrapLibraryMethodsWithReady() {
+        // Add a stub for each driver API method that delays the call to the
+        // corresponding driver method until localForage is ready. These stubs
+        // will be replaced by the driver methods as soon as the driver is
+        // loaded, so there is no performance impact.
+        for (var i = 0; i < LibraryMethods.length; i++) {
+            callWhenReady(this, LibraryMethods[i]);
+        }
+    };
+
+    LocalForage.prototype.createInstance = function createInstance(options) {
+        return new LocalForage(options);
+    };
+
+    return LocalForage;
+}();
+
+// The actual localForage object that we expose as a module or via a
+// global. It's extended by pulling in one of our other libraries.
+
+
+var localforage_js = new LocalForage();
+
+module.exports = localforage_js;
+
+},{"3":3}]},{},[4])(4)
+});
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],301:[function(require,module,exports){
 /**
 * @ngdoc object
 * @name logger-pro.Logger
@@ -7104,7 +9408,7 @@ var Logger = new function(){
 };
 
 module.exports = Logger;
-},{}],301:[function(require,module,exports){
+},{}],302:[function(require,module,exports){
 /**
  * @ngdoc overview
  * @name logger-pro
@@ -7144,7 +9448,7 @@ module.exports = {
     Logger: Logger, 
     RotatingLogger: RotatingLogger
 };
-},{"./base-logger":300,"./rotating-logger":302}],302:[function(require,module,exports){
+},{"./base-logger":301,"./rotating-logger":303}],303:[function(require,module,exports){
 /**
 * @ngdoc object
 * @name logger-pro.RotatingLogger
@@ -7562,7 +9866,7 @@ var RotatingLogger = new function(){
 
 module.exports = RotatingLogger;
 
-},{"./base-logger.js":300}],303:[function(require,module,exports){
+},{"./base-logger.js":301}],304:[function(require,module,exports){
 var PromiseLite = require('promiselite');
 
 /**
@@ -7574,7 +9878,7 @@ var PromiseLite = require('promiselite');
 */
 var NewtonAdapter = new function(){
 
-    var newtonInstance, logger;
+    var newtonInstance, logger, newtonversion;
     var enablePromise = new PromiseLite(); 
     var loginPromise = new PromiseLite(); 
 
@@ -7594,21 +9898,25 @@ var NewtonAdapter = new function(){
     * @name init
     * @methodOf NewtonAdapter
     *
-    * @description Initializes Newton sdk and sets up internal configuration
+    * @description Initializes Newton sdk and sets up internal configuration.
     *
     * @param {Object} options configuration object
     * @param {string} options.secretId secret id of the application
-    * @param {boolean} options.enable true if and only if Newton tracking is enabled
-    * @param {boolean} options.waitLogin true if you want to track events only after login
-    * @param {Object} options.logger any object containing the following methods: debug, log, info, warn, error
-    * @param {Object} options.properties custom data for Newton
+    * @param {boolean} [options.enable=false] enable or disable calls to Newton library
+    * @param {boolean} [options.waitLogin=false] track events, heartbeats and rankings only after login<br/><i>If true, you have to call login() in all cases, both for logged and unlogged users.
+    * @param {integer} [options.newtonversion=2] version of Newton, it can be 1 or 2.
+    * @param {Object} [options.logger=disabled logger] logger object containing the methods: debug, log, info, warn, error
+    * @param {Object} [options.properties={}] custom data for Newton session<br/><i>Newton version 1: this property is not supported</i>
+    *
+    * @return {PromiseLite} promise that will be resolved when the init has been completed
     * 
     * @example
     * <pre>
     *   NewtonAdapter.init({
     *       secretId: '123456789',
-    *       enable: true,      // enable newton
-    *       waitLogin: true,    // wait for login to have been completed (async)
+    *       enable: true,
+    *       waitLogin: true,
+    *       version: 2,
     *       logger: console,
     *       properties: {
     *           hello: 'World'
@@ -7630,31 +9938,50 @@ var NewtonAdapter = new function(){
             };
         }
 
+        // get Newton version
+        if (options.newtonversion){
+            newtonversion = options.newtonversion;
+        } else {
+            newtonversion = 2;
+        }
+
         // init enablePromise and init Newton
         enablePromise.then(function(){
-            newtonInstance = Newton.getSharedInstanceWithConfig(options.secretId, createSimpleObject(options.properties));
+            if(newtonversion === 1){
+                newtonInstance = Newton.getSharedInstanceWithConfig(options.secretId);
+                if(!!options.properties){
+                    logger.warn('NewtonAdapter', 'Newton v.1 not support properties on init method');
+                }
+            } else {
+                newtonInstance = Newton.getSharedInstanceWithConfig(options.secretId, createSimpleObject(options.properties));
+            }
             logger.log('NewtonAdapter', 'Init', options);
         });
-        enablePromise.fail(function(error){
-            logger.warn('Newton not enabled', error);
-        });
+        enablePromise.fail(function(){});
 
         // check if enabled
-        if (options.enable){
+        var isNewtonExist = !!window.Newton;
+        if(!isNewtonExist){
+            logger.error('NewtonAdapter', 'Newton not exist');
+            enablePromise.reject();
+        } else if(options.enable){
             enablePromise.resolve();
         } else {
+            logger.warn('NewtonAdapter', 'Newton not enabled');
             enablePromise.reject();
         }
 
         // init loginPromise
         loginPromise.fail(function(error){
-            logger.warn('Newton login not called', error);
+            logger.warn('NewtonAdapter', 'Newton login failed', error);
         });
 
         // resolve loginPromise if not waitLogin and enable
         if(!options.waitLogin && options.enable){
             loginPromise.resolve();
         }
+
+        return enablePromise;
     };
 
 
@@ -7663,20 +9990,22 @@ var NewtonAdapter = new function(){
     * @name login
     * @methodOf NewtonAdapter
     *
-    * @description performs custom or external login via Newton sdk
+    * @description Performs custom or external login via Newton sdk. <br/>
+    * <i>If you set waitLogin=true on init method, you have to call this method in all cases, for logged and unlogged users.</i>
     *
     * @param {Object} options configuration object
-    * @param {string} options.type allowed values: 'custom' or 'external'
-    * @param {boolean} options.logged true if and only if the user is logged on the product
-    * @param {Object} options.userProperties an object containing data about the user
+    * @param {string} [options.type="custom"] type of Newton login used, it can be 'custom' or 'external'<br><i>Newton version 1: external login not supported</i>
+    * @param {boolean} [options.logged=false] true if user is logged, false if user is unlogged
+    * @param {Object} [options.userProperties={}] custom user properties
+    *
     * @return {PromiseLite} promise that will be resolved when the login has been completed
     *
     * @example
     * <pre>
     * NewtonAdapter.login({
-    *       logged: true,       // is user logged?
-    *       type: 'external'        // 'external' or 'custom'
-    *       userId: '123456789',    // mandatory for logged user
+    *       logged: true,
+    *       type: 'external',
+    *       userId: '123456789',
     *       userProperties: {
     *           msisdn: '+39123456789',
     *           type: 'freemium'
@@ -7699,19 +10028,32 @@ var NewtonAdapter = new function(){
         enablePromise.then(function(){
             if(options.logged && !newtonInstance.isUserLogged()){
                 if(options.type === 'external'){
-                    newtonInstance.getLoginBuilder()
-                    .setCustomData( createSimpleObject(options.userProperties) )
-                    .setOnFlowCompleteCallback(loginCallback)
-                    .setExternalID(options.userId)
-                    .getExternalLoginFlow()
-                    .startLoginFlow();
+                    if(newtonversion === 1){
+                        logger.error('NewtonAdapter', 'Login', 'Newton v.1 not support external login');
+                    } else {
+                        newtonInstance.getLoginBuilder()
+                        .setCustomData( createSimpleObject(options.userProperties) )
+                        .setOnFlowCompleteCallback(loginCallback)
+                        .setExternalID(options.userId)
+                        .getExternalLoginFlow()
+                        .startLoginFlow();
+                    }
                 } else {
-                    newtonInstance.getLoginBuilder()
-                    .setCustomData( createSimpleObject(options.userProperties) )
-                    .setOnFlowCompleteCallback(loginCallback)
-                    .setCustomID(options.userId)
-                    .getCustomLoginFlow()
-                    .startLoginFlow();
+                    if(newtonversion === 1){
+                        newtonInstance.getLoginBuilder()
+                        .setLoginData( createSimpleObject(options.userProperties) )
+                        .setCallback(loginCallback)
+                        .setCustomID(options.userId)
+                        .getCustomFlow()
+                        .startLoginFlow();
+                    } else {
+                        newtonInstance.getLoginBuilder()
+                        .setCustomData( createSimpleObject(options.userProperties) )
+                        .setOnFlowCompleteCallback(loginCallback)
+                        .setCustomID(options.userId)
+                        .getCustomLoginFlow()
+                        .startLoginFlow();  
+                    }
                 }
             } else {
                 loginCallback();
@@ -7727,7 +10069,7 @@ var NewtonAdapter = new function(){
     * @name rankContent
     * @methodOf NewtonAdapter
     *
-    * @description performs content ranking via Newton sdk
+    * @description Performs content ranking via Newton sdk<br><i>Newton version 1: feature not supported</i>
     *
     * @param {Object} options configuration object
     * @param {string} contentId unique identifier of the content
@@ -7746,7 +10088,11 @@ var NewtonAdapter = new function(){
     this.rankContent = function(options){
         loginPromise.then(function(){
             if(!options.score) { options.score = 1; }
-            newtonInstance.rankContent(options.contentId, options.scope, options.score);
+            if(newtonversion === 1){
+                logger.error('NewtonAdapter', 'rankContent', 'Newton v.1 not support rank content');
+            } else {
+                newtonInstance.rankContent(options.contentId, options.scope, options.score);
+            }
             logger.log('NewtonAdapter', 'rankContent', options);
         });
     };
@@ -7756,12 +10102,12 @@ var NewtonAdapter = new function(){
     * @name trackEvent
     * @methodOf NewtonAdapter
     *
-    * @description performs event tracking via Newton sdk
+    * @description Performs event tracking via Newton sdk.
     *
     * @param {Object} options configuration object
     * @param {string} options.name name of the event to track
-    * @param {object} options.properties custom datas of the event
-    * @param {object} options.rank rank event datas
+    * @param {object} [options.properties={}] custom datas of the event
+    * @param {object} [options.rank={}] rank event datas. Newton version 1: feature not supported
     *
     *
     * @example
@@ -7786,8 +10132,12 @@ var NewtonAdapter = new function(){
             logger.log('NewtonAdapter', 'trackEvent', options.name, options.properties);
             if(options.rank){
                 if(!options.rank.score) { options.rank.score = 1; }
-                newtonInstance.rankContent(options.rank.contentId, options.rank.scope, options.rank.score);
-                logger.log('NewtonAdapter', 'rankContent', options.rank);
+                if(newtonversion === 1){
+                    logger.error('NewtonAdapter', 'rankContent', 'Newton v.1 not support rank content');
+                } else {
+                    newtonInstance.rankContent(options.rank.contentId, options.rank.scope, options.rank.score);
+                    logger.log('NewtonAdapter', 'rankContent', options.rank);
+                }
             }
         });
     };
@@ -7797,10 +10147,10 @@ var NewtonAdapter = new function(){
     * @name trackPageview
     * @methodOf NewtonAdapter
     *
-    * @description performs pageview tracking via Newton sdk
+    * @description Performs pageview tracking via Newton sdk.
     *
     * @param {Object} options configuration object
-    * @param {Object} [options.properties] Properties of the pageview
+    * @param {Object} options.properties Properties of the pageview
     * @param {string} [options.properties.url=window.location.href] url of pageview
     *
     * @example
@@ -7833,11 +10183,11 @@ var NewtonAdapter = new function(){
     * @name startHeartbeat
     * @methodOf NewtonAdapter
     *
-    * @description performs timed events via Newton sdk
+    * @description Performs timed events via Newton sdk.
     *
     * @param {Object} options configuration object
     * @param {string} options.name name of the timed event
-    * @param {Object} options.properties details of the timed event
+    * @param {Object} [options.properties={}] details of the timed event
     *
     * @example
     * <pre>
@@ -7862,11 +10212,11 @@ var NewtonAdapter = new function(){
     * @name stopHeartbeat
     * @methodOf NewtonAdapter
     *
-    * @description stops timed events via Newton sdk
+    * @description Stops timed events via Newton sdk.
     *
     * @param {Object} options configuration object
     * @param {string} options.name name of the timed event
-    * @param {Object} options.properties details of the timed event
+    * @param {Object} [options.properties={}] details of the timed event
     *
     * @example
     * <pre>
@@ -7891,9 +10241,9 @@ var NewtonAdapter = new function(){
     * @name isUserLogged
     * @methodOf NewtonAdapter
     *
-    * @description returns whether the user is already logged on Newton
+    * @description Check if the user is already logged on Newton.<br><i>If called before init, this method returns false.</i>
     *
-    * @return {boolean} true if and only if the user is already logged on Newton
+    * @return {boolean} true if the user is already logged on Newton, else false
     *
     * @example
     * <pre>
@@ -7901,12 +10251,37 @@ var NewtonAdapter = new function(){
     * </pre>
     */
     this.isUserLogged = function(){
-        return Newton.getSharedInstance().isUserLogged();
+        try {
+            return Newton.getSharedInstance().isUserLogged();
+        } catch(e) {
+            enablePromise.then(function(){
+                logger.error('NewtonAdapter', 'isUserLogged', e);
+            });
+            return false;
+        }
+    };
+
+    /**
+    * @ngdoc function
+    * @name isInitialized
+    * @methodOf NewtonAdapter
+    *
+    * @description Check if NewtonAdapter is initialized.
+    *
+    * @return {boolean} true if NewtonAdapter is already initialized (you have called init method)
+    *
+    * @example
+    * <pre>
+    * NewtonAdapter.isInitialized();
+    * </pre>
+    */
+    this.isInitialized = function(){
+        return enablePromise.isSettled();
     };
 };
 
 module.exports = NewtonAdapter;
-},{"promiselite":306}],304:[function(require,module,exports){
+},{"promiselite":307}],305:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -8088,7 +10463,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],305:[function(require,module,exports){
+},{}],306:[function(require,module,exports){
 (function (root) {
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -8319,7 +10694,7 @@ process.umask = function() { return 0; };
 
 })(this);
 
-},{}],306:[function(require,module,exports){
+},{}],307:[function(require,module,exports){
 var PROMISE_STATUS = {
     0: 'pending',
     1: 'fulfilled',
@@ -8398,7 +10773,7 @@ var PrivatePromise = function(executor, nextProm){
 
     var getDeferredPromises = function(){
         var toReturn = next.slice(1, next.length);
-        next.shift();
+        next = [];
         return toReturn;
     };
 
@@ -8699,7 +11074,7 @@ PublicPromise.any = function(promiseList){
 };
 
 module.exports = PublicPromise;
-},{}],307:[function(require,module,exports){
+},{}],308:[function(require,module,exports){
 (function (process,global){
 /**
  * Copyright (c) 2014, Facebook, Inc.
@@ -9372,7 +11747,7 @@ module.exports = PublicPromise;
 );
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":304}],308:[function(require,module,exports){
+},{"_process":305}],309:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -9780,12 +12155,12 @@ if ("debug" === 'development') {
 exports.default = Stargate;
 module.exports = exports['default'];
 
-},{"./info":309,"./modules/Connection":310,"./modules/Constants":311,"./modules/Decorators":312,"./modules/EventBus":313,"./modules/Facebook":314,"./modules/File":315,"./modules/Game":316,"./modules/Logger":317,"./modules/Utils":318,"./stargate.conf.js":319,"babel-polyfill":2,"cookies-js":3,"http-francis":298}],309:[function(require,module,exports){
+},{"./info":310,"./modules/Connection":311,"./modules/Constants":312,"./modules/Decorators":313,"./modules/EventBus":314,"./modules/Facebook":315,"./modules/File":316,"./modules/Game":317,"./modules/Logger":318,"./modules/Utils":319,"./stargate.conf.js":320,"babel-polyfill":2,"cookies-js":3,"http-francis":298}],310:[function(require,module,exports){
 "use strict";
 
 var pkgInfo = { "version": "0.1.4", "build": "v0.1.4-0-gb7ec797" };module.exports = pkgInfo;
 
-},{}],310:[function(require,module,exports){
+},{}],311:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -9919,7 +12294,7 @@ var NetworkInfo = function () {
 exports.default = NetworkInfo;
 module.exports = exports['default'];
 
-},{"./EventBus":313,"./Utils":318}],311:[function(require,module,exports){
+},{"./EventBus":314,"./Utils":319}],312:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -9932,7 +12307,7 @@ var Constants = {
 exports.default = Constants;
 module.exports = exports['default'];
 
-},{}],312:[function(require,module,exports){
+},{}],313:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -9977,7 +12352,7 @@ function requireCondition(param, afterFunction) {
 
 exports.requireCondition = requireCondition;
 
-},{}],313:[function(require,module,exports){
+},{}],314:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () {
@@ -10058,7 +12433,7 @@ var EventBus = function () {
 
 module.exports = EventBus;
 
-},{}],314:[function(require,module,exports){
+},{}],315:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10174,7 +12549,7 @@ var Facebook = function () {
 exports.default = Facebook;
 module.exports = exports['default'];
 
-},{"./Logger":317}],315:[function(require,module,exports){
+},{"./Logger":318}],316:[function(require,module,exports){
 'use strict';
 
 var Logger = require('./Logger');
@@ -10500,7 +12875,7 @@ Object.keys(File).map(function (methodName) {
 
 module.exports = File;
 
-},{"./Decorators":312,"./Logger":317}],316:[function(require,module,exports){
+},{"./Decorators":313,"./Logger":318}],317:[function(require,module,exports){
 'use strict';
 
 var fileModule = require('./File');
@@ -11194,7 +13569,7 @@ function updateOfflineData(object) {
 }
 module.exports = Game;
 
-},{"./File":315,"./Logger":317,"./Utils":318,"http-francis":298}],317:[function(require,module,exports){
+},{"./File":316,"./Logger":318,"./Utils":319,"http-francis":298}],318:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -11294,7 +13669,7 @@ var Logger = function () {
 exports.default = Logger;
 module.exports = exports['default'];
 
-},{}],318:[function(require,module,exports){
+},{}],319:[function(require,module,exports){
 'use strict';
 
 function Iterator(array) {
@@ -11398,7 +13773,7 @@ module.exports = {
     getType: getType
 };
 
-},{}],319:[function(require,module,exports){
+},{}],320:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -11411,7 +13786,7 @@ var DEFAULT_CONFIGURATION = {
 exports.default = DEFAULT_CONFIGURATION;
 module.exports = exports['default'];
 
-},{}],320:[function(require,module,exports){
+},{}],321:[function(require,module,exports){
 'use strict';
 
 var build = {};
@@ -11443,7 +13818,7 @@ require('../retro/retro-interface.js')(build);
 
 module.exports = build;
 
-},{"../components/fb/fb.js":325,"../components/game_info/game_info.js":327,"../components/logger/logger.js":330,"../components/menu/menu.js":331,"../components/session/session.js":334,"../components/user/user.js":337,"../retro/retro-interface.js":340,"../version":341}],321:[function(require,module,exports){
+},{"../components/fb/fb.js":326,"../components/game_info/game_info.js":328,"../components/logger/logger.js":331,"../components/menu/menu.js":332,"../components/session/session.js":335,"../components/user/user.js":339,"../retro/retro-interface.js":342,"../version":343}],322:[function(require,module,exports){
 'use strict';
 
 var Location = require('../location/location');
@@ -11458,7 +13833,7 @@ module.exports = {
     }
 };
 
-},{"../constants/constants":322,"../location/location":328}],322:[function(require,module,exports){
+},{"../constants/constants":323,"../location/location":329}],323:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -11477,7 +13852,8 @@ module.exports = {
         'margin-top': '-22px',
         'z-index': '9',
         'width': '60px',
-        'position': 'absolute'
+        'position': 'absolute',
+        'cursor': 'pointer'
     },
     IMMUTABLE_MENU_STYLE_PROPERTIES: ['background-image', 'background-position', 'z-index', 'width', 'height'],
 
@@ -11534,7 +13910,7 @@ module.exports = {
     DICTIONARY_JSON_FILENAME: 'dict.json'
 };
 
-},{}],323:[function(require,module,exports){
+},{}],324:[function(require,module,exports){
 'use strict';
 
 var Constants = require('../constants/constants');
@@ -11610,14 +13986,14 @@ var DOMUtils = new function () {
 
 module.exports = DOMUtils;
 
-},{"../constants/constants":322,"../logger/logger":330,"../vhost/vhost":339}],324:[function(require,module,exports){
+},{"../constants/constants":323,"../logger/logger":331,"../vhost/vhost":341}],325:[function(require,module,exports){
 'use strict';
 
 var _stargatejs = require('stargatejs');
 
 module.exports = new _stargatejs.EventBus();;
 
-},{"stargatejs":308}],325:[function(require,module,exports){
+},{"stargatejs":309}],326:[function(require,module,exports){
 'use strict';
 
 var Constants = require('../constants/constants');
@@ -11735,7 +14111,7 @@ var Facebook = new function () {
 
 module.exports = Facebook;
 
-},{"../constants/constants":322,"../ga/ga":326,"../location/location":328,"../logger/logger":330,"stargatejs":308}],326:[function(require,module,exports){
+},{"../constants/constants":323,"../ga/ga":327,"../location/location":329,"../logger/logger":331,"stargatejs":309}],327:[function(require,module,exports){
 'use strict';
 
 var Logger = require('../logger/logger');
@@ -11758,7 +14134,7 @@ var GA = new function () {
 
 module.exports = GA;
 
-},{"../logger/logger":330,"../vhost/vhost":339}],327:[function(require,module,exports){
+},{"../logger/logger":331,"../vhost/vhost":341}],328:[function(require,module,exports){
 'use strict';
 
 if ("debug" === "debug") {
@@ -11911,7 +14287,7 @@ var GameInfo = function GameInfo() {
 
 module.exports = new GameInfo();
 
-},{"../../../test/mocks/gameInfoMock":342,"../api/api":321,"../constants/constants":322,"../location/location":328,"../logger/logger":330,"../network/network":332,"http-francis":298,"stargatejs":308}],328:[function(require,module,exports){
+},{"../../../test/mocks/gameInfoMock":344,"../api/api":322,"../constants/constants":323,"../location/location":329,"../logger/logger":331,"../network/network":333,"http-francis":298,"stargatejs":309}],329:[function(require,module,exports){
 'use strict';
 
 var Logger = require('../logger/logger');
@@ -12010,7 +14386,7 @@ var Location = new function () {
 
 module.exports = Location;
 
-},{"../logger/logger":330,"../vhost/vhost":339,"./windowConf":329,"stargatejs":308}],329:[function(require,module,exports){
+},{"../logger/logger":331,"../vhost/vhost":341,"./windowConf":330,"stargatejs":309}],330:[function(require,module,exports){
 'use strict';
 
 module.exports = function () {
@@ -12031,12 +14407,12 @@ module.exports = function () {
     };
 };
 
-},{}],330:[function(require,module,exports){
+},{}],331:[function(require,module,exports){
 "use strict";
 
 module.exports = window.console;
 
-},{}],331:[function(require,module,exports){
+},{}],332:[function(require,module,exports){
 'use strict';
 
 var Constants = require('../constants/constants');
@@ -12140,7 +14516,7 @@ var Menu = new function () {
 
 module.exports = Menu;
 
-},{"../constants/constants":322,"../ga/ga":326,"../location/location":328,"../logger/logger":330}],332:[function(require,module,exports){
+},{"../constants/constants":323,"../ga/ga":327,"../location/location":329,"../logger/logger":331}],333:[function(require,module,exports){
 'use strict';
 
 var Logger = require('../logger/logger');
@@ -12182,7 +14558,7 @@ var Network = new function () {
 
 module.exports = Network;
 
-},{"../logger/logger":330,"promise-polyfill":305}],333:[function(require,module,exports){
+},{"../logger/logger":331,"promise-polyfill":306}],334:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -12211,7 +14587,7 @@ exports.default = new function NewtonService() {
 }();
 module.exports = exports['default'];
 
-},{"newton-adapter":303}],334:[function(require,module,exports){
+},{"newton-adapter":304}],335:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12343,6 +14719,9 @@ var Session = new function () {
 
             var env = Stargate.isHybrid() ? 'hybrid' : 'webapp';
             var enableNewton = true;
+            if (env === 'hybrid' && Stargate.checkConnection().type !== 'online') {
+                enableNewton = false;
+            }
 
             NewtonService.init({
                 secretId: VHost.get('NEWTON_SECRETID'),
@@ -12370,13 +14749,12 @@ var Session = new function () {
 
             NewtonService.trackEvent({
                 name: 'SdkInitFinished',
-                rank: (0, _tracking_utils.calculateContentRanking)(GameInfo, User, VHost, 'Play', 'GameLoad'),
                 properties: {
-                    action: 'Yes',
-                    category: 'Play',
+                    action: 'No',
+                    category: 'SDK_OK',
                     game_title: GameInfo.getInfo().game.title,
                     label: GameInfo.getContentId(),
-                    valuable: 'Yes'
+                    valuable: 'No'
                 }
             });
             initialized = true;
@@ -12387,6 +14765,17 @@ var Session = new function () {
             _event2.default.trigger('INIT_FINISHED', { type: 'INIT_FINISHED' });
         }).catch(function (reason) {
             _event2.default.trigger('INIT_ERROR', { type: 'INIT_ERROR', reason: reason });
+            NewtonService.trackEvent({
+                name: 'SdkInitError',
+                properties: {
+                    action: 'No',
+                    category: 'SDK_ERROR',
+                    game_title: GameInfo.getInfo().game.title,
+                    label: GameInfo.getContentId(),
+                    valuable: 'No',
+                    reason: reason
+                }
+            });
             Logger.error('GamifiveSDK init error: ', reason);
             initialized = false;
             throw reason;
@@ -12607,6 +14996,10 @@ var Session = new function () {
                 gameoverParams.level = lastSession.level;
             }
             gameOver(gameoverParams).then(DOMUtils.create).then(function () {
+                var metaViewportTag = window.document.querySelector("meta[name=viewport]");
+                if (metaViewportTag) {
+                    metaViewportTag.setAttribute("content", "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no");
+                }
 
                 if (document.querySelector(Constants.BACK_BUTTON_SELECTOR)) {
                     var toHomeBtn = document.querySelector(Constants.BACK_BUTTON_SELECTOR).parentNode;
@@ -12763,7 +15156,7 @@ var Session = new function () {
 
 module.exports = Session;
 
-},{"../api/api":321,"../constants/constants":322,"../dom/dom-utils":323,"../event/event":324,"../fb/fb":325,"../game_info/game_info":327,"../location/location":328,"../logger/logger":330,"../menu/menu":331,"../network/network":332,"../newton/newton":333,"../tracking_utils/tracking_utils":336,"../user/user":337,"../vhost/vhost":339,"promise-polyfill":305,"stargatejs":308}],335:[function(require,module,exports){
+},{"../api/api":322,"../constants/constants":323,"../dom/dom-utils":324,"../event/event":325,"../fb/fb":326,"../game_info/game_info":328,"../location/location":329,"../logger/logger":331,"../menu/menu":332,"../network/network":333,"../newton/newton":334,"../tracking_utils/tracking_utils":338,"../user/user":339,"../vhost/vhost":341,"promise-polyfill":306,"stargatejs":309}],336:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12773,7 +15166,31 @@ module.exports = {
     }
 };
 
-},{}],336:[function(require,module,exports){
+},{}],337:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.store = undefined;
+
+var _localforage = require('localforage');
+
+var _localforage2 = _interopRequireDefault(_localforage);
+
+var _location = require('../location/location');
+
+var _location2 = _interopRequireDefault(_location);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var store = exports.store = _localforage2.default.createInstance({
+    driver: [_localforage2.default.INDEXEDDB, _localforage2.default.WEBSQL, _localforage2.default.LOCALSTORAGE],
+    name: 'GFSDK',
+    storeName: _location2.default.getOrigin()
+});
+
+},{"../location/location":329,"localforage":300}],338:[function(require,module,exports){
 'use strict';
 
 var Location = require('../location/location');
@@ -12802,10 +15219,12 @@ module.exports.calculateContentRanking = function (GameInfo, User, VHost, eventC
     };
 };
 
-},{"../location/location":328}],337:[function(require,module,exports){
+},{"../location/location":329}],339:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _constants = require('../constants/constants');
 
@@ -12818,6 +15237,8 @@ var _event = require('../event/event');
 var _event2 = _interopRequireDefault(_event);
 
 var _httpFrancis = require('http-francis');
+
+var _storage = require('../storage/storage');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -12835,7 +15256,6 @@ var Stargate = require('stargatejs');
 
 var getType = _stargatejs.Utils.getType;
 
-
 var API = require('../api/api');
 var DOMUtils = require('../dom/dom-utils');
 var NewtonService = require('../newton/newton');
@@ -12844,13 +15264,30 @@ var state = require('../state/state');
 var _User = function User() {
 
     var userInstance = this;
-    var userInfo = { gameInfo: { info: {} } };
+    var userInfo = {
+        gameInfo: {
+            CreatedAt: String(new Date(0)),
+            UpdatedAt: String(new Date(0)),
+            ProductId: "",
+            contentId: "",
+            domain: "",
+            Creator: "",
+            _id: "",
+            info: null
+        }
+    };
     var favorites = [];
+
     if (window.GamifiveInfo && window.GamifiveInfo.user) {
-        Logger.info("Load userInfo from in page data");
-        userInfo = JSON.parse(JSON.stringify(window.GamifiveInfo.user));
-        if (!userInfo.gameInfo) {
-            userInfo.gameInfo = { info: {} };
+        Logger.info("GamifiveSDK:Load userInfo from in page data");
+        var userInfoCloned = JSON.parse(JSON.stringify(window.GamifiveInfo.user));
+        userInfo = _extends({}, userInfo, userInfoCloned);
+        if (getType(userInfo.gameInfo.info) === 'string') {
+            try {
+                userInfo.gameInfo.info = JSON.parse(userInfo.gameInfo.info);
+            } catch (e) {
+                userInfo.gameInfo.info = null;
+            }
         }
     }
 
@@ -12876,7 +15313,6 @@ var _User = function User() {
     this.reset = function () {
         userInfo = {};
     };
-    userInstance.reset();
 
     this.getUserId = function () {
         return userInfo.user;
@@ -12891,13 +15327,11 @@ var _User = function User() {
 
             return Network.xhr('GET', userInfoUrl).then(function (resp, req) {
                 if (!!resp && resp.success) {
-                    var responseData = resp.response;
-
-                    if ((typeof responseData === 'undefined' ? 'undefined' : _typeof(responseData)) === _typeof('')) {
-                        responseData = JSON.parse(responseData);
+                    var responseData = void 0;
+                    if (getType(resp.response) === 'string') {
+                        responseData = JSON.parse(resp.response);
                     }
-
-                    userInfo = _stargatejs.Utils.extend(userInfo, responseData);
+                    userInfo = _extends({}, userInfo, responseData);
                     Logger.log('GamifiveSDK', 'User', 'load complete');
                 } else {
                     Logger.warn(_constants2.default.ERROR_USER_FETCH_FAIL + resp.status + ' ' + resp.statusText + ' ');
@@ -12908,7 +15342,7 @@ var _User = function User() {
             if (Stargate.isHybrid()) {
                 var filePath = [Stargate.file.BASE_DIR, _constants2.default.USER_JSON_FILENAME].join('');
                 return Stargate.file.readFileAsJSON(filePath).then(function (responseData) {
-                    userInfo = _stargatejs.Utils.extend(userInfo, responseData);
+                    userInfo = _extends({}, userInfo, responseData);
                     if (typeof callback === 'function') {
                         callback(userInfo);
                     }
@@ -12977,63 +15411,104 @@ var _User = function User() {
     this.saveData = function (info) {
         var callback = arguments.length <= 1 || arguments[1] === undefined ? function () {} : arguments[1];
 
-        if (!userInfo.gameInfo) {
-            userInfo.gameInfo = { info: {} };
+        if (getType(info) === 'string') {
+            Logger.warn("GamifiveSDK:The data to be saved should be an object! got a:", getType(info));
+            try {
+                Logger.warn("GamifiveSDK:try to parse the string");
+                info = JSON.parse(info);
+            } catch (e) {
+                Logger.error("GamifiveSDK:could not save the data: not even json parseable", info);
+                info = null;
+                return false;
+            }
         }
 
-        userInfo.gameInfo.info = info;
+        userInfo.gameInfo = _extends({}, userInfo.gameInfo, { info: info, UpdatedAt: String(new Date()) });
+
         if (state.init.pending && !state.init.finished) {
             _event2.default.on('INIT_FINISHED', function () {
                 Logger.info('GamifiveSDK', 'User', 'saveData', userInfo.gameInfo.info);
-
-                var data = {
-                    UpdatedAt: new Date(),
-                    info: JSON.stringify(userInfo.gameInfo.info)
-                };
-                return setUserDataOnServer(data).then(callback);
+                setUserDataOnLocal(userInfo.gameInfo);
+                setUserDataOnServer(userInfo.gameInfo);
             });
         } else if (!state.init.pending && state.init.finished) {
-            var data = {
-                UpdatedAt: new Date(),
-                info: JSON.stringify(userInfo.gameInfo.info)
-            };
-            return setUserDataOnServer(data).then(callback);
+
+            setUserDataOnLocal(userInfo.gameInfo);
+            setUserDataOnServer(userInfo.gameInfo);
         } else {
-            Logger.warn("GamifiveSDK: you can't call saveUserData before init. You should 1) init 2) loadUserData 3) then you can save");
+            Logger.warn("GamifiveSDK: you can't call saveUserData before init. You should 1) GamifiveSDK.init 2) GamifiveSDK.loadUserData 3) then you can save");
         }
     };
 
     this.loadData = function (callback) {
-        if (!userInfo.gameInfo) {
-            userInfo.gameInfo = { info: {} };
-        }
         if (!callback) {
             callback = function callback() {};
-            Logger.warn("Please call loadUserData(callback) instead of loadUserData()");
+            Logger.warn("GamifiveSDK: loadUserData() is deprecated from v2, please call loadUserData(callback)");
         }
         onUserDataCallback = callback;
 
         if (state.init.pending && !state.init.finished) {
             _event2.default.on('INIT_FINISHED', function (action) {
                 Logger.info('GamifiveSDK', 'User', 'loadData');
-                getUserDataFromServer().then(function (info) {
-                    userInfo.gameInfo.info = info;
+                Promise.all([getUserDataFromLocal(), getUserDataFromServer()]).then(syncUserData).then(function (newGameInfo) {
+                    if (newGameInfo) {
+                        userInfo.gameInfo = newGameInfo;
+                    }
                     onUserDataCallback(userInfo.gameInfo.info);
                 });
             });
         } else if (!state.init.pending && state.init.finished) {
-            getUserDataFromServer().then(function (info) {
-                userInfo.gameInfo.info = info;
+            Logger.info('GamifiveSDK', 'User', 'loadData');
+            Promise.all([getUserDataFromLocal(), getUserDataFromServer()]).then(syncUserData).then(function (newGameInfo) {
+                if (newGameInfo) {
+                    userInfo.gameInfo = newGameInfo;
+                }
                 onUserDataCallback(userInfo.gameInfo.info);
             });
         } else {
             Logger.warn("GamifiveSDK", "you can't call loadUserData before init");
         }
+
+        if (getType(userInfo.gameInfo.info) === 'object' && Object.keys(userInfo.gameInfo.info).length === 0) {
+            return undefined;
+        }
+
         return userInfo.gameInfo.info;
     };
 
+    function syncUserData(results) {
+        Logger.info("GamifiveSDK: sync userData");
+
+        var _results = _slicedToArray(results, 2);
+
+        var localGameInfo = _results[0];
+        var serverGameInfo = _results[1];
+
+        if (localGameInfo && serverGameInfo) {
+            var localUpdatedAt = new Date(localGameInfo.UpdatedAt);
+            var serverUpdatedAt = new Date(serverGameInfo.UpdatedAt);
+
+            if (localUpdatedAt > serverUpdatedAt) {
+                Logger.info("GamifiveSDK: sync userData", "local won");
+                return localGameInfo;
+            } else if (localUpdatedAt < serverUpdatedAt) {
+                Logger.info("GamifiveSDK: sync userData", "server won");
+                return serverGameInfo;
+            }
+        } else if (localGameInfo && !serverGameInfo) {
+            Logger.info("GamifiveSDK: sync userData", "local won", "no serverGameInfo");
+            return localGameInfo;
+        } else if (!localGameInfo && serverGameInfo) {
+            Logger.info("GamifiveSDK: sync userData", "server won", "no localGameInfo");
+            return serverGameInfo;
+        }
+    }
+
     this.clearData = function (callback) {
-        Logger.info('GamifiveSDK', 'User', 'clearData');
+        Logger.info('GamifiveSDK', 'clearUserData');
+
+        userInfo.gameInfo = _extends({}, userInfo.gameInfo, { info: null, UpdatedAt: String(new Date()) });
+        return Promise.all([setUserDataOnServer(userInfo.gameInfo), setUserDataOnLocal(userInfo.gameInfo)]).then(callback);
     };
 
     this.getUserType = function () {
@@ -13046,28 +15521,38 @@ var _User = function User() {
         }
     };
 
-    function parseResponse(resp) {
+    function parseUserDataResponse(resp) {
         if (resp.success) {
             var responseData = resp.response;
             try {
                 responseData = JSON.parse(responseData);
             } catch (e) {
-                Logger.error('Fail to get ', urlToCall, e);
+                Logger.error('Fail to get ', resp);
                 throw e;
             }
 
             var data = VarCheck.get(responseData, ['response', 'data']);
             if (data && getType(data) === 'array' && data.length > 0) {
+                var parsed = undefined;
+                try {
+                    data[0].info = JSON.parse(data[0].info);
+                } catch (e) {
+                    data[0].info = null;
+                    Logger.warn("GamifiveSDK cannot parsed userData", e);
+                }
                 return data[0];
-            } else {
-                return {};
             }
         }
     }
 
     function getUserDataFromServer() {
-        if (Stargate.checkConnection().type !== 'online' || !VHost.get('MOA_API_APPLICATION_OBJECTS_GET')) {
-            return Promise.resolve(userInfo.gameInfo.info);
+        if (!NewtonService.isUserLogged()) {
+            Logger.log('GamifiveSDK', 'userData cannot not get on server: user not logged');
+            return Promise.resolve(userInfo.gameInfo);
+        }
+
+        if (!VHost.get('MOA_API_APPLICATION_OBJECTS_GET')) {
+            return Promise.resolve(userInfo.gameInfo);
         }
         var loadUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_GET');
 
@@ -13080,13 +15565,18 @@ var _User = function User() {
         urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random() * 1000);
         Logger.log('GamifiveSDK', 'User', 'getUserDataFromServer', 'url to call', urlToCall);
 
-        return Network.xhr('GET', urlToCall).then(parseResponse);
+        return Network.xhr('GET', urlToCall).then(parseUserDataResponse);
     }
 
     function setUserDataOnServer(data) {
-        if (Stargate.checkConnection().type !== 'online' && !VHost.get('MOA_API_APPLICATION_OBJECTS_SET')) {
-            Logger.log('GamifiveSDK', 'userData cannot not be set on server: offline or api endpoint not set');
-            return Promise.resolve(userInfo.gameInfo.info);
+        if (!NewtonService.isUserLogged()) {
+            Logger.log('GamifiveSDK', 'userData cannot not be set on server: user not logged');
+            return Promise.resolve(userInfo.gameInfo);
+        }
+
+        if (!VHost.get('MOA_API_APPLICATION_OBJECTS_SET')) {
+            Logger.log('GamifiveSDK', 'userData cannot not be set on server: api endpoint disabled');
+            return Promise.resolve(userInfo.gameInfo);
         }
         var contentId = GameInfo.getContentId();
         var userId = userInstance.getUserId();
@@ -13095,15 +15585,21 @@ var _User = function User() {
 
         var saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
         var urlToCall = saveUserDataUrl.replace(':QUERY', JSON.stringify({ contentId: params.contentId })).replace(':ID', params.userDataId).replace(':ACCESS_TOKEN', '').replace(':EXTERNAL_TOKEN', params.userId).replace(':COLLECTION', 'gameInfo');
+        var infoSerialized = void 0;
+        if (getType(data.info) === 'object' || getType(data.info) === "null") {
+            infoSerialized = JSON.stringify(data.info);
+        } else {
+            Logger.warn("GamifiveSDK: bad info type: ", getType(data.info));
+        }
 
-        urlToCall = _stargatejs.Utils.queryfy(urlToCall, { info: data.info, domain: Location.getOrigin(), contentId: params.contentId });
+        urlToCall = _stargatejs.Utils.queryfy(urlToCall, { info: infoSerialized, domain: Location.getOrigin(), contentId: params.contentId });
 
         Logger.log('GamifiveSDK', 'try to set on server', urlToCall);
         return Network.xhr('GET', urlToCall).then(function (resp) {
             if (resp.success) {
                 var newtonResponse = JSON.parse(resp.response);
                 if (newtonResponse.response.data) {
-                    Logger.log('GamifiveSDK', 'userData set with success on server', resp);
+                    Logger.log('GamifiveSDK', 'userData set with success on server');
                 } else {
                     Logger.log('GamifiveSDK', 'userData FAIL to be set on server', newtonResponse.response.message);
                 }
@@ -13114,11 +15610,29 @@ var _User = function User() {
         });
     }
 
+    function setUserDataOnLocal() {
+        if (!NewtonService.isUserLogged()) {
+            Logger.log('GamifiveSDK', 'userData cannot not be set on local: user not logged');
+            return Promise.resolve(userInfo.gameInfo);
+        }
+        var key = userInstance.getUserId() + '-' + GameInfo.getContentId();
+        return _storage.store.setItem(key, userInfo.gameInfo);
+    }
+
+    function getUserDataFromLocal() {
+        if (!NewtonService.isUserLogged()) {
+            Logger.log('GamifiveSDK', 'userData cannot not be get on local: user not logged');
+            return Promise.resolve(userInfo.gameInfo);
+        }
+        var key = userInstance.getUserId() + '-' + GameInfo.getContentId();
+        return _storage.store.getItem(key);
+    }
+
     this.toggleLike = function () {
         var SET_LIKE = API.get('USER_SET_LIKE');
         var DELETE_LIKE = API.get('USER_DELETE_LIKE');
 
-        var isFavourite = _User.isGameFavorite(GameInfo.getContentId());
+        var isFavourite = userInstance.isGameFavorite(GameInfo.getContentId());
 
         var query = {
             content_id: GameInfo.getContentId(),
@@ -13186,6 +15700,12 @@ var _User = function User() {
             Menu: null
         };
 
+        this.setUserDataOnServer = setUserDataOnServer;
+        this.getUserDataFromServer = getUserDataFromServer;
+        this.setUserDataOnLocal = setUserDataOnLocal;
+        this.getUserDataFromLocal = getUserDataFromLocal;
+        this.syncUserData = syncUserData;
+
         this.setMock = function (what, mock) {
             switch (what) {
                 case "User":
@@ -13245,7 +15765,7 @@ var _User = function User() {
 
 module.exports = new _User();
 
-},{"../../../test/mocks/userCheck":343,"../api/api":321,"../constants/constants":322,"../dom/dom-utils":323,"../event/event":324,"../game_info/game_info":327,"../location/location":328,"../logger/logger":330,"../menu/menu":331,"../network/network":332,"../newton/newton":333,"../state/state":335,"../user/user":337,"../varcheck/varcheck":338,"../vhost/vhost":339,"http-francis":298,"stargatejs":308}],338:[function(require,module,exports){
+},{"../../../test/mocks/userCheck":345,"../api/api":322,"../constants/constants":323,"../dom/dom-utils":324,"../event/event":325,"../game_info/game_info":328,"../location/location":329,"../logger/logger":331,"../menu/menu":332,"../network/network":333,"../newton/newton":334,"../state/state":336,"../storage/storage":337,"../user/user":339,"../varcheck/varcheck":340,"../vhost/vhost":341,"http-francis":298,"stargatejs":309}],340:[function(require,module,exports){
 'use strict';
 
 var VarCheck = new function () {
@@ -13270,7 +15790,7 @@ var VarCheck = new function () {
 
 module.exports = VarCheck;
 
-},{}],339:[function(require,module,exports){
+},{}],341:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -13423,7 +15943,7 @@ var VHost = new function () {
 
 module.exports = VHost;
 
-},{"../../../gen/vhost/vhost-keys.js":1,"../api/api":321,"../constants/constants":322,"../game_info/game_info":327,"../logger/logger":330,"../menu/menu":331,"../network/network":332,"../user/user":337,"../vhost/vhost":339,"promise-polyfill":305,"stargatejs":308}],340:[function(require,module,exports){
+},{"../../../gen/vhost/vhost-keys.js":1,"../api/api":322,"../constants/constants":323,"../game_info/game_info":328,"../logger/logger":331,"../menu/menu":332,"../network/network":333,"../user/user":339,"../vhost/vhost":341,"promise-polyfill":306,"stargatejs":309}],342:[function(require,module,exports){
 'use strict';
 
 var addRetroInterface = function addRetroInterface(build) {
@@ -13485,17 +16005,17 @@ var addRetroInterface = function addRetroInterface(build) {
         };
     }
 
-    window.Gamefive = build;
+    window.GamefiveSDK = build;
 };
 
 module.exports = addRetroInterface;
 
-},{"../components/vhost/vhost":339}],341:[function(require,module,exports){
+},{"../components/vhost/vhost":341}],343:[function(require,module,exports){
 "use strict";
 
-var pkgInfo = { "version": "2.0.2", "build": "v2.0.2-7-g46a4d05" };module.exports = pkgInfo;
+var pkgInfo = { "version": "2.0.3", "build": "v2.0.3-25-gb718a68" };module.exports = pkgInfo;
 
-},{}],342:[function(require,module,exports){
+},{}],344:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -13589,7 +16109,7 @@ module.exports = {
    }
 };
 
-},{}],343:[function(require,module,exports){
+},{}],345:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -13721,5 +16241,5 @@ module.exports = {
     "logged": 1
 };
 
-},{}]},{},[320])(320)
+},{}]},{},[321])(321)
 });

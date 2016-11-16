@@ -186,12 +186,14 @@ This method make a call to our server and **must be called AFTER GamifiveSDK.ini
 // returns an object containing the player's progress
 
 GamifiveSDK.init();
-GamifiveSDK.loadUserData(function(userProgress){
-    // here your code N.B. userProgress is always an object
-    // so the first time will be empty
-    // you could check if it's empty with somenthing like this Object.keys(userProgress).length === 0
-    console.log(userProgress.level1)
-}); 
+var userProgressInGame = {};
+GamifiveSDK.loadUserData(function(userProgressSaved){
+    if(userProgressSaved){
+        //else load userprogress in the game
+        userProgressInGame = userProgressSaved;
+    }
+    //start the game with the userProgress loaded
+});
 ```
 
 <h2>clearUserData</h2>
@@ -281,16 +283,6 @@ GamifiveSDK.init({
 });
 ```
 
-<b>Note:</b> when using the SDK in <i>lite</i> version you don't have to use <i>onStartSession</i> for starting your game, it is sufficient to call <i>startSession</i> for tracking the session's time and score.
-
-
-<h1>Debug mode</h1>
-
-Here is a brief description of the error and debug messages that are meant to be displayed in the JavaScript console of your browser when using GamifiveSDK in debug mode. 
-
-We remind you that in order to use GamifiveSDK in debug mode, you have to call <i>Gamifive.init</i> with <i>debug: true</i> in the configuration argument.
-
-
 <h2>Lite Mode</h2>
 
 We remind you that in order to use GamifiveSDK in lite mode, you have to call <i>Gamifive.init</i> with <i>lite: true</i> in the configuration argument.
@@ -298,17 +290,14 @@ We remind you that in order to use GamifiveSDK in lite mode, you have to call <i
 
 <h3>GamifiveSDK.init</h3>
 
-No debug messages are displayed when calling <i>GamifiveSDK.init</i>.
 
 <h3>GamifiveSDK.onStartSession</h3>
 
-We remind you that you don't have to call <i>GamifiveSDK.onStartSession()</i> when using the lite mode of GamifiveSDK.
+Register a callback function any time a session start
 
-When calling <i>GamifiveSDK.onStartSession()</i> in lite mode, the following error message is displayed:
-
-```javascript
-    GamifiveSDK,ERROR,in lite mode, onStartSession must not be used
-```
+GamifiveSDK.onStartSession(function yourFunction(){
+    //do things everytime a session start
+});
 
 <h3>GamifiveSDK.startSession</h3>
 
@@ -416,38 +405,55 @@ Otherwise, the following error message is displayed:
 
 ## Full implementation example
 ```javascript
-// returns an object containing the player's progress
 
 GamifiveSDK.onStartSession(function(){
-    // do somenthing when a session starts
+    // do somenthing everytime a session starts
 });
 
+// You can run this on body onload event or on document content load or as soon as you can
 GamifiveSDK.init({ lite: true }); // could be an empty object: default lite = false
 
-GamifiveSDK.loadUserData(function(userProgress){
-    // here your code N.B. userProgress is always an object
-    // so the first time will be empty
-    // you could check if it's empty with somenthing like this Object.keys(userProgress).length === 0
-    if(userProgress.level1 && userProgress.level1.unlocked){
-        // skip level1 or whatever
-    }
-}); 
-
-GamifiveSDK.startSession();
-
-//persist user data on our server
-GamifiveSDK.saveUserData({ 
+// your userData empty structure
+var emptyStructure = {
     level1: { 
-        unlocked: true, 
-        stars: 3
+        unlocked: false, 
+        stars: 0,
+        score: 0
     }, 
     level2: {
         unlocked: false, 
-        stars: 0
+        stars: 0,
+        score: 0
+    } 
+}
+
+var userProgressInGame = {};
+GamifiveSDK.loadUserData(function(userProgressSaved){
+    if(userProgressSaved){
+        //else load userprogress in the game
+        userProgressInGame = userProgressSaved;
+    }
+    //start the game with the userProgress loaded
+});
+
+GamifiveSDK.startSession();
+
+// Persist user data when somenthing happens. Change in settings or end of the level
+GamifiveSDK.saveUserData({ 
+    level1: { 
+        unlocked: true, 
+        stars: 2,
+        score: 300
+    }, 
+    level2: {
+        unlocked: false, 
+        stars: 0,
+        score:0
     } 
 });
 
-GamifiveSDK.endSession({ score: 5, level: 3 });
+GamifiveSDK.endSession({ score: 300, level: 1 });
+
 ```
 # Set the debug environment
 

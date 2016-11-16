@@ -32,7 +32,7 @@ var Session = new function(){
     var startCallback = function(){};
     var contentRanking;
 
-    var config = {};
+    var config = {sessions:[]};
     
     //[[GET, url]]
     var toDoXHR = [];
@@ -53,9 +53,7 @@ var Session = new function(){
     this.reset = function(){
         initPromise = null;
         config = {sessions:[]};
-    };
-    // apply default configuration
-    sessionInstance.reset();
+    };    
 
     /**
     * returns the internal configuration
@@ -115,7 +113,7 @@ var Session = new function(){
 
         config = Utils.extend(config, params);
 
-        if (typeof config.moreGamesButtonStyle !== 'undefined'){
+        if (getType(config.moreGamesButtonStyle) !== 'undefined'){
             Menu.setCustomStyle(config.moreGamesButtonStyle);
         }
 
@@ -162,6 +160,9 @@ var Session = new function(){
                     
                     var env = Stargate.isHybrid() ? 'hybrid' : 'webapp';
                     var enableNewton = true;
+                    if(env === 'hybrid' && Stargate.checkConnection().type !== 'online'){
+                        enableNewton = false;
+                    }
 
                     NewtonService.init({
                            secretId: VHost.get('NEWTON_SECRETID'),
@@ -188,14 +189,13 @@ var Session = new function(){
                     });
 
                     NewtonService.trackEvent({
-                        name: 'SdkInitFinished',
-                        rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'), 
+                        name: 'SdkInitFinished',                        
                         properties:{
-                            action: 'Yes',
-                            category: 'Play',
+                            action: 'No',
+                            category: 'SDK_OK',
                             game_title: GameInfo.getInfo().game.title,
                             label: GameInfo.getContentId(),
-                            valuable: 'Yes'                            
+                            valuable: 'No'                            
                         }
                     });           
                     initialized = true;  
@@ -206,6 +206,17 @@ var Session = new function(){
                     Event.trigger('INIT_FINISHED', {type:'INIT_FINISHED'});
                }).catch(function(reason){
                     Event.trigger('INIT_ERROR', {type:'INIT_ERROR', reason:reason});
+                    NewtonService.trackEvent({
+                        name: 'SdkInitError',                        
+                        properties:{
+                            action: 'No',
+                            category: 'SDK_ERROR',
+                            game_title: GameInfo.getInfo().game.title,
+                            label: GameInfo.getContentId(),
+                            valuable: 'No',
+                            reason:reason
+                        }
+                    });    
                     Logger.error('GamifiveSDK init error: ', reason);
                     initialized = false;
                     throw reason;
@@ -273,6 +284,7 @@ var Session = new function(){
                 rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameStart'), 
                 properties:{
                     category: "Play", 
+                    game_title: GameInfo.getInfo().game.title,
                     label: GameInfo.getContentId(),
                     valuable: "Yes",
                     action: "Yes"                    
@@ -379,7 +391,7 @@ var Session = new function(){
     * ends a session and (if not in lite mode) shows the platform's gameover screen    
     * @function end
     * @memberof Session
-    * @param {Object} [data={}] can contain a "score" and/or "level" attribute
+    * @param {Object} data can contain a "score" and/or "level" attribute
     * @param {Number} [data.score=0] - the score of the user in the sesssion
     * @param {Number} [data.level=0] - the level
     */
@@ -403,6 +415,7 @@ var Session = new function(){
             name:'GameEnd', 
             properties:{
                 category: 'Play',
+                game_title: GameInfo.getInfo().game.title,
                 label: GameInfo.getContentId(),
                 valuable: 'No',
                 action: 'No'                
