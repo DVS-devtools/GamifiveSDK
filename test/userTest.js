@@ -27,7 +27,7 @@ describe("User", function(){
             }
         };
         StargateMock = new StargateMockClass();
-        // User.setStargateMock(StargateMock);
+        User.setMock("Stargate", StargateMock);
 
     });
 
@@ -95,5 +95,127 @@ describe("User", function(){
             expect(User.getUserType()).toEqual("premium");
             done();
         });        
+    });
+    
+    it("Internal syncData function: serverGameInfo should win if not localGameInfo", function(){
+        var serverGameInfo = {        
+            CreatedAt: String(new Date(0)),
+            UpdatedAt: String(new Date()),
+            ProductId: "",
+            contentId: "",
+            domain: "",
+            Creator: "",
+            _id: "",
+            info:null            
+        };
+        var result = User.syncUserData([null, serverGameInfo]);
+        expect(result).toEqual(serverGameInfo);
+
+    });
+
+    it("Internal syncData function: localGameInfo should win if not serverGameInfo", function(){
+        var localGameInfo = {
+                CreatedAt: String(new Date(0)),
+                UpdatedAt: String(new Date()),
+                ProductId: "",
+                contentId: "",
+                domain: "",
+                Creator: "",
+                _id: "",
+                info:null
+        };
+        var result = User.syncUserData([localGameInfo, null]);
+        expect(result).toEqual(localGameInfo);
+
+    });
+    
+    it("Internal syncData function: should win most updated: serverGameInfo", function(){
+        var localDate = new Date();
+        var localGameInfo = {            
+            CreatedAt: "2016-11-08T17:11:23.187Z",
+            UpdatedAt: localDate.toISOString(),
+            ProductId: "",
+            contentId: "",
+            domain: "",
+            Creator: "",
+            _id: "",
+            info:null
+        };
+
+        var mostUpdated = new Date();
+        mostUpdated.setDate(32);
+        var serverGameInfo = {            
+            CreatedAt: "2016-11-08T17:11:23.187Z",
+            UpdatedAt: mostUpdated.toISOString(),
+            ProductId: "",
+            contentId: "",
+            domain: "",
+            Creator: "",
+            _id: "",
+            info:null            
+        };
+        var result = User.syncUserData([localGameInfo, serverGameInfo]);
+        expect(result).toEqual(serverGameInfo);
+
+    });
+
+    it("Internal syncData function: should win most updated:local", function(){
+        var localDate = new Date();
+        localDate.setDate(33);
+        var localGameInfo = {            
+            CreatedAt: "2016-11-08T17:11:23.187Z",
+            UpdatedAt: localDate.toISOString(),
+            ProductId: "",
+            contentId: "",
+            domain: "",
+            Creator: "",
+            _id: "",
+            info:null
+        };
+
+        var mostUpdated = new Date();
+        var serverGameInfo = {            
+            CreatedAt: "2016-11-08T17:11:23.187Z",
+            UpdatedAt: mostUpdated.toISOString(),
+            ProductId: "",
+            contentId: "",
+            domain: "",
+            Creator: "",
+            _id: "",
+            info:null            
+        };
+        var result = User.syncUserData([localGameInfo, serverGameInfo]);
+        expect(result).toEqual(localGameInfo);
+
+    });
+
+
+    it("Internal syncData function: limit case. same timestamp", function(){
+        var localDate = new Date();
+        
+        var localGameInfo = {            
+            CreatedAt: "2016-11-08T17:11:23.187Z",
+            UpdatedAt: localDate.toISOString(),
+            ProductId: "",
+            contentId: "",
+            domain: "",
+            Creator: "",
+            _id: "",
+            info:null
+        };
+
+        var serverGameInfo = {            
+            CreatedAt: "2016-11-08T17:11:23.187Z",
+            UpdatedAt: localDate.toISOString(),
+            ProductId: "",
+            contentId: "",
+            domain: "",
+            Creator: "",
+            _id: "",
+            info:null            
+        };
+        var result = User.syncUserData([localGameInfo, serverGameInfo]);
+        expect(result).toBeUndefined();
+
     });
 });

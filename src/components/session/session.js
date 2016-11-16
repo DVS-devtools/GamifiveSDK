@@ -32,7 +32,7 @@ var Session = new function(){
     var startCallback = function(){};
     var contentRanking;
 
-    var config = {};
+    var config = {sessions:[]};
     
     //[[GET, url]]
     var toDoXHR = [];
@@ -53,9 +53,7 @@ var Session = new function(){
     this.reset = function(){
         initPromise = null;
         config = {sessions:[]};
-    };
-    // apply default configuration
-    sessionInstance.reset();
+    };    
 
     /**
     * returns the internal configuration
@@ -115,7 +113,7 @@ var Session = new function(){
 
         config = Utils.extend(config, params);
 
-        if (typeof config.moreGamesButtonStyle !== 'undefined'){
+        if (getType(config.moreGamesButtonStyle) !== 'undefined'){
             Menu.setCustomStyle(config.moreGamesButtonStyle);
         }
 

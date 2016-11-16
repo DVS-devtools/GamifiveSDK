@@ -29,8 +29,8 @@ var User = function(){
     var userInstance = this;
     var userInfo = {
         gameInfo:{
-            CreatedAt: String(new Date(0)),
-            UpdatedAt: String(new Date(0)),
+            CreatedAt: new Date(0).toISOString(),
+            UpdatedAt: new Date(0).toISOString(),
             ProductId: "",
             contentId: "",
             domain: "",
@@ -274,7 +274,7 @@ var User = function(){
                             userInfo.gameInfo = newGameInfo;
                         }  
                         onUserDataCallback(userInfo.gameInfo.info);
-                    });     
+                    });
             });
         // Init finished
         } else if(!state.init.pending && state.init.finished){
@@ -307,9 +307,11 @@ var User = function(){
     function syncUserData(results){
         Logger.info("GamifiveSDK: sync userData");
         let [localGameInfo, serverGameInfo] = results;
+
         if(localGameInfo && serverGameInfo){
             let localUpdatedAt = new Date(localGameInfo.UpdatedAt);
             let serverUpdatedAt = new Date(serverGameInfo.UpdatedAt);
+            
             // local is more relevant
             if(localUpdatedAt > serverUpdatedAt){
                 Logger.info("GamifiveSDK: sync userData", "local won");
@@ -318,6 +320,8 @@ var User = function(){
             // server is more relevant
                 Logger.info("GamifiveSDK: sync userData", "server won");
                 return serverGameInfo;
+            } else {
+                Logger.info("GamifiveSDK: sync userData", "same timestamp!");
             }
         } else if(localGameInfo && !serverGameInfo){
             Logger.info("GamifiveSDK: sync userData", "local won", "no serverGameInfo");

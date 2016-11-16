@@ -403,38 +403,55 @@ Otherwise, the following error message is displayed:
 
 ## Full implementation example
 ```javascript
-// returns an object containing the player's progress
 
 GamifiveSDK.onStartSession(function(){
-    // do somenthing when a session starts
+    // do somenthing everytime a session starts
 });
 
+// You can run this on body onload event or on document content load or as soon as you can
 GamifiveSDK.init({ lite: true }); // could be an empty object: default lite = false
 
-GamifiveSDK.loadUserData(function(userProgress){
-    // here your code N.B. userProgress is always an object
-    // so the first time will be empty
-    // you could check if it's empty with somenthing like this Object.keys(userProgress).length === 0
-    if(userProgress.level1 && userProgress.level1.unlocked){
-        // skip level1 or whatever
+// your userData empty structure
+var emptyStructure = {
+    level1: { 
+        unlocked: false, 
+        stars: 0,
+        score: 0
+    }, 
+    level2: {
+        unlocked: false, 
+        stars: 0,
+        score: 0
+    } 
+}
+
+var userProgressInGame = {};
+GamifiveSDK.loadUserData(function(userProgressSaved){
+    if(userProgressSaved){
+        //else load userprogress in the game
+        userProgressInGame = userProgressSaved;
     }
+    //start the game with the userProgress loaded
 }); 
 
 GamifiveSDK.startSession();
 
-//persist user data on our server
+// Persist user data when somenthing happens. Change in settings or end of the level
 GamifiveSDK.saveUserData({ 
     level1: { 
         unlocked: true, 
-        stars: 3
+        stars: 2,
+        score: 300
     }, 
     level2: {
         unlocked: false, 
-        stars: 0
+        stars: 0,
+        score:0
     } 
 });
 
-GamifiveSDK.endSession({ score: 5, level: 3 });
+GamifiveSDK.endSession({ score: 300, level: 1 });
+
 ```
 # Set the debug environment
 
