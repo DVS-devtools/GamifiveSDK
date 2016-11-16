@@ -186,12 +186,14 @@ This method make a call to our server and **must be called AFTER GamifiveSDK.ini
 // returns an object containing the player's progress
 
 GamifiveSDK.init();
-GamifiveSDK.loadUserData(function(userProgress){
-    // here your code N.B. userProgress is always an object
-    // so the first time will be empty
-    // you could check if it's empty with somenthing like this Object.keys(userProgress).length === 0
-    console.log(userProgress.level1)
-}); 
+var userProgressInGame = {};
+GamifiveSDK.loadUserData(function(userProgressSaved){
+    if(userProgressSaved){
+        //else load userprogress in the game
+        userProgressInGame = userProgressSaved;
+    }
+    //start the game with the userProgress loaded
+});
 ```
 
 <h2>clearUserData</h2>
@@ -432,7 +434,7 @@ GamifiveSDK.loadUserData(function(userProgressSaved){
         userProgressInGame = userProgressSaved;
     }
     //start the game with the userProgress loaded
-}); 
+});
 
 GamifiveSDK.startSession();
 
