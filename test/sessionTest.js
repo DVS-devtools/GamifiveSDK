@@ -190,16 +190,8 @@ describe("Session",function(){
         
     });
 
-    it("Session cannot be started before init", function(done){
-
-        var errorStartSession;
-        try {
-            Session.start();
-        } catch (e){
-            errorStartSession = e;
-        }
-        expect(errorStartSession).toEqual(Constants.ERROR_SESSION_INIT_NOT_CALLED);
-        done();
+    it("Session cannot be started before init", function(){
+        expect(Session.start()).toEqual(false);        
     });
 
     it("Session cannot be ended before init was called", function(){

@@ -18,6 +18,8 @@ module.exports = {
         'cursor':'pointer'
     },
     IMMUTABLE_MENU_STYLE_PROPERTIES: [
+        'transform-origin',
+        'transform',
         'background-image',
         'background-position',
         'z-index',
