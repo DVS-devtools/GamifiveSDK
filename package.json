@@ -10,7 +10,7 @@
   "scripts": {
     "vhost:keys": "sh compile_vhost.sh",
     "docs": "rm docs -rf && node_modules/.bin/jsdoc src/components -r -d docs",
-    "prebuild": "sh getrevision.sh && git add src/version.js",
+    "prebuild": "sh getrevision.sh",
     "build": "npm run build:prod && npm run build:debug && npm run minify",
     "build:debug": "export NODE_ENV=debug && npm run vhost:keys && browserify src/builders/build.js -o debug/gfsdk.js -s GamifiveSDK",
     "build:dev": "export NODE_ENV=testing && npm run vhost:keys && browserify src/builders/build.js -o dist/gfsdk.js -s GamifiveSDK && npm run minify",
@@ -22,7 +22,8 @@
     "upload:dist": "scp -r dist/* super@192.168.124.3:$npm_package_config_release_folder",
     "upload:debug": "scp -r debug/* super@192.168.124.3:$npm_package_config_debug_folder",
     "upload": "npm run upload:dist && npm run upload:debug",
-    "version": "npm run build",
+    "preversion":"npm run test",
+    "version": "npm run build && git add src/version.js",
     "postversion": "git push --tags",
     "serve": "http-server debug/ -p 5050 -a local.appsworld.gamifive-app.com"
   },
