@@ -342,7 +342,7 @@ var User = function(){
     this.clearData = function(callback){
         Logger.info('GamifiveSDK', 'clearUserData');
         // delete from server and on local
-        userInfo.gameInfo = {...userInfo.gameInfo, info:null, UpdatedAt: new Date().toISOString()};
+        userInfo.gameInfo = {...userInfo.gameInfo, info: null, UpdatedAt: new Date().toISOString()};
         return Promise.all([
             setUserDataOnServer(userInfo.gameInfo), 
             setUserDataOnLocal(userInfo.gameInfo)
