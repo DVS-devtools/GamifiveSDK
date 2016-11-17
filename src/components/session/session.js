@@ -497,7 +497,7 @@ var Session = new function(){
                             e.preventDefault();
                             sessionInstance.goToHome();
                             //remove it everytime to prevent memory leak
-                            toHomeBtn.removeEventListener(tohome);
+                            toHomeBtn.removeEventListener('click', tohome);
                         });
                     }
 
