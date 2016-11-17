@@ -143,18 +143,22 @@ var Session = new function(){
                    return VHost.load();
                })
                .then(function(){                   
+                    Event.trigger('VHOST_LOADED');
                     Menu.setSpriteImage(VHost.get('IMAGES_SPRITE_GAME'));
                     contentRanking = VHost.get('CONTENT_RANKING');
                     Menu.show();
                     
-                    loadDictionary();
                     var UserTasks = User.fetch().then(User.getFavorites);
-                    return Promise.all([
+                    let promises = [
                         UserTasks,
-                        GameInfo.fetch()
-                    ]);
+                            GameInfo.fetch(),                    
+                            loadDictionary()
+                        ];
+                    
+                    return Promise.all(promises);
                })
                .then(function(){
+                    Event.trigger('USER_LOADED');                 
                     Facebook.init({ fbAppId: GameInfo.getInfo().fbAppId });
                     
                     var env = Stargate.isHybrid() ? 'hybrid' : 'webapp';
@@ -202,6 +206,11 @@ var Session = new function(){
                }).then(function(){
                     Logger.log('GamifiveSDK', 'register sync function for gameover/leaderboard results');
                     Stargate.addListener('connectionchange', sync);                   
+                    // if he calls me before init finished let's wait
+                    if(state.userDataPromise){
+                        return state.userDataPromise();
+                    }                    
+                }).then(function(){
                     Event.trigger('INIT_FINISHED', {type:'INIT_FINISHED'});
                 }).catch(function(reason){
                     Event.trigger('INIT_ERROR', {type:'INIT_ERROR', reason:reason});
@@ -344,11 +353,6 @@ var Session = new function(){
         config.sessions = config.sessions.slice(0, Constants.MAX_RECORDED_SESSIONS_NUMBER);
                 
         return initPromise.then(function(){
-            if(!state.userDataPromise){
-                return Promise.resolve();
-            }
-            return state.userDataPromise();         
-        }).then(function(){
             return __start();
         });
     };

@@ -54,7 +54,7 @@ var User = function(){
     });
 
     Event.on('USER_DATA_FETCHED', function(){
-        onUserDataCallback(userInfo.gameInfo.info);
+        return onUserDataCallback(userInfo.gameInfo.info);
     });
 
     // retro compatibility
@@ -239,7 +239,7 @@ var User = function(){
             }
         }
 
-        userInfo.gameInfo = {...userInfo.gameInfo, info:info, UpdatedAt: String(new Date())};
+        userInfo.gameInfo = {...userInfo.gameInfo, info:info, UpdatedAt: new Date().toISOString() };
 
         if(state.init.pending && !state.init.finished){
             Event.on('INIT_FINISHED', function(){
@@ -258,9 +258,11 @@ var User = function(){
     };
 
     this.getUserData = function(){
-        return Promise.all([getUserDataFromLocal(), getUserDataFromServer()])
-                .then(syncUserData)
-                .then(function(newGameInfo){
+        return Promise.all([
+            getUserDataFromLocal(), 
+            getUserDataFromServer()
+        ]).then(syncUserData)
+          .then(function(newGameInfo){
                     if(newGameInfo){
                         userInfo.gameInfo = newGameInfo;
                     }
@@ -292,8 +294,7 @@ var User = function(){
         Logger.info('GamifiveSDK', 'User', 'loadData');
         if(state.init.pending && !state.init.finished){
             Event.trigger('REGISTER_USER_DATA_PROMISE', userInstance.getUserData);
-        } else if(!state.init.pending && state.init.finished){
-            Event.trigger('REGISTER_USER_DATA_PROMISE', userInstance.getUserData);
+        } else if(!state.init.pending && state.init.finished){            
             return userInstance.getUserData();
         }
     };
