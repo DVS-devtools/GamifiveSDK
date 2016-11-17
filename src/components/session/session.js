@@ -82,6 +82,50 @@ var Session = new function(){
         }
     };
 
+    Event.on('INIT_FINISHED', function(){
+        if(Stargate.isHybrid()){
+            NewtonService.trackEvent({
+                name: 'GameLoad',                        
+                properties:{
+                    action: 'Yes',
+                    rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'),
+                    category: 'Play',
+                    game_title: GameInfo.getInfo().game.title,
+                    label: GameInfo.getContentId(),
+                    valuable: 'No'
+                }
+            }); 
+        }
+    });
+
+    Event.on('GO_TO_HOME_CLICK', function(){
+        NewtonService.trackEvent({
+            name: 'GoToHome',                        
+            properties:{
+                action: 'Yes',
+                rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'),
+                category: 'Behavior',
+                game_title: GameInfo.getInfo().game.title,
+                label: GameInfo.getContentId(),
+                valuable: 'No'                            
+            }
+        });
+    });
+
+    Event.on('INIT_ERROR', function(ev){
+        NewtonService.trackEvent({
+            name: 'SdkInitError',                        
+            properties:{
+                action: 'No',
+                category: 'SDK_ERROR',
+                game_title: GameInfo.getInfo().game.title,
+                label: GameInfo.getContentId(),
+                valuable: 'No',
+                reason: ev.reason
+            }
+        });    
+    })
+
     /**
     * initializes the module with custom parameters
     * @function init
@@ -142,7 +186,7 @@ var Session = new function(){
                .then(function(){
                    return VHost.load();
                })
-               .then(function(){                   
+               .then(function(){
                     Event.trigger('VHOST_LOADED');
                     Menu.setSpriteImage(VHost.get('IMAGES_SPRITE_GAME'));
                     contentRanking = VHost.get('CONTENT_RANKING');
@@ -150,14 +194,14 @@ var Session = new function(){
                     
                     var UserTasks = User.fetch().then(User.getFavorites);
                     let promises = [
-                        UserTasks,
+                            UserTasks,
                             GameInfo.fetch(),                    
                             loadDictionary()
                         ];
                     
                     return Promise.all(promises);
                })
-               .then(function(){
+               .then(function(){                    
                     Event.trigger('USER_LOADED');                 
                     Facebook.init({ fbAppId: GameInfo.getInfo().fbAppId });
                     
@@ -190,22 +234,11 @@ var Session = new function(){
                         userProperties: queryString,
                         logged: (User.getUserType() !== 'guest')
                     });
-
-                    NewtonService.trackEvent({
-                        name: 'SdkInitFinished',                        
-                        properties:{
-                            action: 'No',
-                            category: 'SDK_OK',
-                            game_title: GameInfo.getInfo().game.title,
-                            label: GameInfo.getContentId(),
-                            valuable: 'No'                            
-                        }
-                    });           
-                    initialized = true;                    
-                    return initialized;
-               }).then(function(){
+          
+                    initialized = true;
+                }).then(function(){               
                     Logger.log('GamifiveSDK', 'register sync function for gameover/leaderboard results');
-                    Stargate.addListener('connectionchange', sync);                   
+                    Stargate.addListener('connectionchange', sync);
                     // if he calls me before init finished let's wait
                     if(state.userDataPromise){
                         return state.userDataPromise();
@@ -213,18 +246,7 @@ var Session = new function(){
                 }).then(function(){
                     Event.trigger('INIT_FINISHED', {type:'INIT_FINISHED'});
                 }).catch(function(reason){
-                    Event.trigger('INIT_ERROR', {type:'INIT_ERROR', reason:reason});
-                    NewtonService.trackEvent({
-                        name: 'SdkInitError',                        
-                        properties:{
-                            action: 'No',
-                            category: 'SDK_ERROR',
-                            game_title: GameInfo.getInfo().game.title,
-                            label: GameInfo.getContentId(),
-                            valuable: 'No',
-                            reason:reason
-                        }
-                    });    
+                    Event.trigger('INIT_ERROR', {type:'INIT_ERROR', reason:reason});                    
                     Logger.error('GamifiveSDK init error: ', reason);
                     initialized = false;
                     throw reason;
@@ -499,7 +521,7 @@ var Session = new function(){
                         toHomeBtn.addEventListener('click', function tohome(e){
                             e.stopPropagation();
                             e.preventDefault();
-                            sessionInstance.goToHome();
+                            sessionInstance.goToHome();                            
                             //remove it everytime to prevent memory leak
                             toHomeBtn.removeEventListener('click', tohome);
                         });
@@ -564,6 +586,7 @@ var Session = new function(){
     */
     this.goToHome = function(){
         Logger.info('GamifiveSDK', 'Session', 'goToHome');
+        Event.trigger('GO_TO_HOME_CLICK');
         if (Stargate.isHybrid()){
             // In local index there's already a connection check
             Stargate.goToLocalIndex();            
