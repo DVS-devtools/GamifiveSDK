@@ -40,6 +40,22 @@ var User = function(){
         }
     };
     var favorites = [];
+    Event.on('INIT_START', function(action){
+        state.init.pending = true;
+    });
+
+    Event.on('INIT_FINISHED', function(action){        
+        state.init.pending = false;
+        state.init.finished = true;
+    });
+
+    Event.on('REGISTER_USER_DATA_PROMISE', function(userDataPromise){
+        state.userDataPromise = userDataPromise;
+    });
+
+    Event.on('USER_DATA_FETCHED', function(){
+        onUserDataCallback(userInfo.gameInfo.info);
+    });
 
     // retro compatibility
     if(window.GamifiveInfo && window.GamifiveInfo.user){
@@ -63,15 +79,6 @@ var User = function(){
      * GamifiveSDK.init(); GamifiveSDK.loadUserData(saveSomewhereFunction)
      */
     var onUserDataCallback = function(){};
-    
-    Event.on('INIT_START', function(action){
-        state.init.pending = true;
-    });
-
-    Event.on('INIT_FINISHED', function(action){        
-        state.init.pending = false;
-        state.init.finished = true;
-    });
 
     this.getInfo = function(){
         return userInfo || {};
@@ -250,6 +257,19 @@ var User = function(){
         }
     };
 
+    this.getUserData = function(){
+        return Promise.all([getUserDataFromLocal(), getUserDataFromServer()])
+                .then(syncUserData)
+                .then(function(newGameInfo){
+                    if(newGameInfo){
+                        userInfo.gameInfo = newGameInfo;
+                    }
+                    Event.trigger('USER_DATA_FETCHED');
+                    Event.trigger('REGISTER_USER_DATA_PROMISE', null);
+                    return userInfo.gameInfo.info;
+                });
+    }
+
     /**
     * Loads user's game progress
     * @function loadData    
@@ -260,43 +280,22 @@ var User = function(){
     this.loadData = function(callback){
         if(!callback){
             callback = function(){}
+            /** Old implementation */
             Logger.warn("GamifiveSDK: loadUserData() is deprecated from v2, please call loadUserData(callback)");
+            if(getType(userInfo.gameInfo.info) === 'object' && Object.keys(userInfo.gameInfo.info).length === 0){
+                return undefined;
+            }
+            return userInfo.gameInfo.info;
         }
         onUserDataCallback = callback;
-        // Init called but still pending
-        if(state.init.pending && !state.init.finished){            
-            Event.on('INIT_FINISHED', function(action){                
-                Logger.info('GamifiveSDK', 'User', 'loadData');
-                Promise.all([getUserDataFromLocal(), getUserDataFromServer()])
-                    .then(syncUserData)
-                    .then(function(newGameInfo){
-                        if(newGameInfo){
-                            userInfo.gameInfo = newGameInfo;
-                        }  
-                        onUserDataCallback(userInfo.gameInfo.info);
-                    });
-            });
-        // Init finished
+        
+        Logger.info('GamifiveSDK', 'User', 'loadData');
+        if(state.init.pending && !state.init.finished){
+            Event.trigger('REGISTER_USER_DATA_PROMISE', userInstance.getUserData);
         } else if(!state.init.pending && state.init.finished){
-            Logger.info('GamifiveSDK', 'User', 'loadData');
-            Promise.all([getUserDataFromLocal(), getUserDataFromServer()])
-                .then(syncUserData)
-                .then(function(newGameInfo){
-                    if(newGameInfo){
-                        userInfo.gameInfo = newGameInfo;
-                    }                    
-                    onUserDataCallback(userInfo.gameInfo.info);
-                });
-            
-        } else {
-            Logger.warn("GamifiveSDK", "you can't call loadUserData before init");
+            Event.trigger('REGISTER_USER_DATA_PROMISE', userInstance.getUserData);
+            return userInstance.getUserData();
         }
-
-        if(getType(userInfo.gameInfo.info) === 'object' && Object.keys(userInfo.gameInfo.info).length === 0){
-            return undefined;
-        }
-
-        return userInfo.gameInfo.info;
     };
     
     /**
@@ -320,8 +319,9 @@ var User = function(){
             // server is more relevant
                 Logger.info("GamifiveSDK: sync userData", "server won");
                 return serverGameInfo;
-            } else {
+            } else if(localUpdatedAt === serverUpdatedAt){
                 Logger.info("GamifiveSDK: sync userData", "same timestamp!");
+                return localGameInfo;
             }
         } else if(localGameInfo && !serverGameInfo){
             Logger.info("GamifiveSDK: sync userData", "local won", "no serverGameInfo");
@@ -342,7 +342,7 @@ var User = function(){
     this.clearData = function(callback){
         Logger.info('GamifiveSDK', 'clearUserData');
         // delete from server and on local
-        userInfo.gameInfo = {...userInfo.gameInfo, info:null, UpdatedAt: String(new Date())};
+        userInfo.gameInfo = {...userInfo.gameInfo, info:null, UpdatedAt: new Date().toISOString()};
         return Promise.all([
             setUserDataOnServer(userInfo.gameInfo), 
             setUserDataOnLocal(userInfo.gameInfo)

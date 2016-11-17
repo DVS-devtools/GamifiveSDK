@@ -17,6 +17,7 @@ import Event from '../event/event';
 import { Utils } from 'stargatejs';
 import { calculateContentRanking } from '../tracking_utils/tracking_utils';
 const { getType } = Utils;
+var state = require('../state/state');
 
 /**
 * Session module
@@ -31,7 +32,6 @@ var Session = new function(){
     var menuIstance;
     var startCallback = function(){};
     var contentRanking;
-
     var config = {sessions:[]};
     
     //[[GET, url]]
@@ -148,8 +148,7 @@ var Session = new function(){
                     Menu.show();
                     
                     loadDictionary();
-                    
-                    var UserTasks = User.fetch().then(User.getFavorites);                                   
+                    var UserTasks = User.fetch().then(User.getFavorites);
                     return Promise.all([
                         UserTasks,
                         GameInfo.fetch()
@@ -165,18 +164,18 @@ var Session = new function(){
                     }
 
                     NewtonService.init({
-                           secretId: VHost.get('NEWTON_SECRETID'),
-                           enable: enableNewton, // enable newton
-                           waitLogin: true,     // wait for login to have been completed (async)
-                           logger: Logger,
-                           properties: {
-                                environment: env,
-                                white_label_id: GameInfo.getInfo().label
-                           }
+                        secretId: VHost.get('NEWTON_SECRETID'),
+                        enable: enableNewton, // enable newton
+                        waitLogin: true,     // wait for login to have been completed (async)
+                        logger: Logger,
+                        properties: {
+                            environment: env,
+                            white_label_id: GameInfo.getInfo().label
+                        }
                     });
 
                     var queryString = Location.getQueryString();
-                    if (typeof queryString.dest === 'undefined'){
+                    if (getType(queryString.dest) === 'undefined'){
     					queryString.dest = 'N/A';                        
                     }
 
@@ -198,13 +197,13 @@ var Session = new function(){
                             valuable: 'No'                            
                         }
                     });           
-                    initialized = true;  
-                    return initialized;                    
-               }).then(function(){  
+                    initialized = true;                    
+                    return initialized;
+               }).then(function(){
                     Logger.log('GamifiveSDK', 'register sync function for gameover/leaderboard results');
                     Stargate.addListener('connectionchange', sync);                   
                     Event.trigger('INIT_FINISHED', {type:'INIT_FINISHED'});
-               }).catch(function(reason){
+                }).catch(function(reason){
                     Event.trigger('INIT_ERROR', {type:'INIT_ERROR', reason:reason});
                     NewtonService.trackEvent({
                         name: 'SdkInitError',                        
@@ -292,14 +291,14 @@ var Session = new function(){
             });
             
             try{
+                Event.trigger('ON_START_SESSION_CALLED');
                 startCallback();
             } catch(e){
                 Logger.error('GamifiveSDK', 'onStartSession ERROR', e);
             }                        
         }
 
-        if (!config.lite){     
-            
+        if (!config.lite){            
             User.canPlay()
                 .then(function(canPlay){
                     if(canPlay){
@@ -311,7 +310,6 @@ var Session = new function(){
                         return gameOver({ start: 0, duration: 0, score: 0, level: 0 });
                     }
                 });
-
         } else {            
             doStartSession();
         }
@@ -325,15 +323,15 @@ var Session = new function(){
     */
     this.start = function(){
         if (!initPromise){
-            throw Constants.ERROR_SESSION_INIT_NOT_CALLED;
-        }
+            Logger.warn(Constants.ERROR_SESSION_INIT_NOT_CALLED);
+            return false;
+        }       
         
-        // If a previous session exists, it must have been ended
         if (config.sessions && config.sessions.length > 0 && typeof getLastSession().endTime === 'undefined'){
             config.sessions.shift();
             Logger.warn(Constants.ERROR_SESSION_ALREADY_STARTED);
         }
-
+        Event.trigger('START_SESSION_CALLED');
         // ok, you can try to start a new session
         config.sessions.unshift({
             startTime: new Date(),
@@ -344,8 +342,13 @@ var Session = new function(){
 
         // cut out the older sessions
         config.sessions = config.sessions.slice(0, Constants.MAX_RECORDED_SESSIONS_NUMBER);
-
+                
         return initPromise.then(function(){
+            if(!state.userDataPromise){
+                return Promise.resolve();
+            }
+            return state.userDataPromise();         
+        }).then(function(){
             return __start();
         });
     };
@@ -361,7 +364,7 @@ var Session = new function(){
             Logger.info('GamifiveSDK', 'Session', 'register onStart callback');
             startCallback = callback;
         } else {
-            throw new Error(Constants.ERROR_ONSTART_CALLBACK_TYPE + typeof callback);
+           Logger.warn(Constants.ERROR_ONSTART_CALLBACK_TYPE + typeof callback);
         }
     };
 
@@ -395,7 +398,7 @@ var Session = new function(){
     * @param {Number} [data.score=0] - the score of the user in the sesssion
     * @param {Number} [data.level=0] - the level
     */
-    this.end = function(data={score:0, level:0}){        
+    this.end = function(data={score:0, level:1}){        
         Logger.info('GamifiveSDK', 'Session', 'end', data);
         
         if (!initPromise){
