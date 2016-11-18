@@ -88,7 +88,7 @@ var Session = new function(){
                 rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'),
                 name: 'GameLoad',
                 properties:{
-                    action: 'Yes',                    
+                    action: 'Yes',
                     category: 'Play',
                     game_title: GameInfo.getInfo().game.title,
                     label: GameInfo.getContentId(),
