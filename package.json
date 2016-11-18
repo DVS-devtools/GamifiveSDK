@@ -1,6 +1,6 @@
 {
   "name": "gamifivesdk",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "",
   "main": "src/index_web.js",
   "repository": {
@@ -22,7 +22,7 @@
     "upload:dist": "scp -r dist/* super@192.168.124.3:$npm_package_config_release_folder",
     "upload:debug": "scp -r debug/* super@192.168.124.3:$npm_package_config_debug_folder",
     "upload": "npm run upload:dist && npm run upload:debug",
-    "preversion":"npm run test",
+    "preversion": "npm run test",
     "version": "npm run build && git add src/version.js",
     "postversion": "git push --tags",
     "serve": "http-server debug/ -p 5050 -a local.appsworld.gamifive-app.com"
