@@ -85,10 +85,10 @@ var Session = new function(){
     Event.on('INIT_FINISHED', function(){
         if(Stargate.isHybrid()){
             NewtonService.trackEvent({
-                name: 'GameLoad',                        
+                rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'),
+                name: 'GameLoad',
                 properties:{
                     action: 'Yes',
-                    rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'),
                     category: 'Play',
                     game_title: GameInfo.getInfo().game.title,
                     label: GameInfo.getContentId(),
@@ -100,10 +100,10 @@ var Session = new function(){
 
     Event.on('GO_TO_HOME_CLICK', function(){
         NewtonService.trackEvent({
-            name: 'GoToHome',                        
+            rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'),            
+            name: 'GoToHome',
             properties:{
                 action: 'Yes',
-                rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'),
                 category: 'Behavior',
                 game_title: GameInfo.getInfo().game.title,
                 label: GameInfo.getContentId(),
