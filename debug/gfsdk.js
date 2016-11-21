@@ -13855,7 +13855,7 @@ module.exports = {
         'position': 'absolute',
         'cursor': 'pointer'
     },
-    IMMUTABLE_MENU_STYLE_PROPERTIES: ['background-image', 'background-position', 'z-index', 'width', 'height'],
+    IMMUTABLE_MENU_STYLE_PROPERTIES: ['transform-origin', 'transform', 'background-image', 'background-position', 'z-index', 'width', 'height'],
 
     AFTER_LOAD_EVENT_KEY: 'VHOST_AFTER_LOAD',
     AFTER_INIT_EVENT_KEY: 'SESSION_AFTER_INIT',
@@ -13903,6 +13903,7 @@ module.exports = {
     USER_DELETE_LIKE: '/v01/favorites.delete',
     GAME_OVER_JSON_API_URL: '/v01/json/gameover/:CONTENT_ID',
 
+    USER_SET_DATA: 'http://resources2.buongiorno.com/lapis/apps/application-object.set',
     GAMEINFO_JSON_FILENAME: 'offlineData.json',
     USER_JSON_FILENAME: 'user.json',
     USER_DATA_JSON_FILENAME: 'userData.json',
@@ -14526,25 +14527,30 @@ var Network = new function () {
 
     var networkInstance = this;
 
-    this.xhr = function (method, url, callback) {
-        Logger.log('GamifiveSDK', 'Network', method, url);
+    this.xhr = function (method, url) {
+        var data = arguments.length <= 2 || arguments[2] === undefined ? null : arguments[2];
+        var headers = arguments.length <= 3 || arguments[3] === undefined ? null : arguments[3];
 
         var xhr = new XMLHttpRequest();
-        return new Promise(function (resolve, reject) {
+        xhr.open(method, url);
+
+        if (headers) {
+            for (var key in headers) {
+                xhr.setRequestHeader(key, headers[key]);
+            }
+        }
+
+        var promise = new Promise(function (resolve, reject) {
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     var resp = xhr;
                     resp.success = xhr.status >= 200 && xhr.status <= 399;
-                    if (callback) {
-                        callback(resp);
-                    }
                     resolve(resp);
                 }
             };
-
-            xhr.open(method, url);
-            xhr.send();
         });
+        xhr.send(data);
+        return promise;
     };
 
     this.synCall = function (method, url) {
@@ -14622,6 +14628,8 @@ var Stargate = require('stargatejs');
 var NewtonService = require('../newton/newton');
 var getType = _stargatejs.Utils.getType;
 
+var state = require('../state/state');
+
 var Session = new function () {
 
     var initPromise;
@@ -14630,8 +14638,7 @@ var Session = new function () {
     var menuIstance;
     var startCallback = function startCallback() {};
     var contentRanking;
-
-    var config = {};
+    var config = { sessions: [] };
 
     var toDoXHR = [];
 
@@ -14643,8 +14650,6 @@ var Session = new function () {
         initPromise = null;
         config = { sessions: [] };
     };
-
-    sessionInstance.reset();
 
     this.getConfig = function () {
         return config;
@@ -14661,6 +14666,50 @@ var Session = new function () {
             throw new Error(Constants.ERROR_SESSION_INIT_NOT_CALLED);
         }
     };
+
+    _event2.default.on('INIT_FINISHED', function () {
+        if (Stargate.isHybrid()) {
+            NewtonService.trackEvent({
+                rank: (0, _tracking_utils.calculateContentRanking)(GameInfo, User, VHost, 'Play', 'GameLoad'),
+                name: 'GameLoad',
+                properties: {
+                    action: 'Yes',
+                    category: 'Play',
+                    game_title: GameInfo.getInfo().game.title,
+                    label: GameInfo.getContentId(),
+                    valuable: 'No'
+                }
+            });
+        }
+    });
+
+    _event2.default.on('GO_TO_HOME_CLICK', function () {
+        NewtonService.trackEvent({
+            rank: (0, _tracking_utils.calculateContentRanking)(GameInfo, User, VHost, 'Play', 'GameLoad'),
+            name: 'GoToHome',
+            properties: {
+                action: 'Yes',
+                category: 'Behavior',
+                game_title: GameInfo.getInfo().game.title,
+                label: GameInfo.getContentId(),
+                valuable: 'No'
+            }
+        });
+    });
+
+    _event2.default.on('INIT_ERROR', function (ev) {
+        NewtonService.trackEvent({
+            name: 'SdkInitError',
+            properties: {
+                action: 'No',
+                category: 'SDK_ERROR',
+                game_title: GameInfo.getInfo().game.title,
+                label: GameInfo.getContentId(),
+                valuable: 'No',
+                reason: ev.reason
+            }
+        });
+    });
 
     this.init = function (params) {
         _event2.default.trigger('INIT_START', { type: 'INIT_START' });
@@ -14684,7 +14733,7 @@ var Session = new function () {
 
         config = _stargatejs.Utils.extend(config, params);
 
-        if (typeof config.moreGamesButtonStyle !== 'undefined') {
+        if (getType(config.moreGamesButtonStyle) !== 'undefined') {
             Menu.setCustomStyle(config.moreGamesButtonStyle);
         }
 
@@ -14706,15 +14755,17 @@ var Session = new function () {
         initPromise = Stargate.initialize(SG_CONF).then(function () {
             return VHost.load();
         }).then(function () {
+            _event2.default.trigger('VHOST_LOADED');
             Menu.setSpriteImage(VHost.get('IMAGES_SPRITE_GAME'));
             contentRanking = VHost.get('CONTENT_RANKING');
             Menu.show();
 
-            loadDictionary();
-
             var UserTasks = User.fetch().then(User.getFavorites);
-            return Promise.all([UserTasks, GameInfo.fetch()]);
+            var promises = [UserTasks, GameInfo.fetch(), loadDictionary()];
+
+            return Promise.all(promises);
         }).then(function () {
+            _event2.default.trigger('USER_LOADED');
             _fb2.default.init({ fbAppId: GameInfo.getInfo().fbAppId });
 
             var env = Stargate.isHybrid() ? 'hybrid' : 'webapp';
@@ -14735,7 +14786,7 @@ var Session = new function () {
             });
 
             var queryString = Location.getQueryString();
-            if (typeof queryString.dest === 'undefined') {
+            if (getType(queryString.dest) === 'undefined') {
                 queryString.dest = 'N/A';
             }
 
@@ -14747,35 +14798,18 @@ var Session = new function () {
                 logged: User.getUserType() !== 'guest'
             });
 
-            NewtonService.trackEvent({
-                name: 'SdkInitFinished',
-                properties: {
-                    action: 'No',
-                    category: 'SDK_OK',
-                    game_title: GameInfo.getInfo().game.title,
-                    label: GameInfo.getContentId(),
-                    valuable: 'No'
-                }
-            });
             initialized = true;
-            return initialized;
         }).then(function () {
             Logger.log('GamifiveSDK', 'register sync function for gameover/leaderboard results');
             Stargate.addListener('connectionchange', sync);
+
+            if (state.userDataPromise) {
+                return state.userDataPromise();
+            }
+        }).then(function () {
             _event2.default.trigger('INIT_FINISHED', { type: 'INIT_FINISHED' });
         }).catch(function (reason) {
             _event2.default.trigger('INIT_ERROR', { type: 'INIT_ERROR', reason: reason });
-            NewtonService.trackEvent({
-                name: 'SdkInitError',
-                properties: {
-                    action: 'No',
-                    category: 'SDK_ERROR',
-                    game_title: GameInfo.getInfo().game.title,
-                    label: GameInfo.getContentId(),
-                    valuable: 'No',
-                    reason: reason
-                }
-            });
             Logger.error('GamifiveSDK init error: ', reason);
             initialized = false;
             throw reason;
@@ -14844,6 +14878,7 @@ var Session = new function () {
                 rank: (0, _tracking_utils.calculateContentRanking)(GameInfo, User, VHost, 'Play', 'GameStart'),
                 properties: {
                     category: "Play",
+                    game_title: GameInfo.getInfo().game.title,
                     label: GameInfo.getContentId(),
                     valuable: "Yes",
                     action: "Yes"
@@ -14851,6 +14886,7 @@ var Session = new function () {
             });
 
             try {
+                _event2.default.trigger('ON_START_SESSION_CALLED');
                 startCallback();
             } catch (e) {
                 Logger.error('GamifiveSDK', 'onStartSession ERROR', e);
@@ -14858,7 +14894,6 @@ var Session = new function () {
         }
 
         if (!config.lite) {
-
             User.canPlay().then(function (canPlay) {
                 if (canPlay) {
                     DOMUtils.delete();
@@ -14874,13 +14909,15 @@ var Session = new function () {
 
     this.start = function () {
         if (!initPromise) {
-            throw Constants.ERROR_SESSION_INIT_NOT_CALLED;
+            Logger.warn(Constants.ERROR_SESSION_INIT_NOT_CALLED);
+            return false;
         }
 
         if (config.sessions && config.sessions.length > 0 && typeof getLastSession().endTime === 'undefined') {
             config.sessions.shift();
             Logger.warn(Constants.ERROR_SESSION_ALREADY_STARTED);
         }
+        _event2.default.trigger('START_SESSION_CALLED');
 
         config.sessions.unshift({
             startTime: new Date(),
@@ -14901,7 +14938,7 @@ var Session = new function () {
             Logger.info('GamifiveSDK', 'Session', 'register onStart callback');
             startCallback = callback;
         } else {
-            throw new Error(Constants.ERROR_ONSTART_CALLBACK_TYPE + (typeof callback === 'undefined' ? 'undefined' : _typeof(callback)));
+            Logger.warn(Constants.ERROR_ONSTART_CALLBACK_TYPE + (typeof callback === 'undefined' ? 'undefined' : _typeof(callback)));
         }
     };
 
@@ -14916,7 +14953,7 @@ var Session = new function () {
     };
 
     this.end = function () {
-        var data = arguments.length <= 0 || arguments[0] === undefined ? { score: 0, level: 0 } : arguments[0];
+        var data = arguments.length <= 0 || arguments[0] === undefined ? { score: 0, level: 1 } : arguments[0];
 
         Logger.info('GamifiveSDK', 'Session', 'end', data);
 
@@ -14937,6 +14974,7 @@ var Session = new function () {
             name: 'GameEnd',
             properties: {
                 category: 'Play',
+                game_title: GameInfo.getInfo().game.title,
                 label: GameInfo.getContentId(),
                 valuable: 'No',
                 action: 'No'
@@ -15009,7 +15047,7 @@ var Session = new function () {
                         e.preventDefault();
                         sessionInstance.goToHome();
 
-                        toHomeBtn.removeEventListener(tohome);
+                        toHomeBtn.removeEventListener('click', tohome);
                     });
                 }
 
@@ -15061,6 +15099,7 @@ var Session = new function () {
 
     this.goToHome = function () {
         Logger.info('GamifiveSDK', 'Session', 'goToHome');
+        _event2.default.trigger('GO_TO_HOME_CLICK');
         if (Stargate.isHybrid()) {
             Stargate.goToLocalIndex();
         } else {
@@ -15156,14 +15195,15 @@ var Session = new function () {
 
 module.exports = Session;
 
-},{"../api/api":322,"../constants/constants":323,"../dom/dom-utils":324,"../event/event":325,"../fb/fb":326,"../game_info/game_info":328,"../location/location":329,"../logger/logger":331,"../menu/menu":332,"../network/network":333,"../newton/newton":334,"../tracking_utils/tracking_utils":338,"../user/user":339,"../vhost/vhost":341,"promise-polyfill":306,"stargatejs":309}],336:[function(require,module,exports){
+},{"../api/api":322,"../constants/constants":323,"../dom/dom-utils":324,"../event/event":325,"../fb/fb":326,"../game_info/game_info":328,"../location/location":329,"../logger/logger":331,"../menu/menu":332,"../network/network":333,"../newton/newton":334,"../state/state":336,"../tracking_utils/tracking_utils":338,"../user/user":339,"../vhost/vhost":341,"promise-polyfill":306,"stargatejs":309}],336:[function(require,module,exports){
 "use strict";
 
 module.exports = {
     init: {
         pending: false,
         finished: false
-    }
+    },
+    userDataPromise: null
 };
 
 },{}],337:[function(require,module,exports){
@@ -15266,8 +15306,8 @@ var _User = function User() {
     var userInstance = this;
     var userInfo = {
         gameInfo: {
-            CreatedAt: String(new Date(0)),
-            UpdatedAt: String(new Date(0)),
+            CreatedAt: new Date(0).toISOString(),
+            UpdatedAt: new Date(0).toISOString(),
             ProductId: "",
             contentId: "",
             domain: "",
@@ -15277,6 +15317,22 @@ var _User = function User() {
         }
     };
     var favorites = [];
+    _event2.default.on('INIT_START', function (action) {
+        state.init.pending = true;
+    });
+
+    _event2.default.on('INIT_FINISHED', function (action) {
+        state.init.pending = false;
+        state.init.finished = true;
+    });
+
+    _event2.default.on('REGISTER_USER_DATA_PROMISE', function (userDataPromise) {
+        state.userDataPromise = userDataPromise;
+    });
+
+    _event2.default.on('USER_DATA_FETCHED', function () {
+        return onUserDataCallback(userInfo.gameInfo.info);
+    });
 
     if (window.GamifiveInfo && window.GamifiveInfo.user) {
         Logger.info("GamifiveSDK:Load userInfo from in page data");
@@ -15292,15 +15348,6 @@ var _User = function User() {
     }
 
     var onUserDataCallback = function onUserDataCallback() {};
-
-    _event2.default.on('INIT_START', function (action) {
-        state.init.pending = true;
-    });
-
-    _event2.default.on('INIT_FINISHED', function (action) {
-        state.init.pending = false;
-        state.init.finished = true;
-    });
 
     this.getInfo = function () {
         return userInfo || {};
@@ -15423,7 +15470,7 @@ var _User = function User() {
             }
         }
 
-        userInfo.gameInfo = _extends({}, userInfo.gameInfo, { info: info, UpdatedAt: String(new Date()) });
+        userInfo.gameInfo = _extends({}, userInfo.gameInfo, { info: info, UpdatedAt: new Date().toISOString() });
 
         if (state.init.pending && !state.init.finished) {
             _event2.default.on('INIT_FINISHED', function () {
@@ -15440,40 +15487,35 @@ var _User = function User() {
         }
     };
 
+    this.getUserData = function () {
+        return Promise.all([getUserDataFromLocal(), getUserDataFromServer()]).then(syncUserData).then(function (newGameInfo) {
+            if (newGameInfo) {
+                userInfo.gameInfo = newGameInfo;
+            }
+            _event2.default.trigger('USER_DATA_FETCHED');
+            _event2.default.trigger('REGISTER_USER_DATA_PROMISE', null);
+            return userInfo.gameInfo.info;
+        });
+    };
+
     this.loadData = function (callback) {
         if (!callback) {
             callback = function callback() {};
+
             Logger.warn("GamifiveSDK: loadUserData() is deprecated from v2, please call loadUserData(callback)");
+            if (getType(userInfo.gameInfo.info) === 'object' && Object.keys(userInfo.gameInfo.info).length === 0) {
+                return undefined;
+            }
+            return userInfo.gameInfo.info;
         }
         onUserDataCallback = callback;
 
+        Logger.info('GamifiveSDK', 'User', 'loadData');
         if (state.init.pending && !state.init.finished) {
-            _event2.default.on('INIT_FINISHED', function (action) {
-                Logger.info('GamifiveSDK', 'User', 'loadData');
-                Promise.all([getUserDataFromLocal(), getUserDataFromServer()]).then(syncUserData).then(function (newGameInfo) {
-                    if (newGameInfo) {
-                        userInfo.gameInfo = newGameInfo;
-                    }
-                    onUserDataCallback(userInfo.gameInfo.info);
-                });
-            });
+            _event2.default.trigger('REGISTER_USER_DATA_PROMISE', userInstance.getUserData);
         } else if (!state.init.pending && state.init.finished) {
-            Logger.info('GamifiveSDK', 'User', 'loadData');
-            Promise.all([getUserDataFromLocal(), getUserDataFromServer()]).then(syncUserData).then(function (newGameInfo) {
-                if (newGameInfo) {
-                    userInfo.gameInfo = newGameInfo;
-                }
-                onUserDataCallback(userInfo.gameInfo.info);
-            });
-        } else {
-            Logger.warn("GamifiveSDK", "you can't call loadUserData before init");
+            return userInstance.getUserData();
         }
-
-        if (getType(userInfo.gameInfo.info) === 'object' && Object.keys(userInfo.gameInfo.info).length === 0) {
-            return undefined;
-        }
-
-        return userInfo.gameInfo.info;
     };
 
     function syncUserData(results) {
@@ -15483,6 +15525,7 @@ var _User = function User() {
 
         var localGameInfo = _results[0];
         var serverGameInfo = _results[1];
+
 
         if (localGameInfo && serverGameInfo) {
             var localUpdatedAt = new Date(localGameInfo.UpdatedAt);
@@ -15494,6 +15537,9 @@ var _User = function User() {
             } else if (localUpdatedAt < serverUpdatedAt) {
                 Logger.info("GamifiveSDK: sync userData", "server won");
                 return serverGameInfo;
+            } else if (localUpdatedAt === serverUpdatedAt) {
+                Logger.info("GamifiveSDK: sync userData", "same timestamp!");
+                return localGameInfo;
             }
         } else if (localGameInfo && !serverGameInfo) {
             Logger.info("GamifiveSDK: sync userData", "local won", "no serverGameInfo");
@@ -15507,7 +15553,7 @@ var _User = function User() {
     this.clearData = function (callback) {
         Logger.info('GamifiveSDK', 'clearUserData');
 
-        userInfo.gameInfo = _extends({}, userInfo.gameInfo, { info: null, UpdatedAt: String(new Date()) });
+        userInfo.gameInfo = _extends({}, userInfo.gameInfo, { info: null, UpdatedAt: new Date().toISOString() });
         return Promise.all([setUserDataOnServer(userInfo.gameInfo), setUserDataOnLocal(userInfo.gameInfo)]).then(callback);
     };
 
@@ -15584,7 +15630,6 @@ var _User = function User() {
         var params = { userId: userId, contentId: contentId, userDataId: userDataId };
 
         var saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
-        var urlToCall = saveUserDataUrl.replace(':QUERY', JSON.stringify({ contentId: params.contentId })).replace(':ID', params.userDataId).replace(':ACCESS_TOKEN', '').replace(':EXTERNAL_TOKEN', params.userId).replace(':COLLECTION', 'gameInfo');
         var infoSerialized = void 0;
         if (getType(data.info) === 'object' || getType(data.info) === "null") {
             infoSerialized = JSON.stringify(data.info);
@@ -15592,10 +15637,23 @@ var _User = function User() {
             Logger.warn("GamifiveSDK: bad info type: ", getType(data.info));
         }
 
-        urlToCall = _stargatejs.Utils.queryfy(urlToCall, { info: infoSerialized, domain: Location.getOrigin(), contentId: params.contentId });
+        var queryObject = _stargatejs.Utils.dequeryfy(saveUserDataUrl);
 
-        Logger.log('GamifiveSDK', 'try to set on server', urlToCall);
-        return Network.xhr('GET', urlToCall).then(function (resp) {
+        var body = {
+            access_token: '',
+            external_token: params.userId,
+            id: params.userDataId,
+            info: infoSerialized,
+            domain: Location.getOrigin(),
+            contentId: params.contentId,
+            collection: 'gameInfo'
+        };
+        var newBody = _extends({}, queryObject, body);
+        var headers = { 'Content-type': 'application/x-www-form-urlencoded' };
+
+        var urlEncoded = _stargatejs.Utils.queryfy("", newBody).replace("?", "");
+        Logger.log('GamifiveSDK', 'try to set on server', _constants2.default.USER_SET_DATA, urlEncoded);
+        return Network.xhr('POST', _constants2.default.USER_SET_DATA, urlEncoded, headers).then(function (resp) {
             if (resp.success) {
                 var newtonResponse = JSON.parse(resp.response);
                 if (newtonResponse.response.data) {
@@ -16013,7 +16071,7 @@ module.exports = addRetroInterface;
 },{"../components/vhost/vhost":341}],343:[function(require,module,exports){
 "use strict";
 
-var pkgInfo = { "version": "2.0.3", "build": "v2.0.3-25-gb718a68" };module.exports = pkgInfo;
+var pkgInfo = { "version": "2.0.4", "build": "v2.0.4-6-gc8833e8" };module.exports = pkgInfo;
 
 },{}],344:[function(require,module,exports){
 "use strict";

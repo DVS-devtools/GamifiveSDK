@@ -445,27 +445,41 @@ var User = function(){
         var params = { userId: userId, contentId: contentId, userDataId: userDataId };
 
         var saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
-        var urlToCall = saveUserDataUrl
-                            .replace(':QUERY', JSON.stringify({contentId: params.contentId}))
-                            .replace(':ID', params.userDataId)
-                            .replace(':ACCESS_TOKEN', '')
-                            .replace(':EXTERNAL_TOKEN', params.userId)
-                            .replace(':COLLECTION', 'gameInfo');
         let infoSerialized;
         if(getType(data.info) === 'object' || getType(data.info) === "null"){
             infoSerialized = JSON.stringify(data.info);
         } else {
             Logger.warn("GamifiveSDK: bad info type: ", getType(data.info));
         }
-
-        urlToCall = Utils.queryfy(urlToCall, { info: infoSerialized, domain: Location.getOrigin(), contentId: params.contentId });
-
-        /**
-        * ATTENZIONE 
-        * è una get ma in realtà POSTa i dati dello user sul server        
+        
+        let queryObject = Utils.dequeryfy(saveUserDataUrl);
+        
+        /* 
+        http://resources.buongiorno.com/lapis/apps/application-object.set?
+            external_token=:EXTERNAL_TOKEN
+            &access_token=:ACCESS_TOKEN
+            &collection=:COLLECTION
+            &id=:ID
+            &white_label=ww_appsworld
+            &fw=gamifive
+            &vh=appsworld.gamifive-app.com 
         */
-        Logger.log('GamifiveSDK', 'try to set on server', urlToCall);
-        return Network.xhr('GET', urlToCall).then(function(resp){            
+        
+        let body = {
+            access_token: '',
+            external_token: params.userId,
+            id: params.userDataId,
+            info: infoSerialized,
+            domain: Location.getOrigin(), 
+            contentId: params.contentId,
+            collection: 'gameInfo'
+        }
+        let newBody = {...queryObject, ...body};
+        let headers = {'Content-type': 'application/x-www-form-urlencoded'};
+
+        let urlEncoded = Utils.queryfy("", newBody).replace("?","");
+        Logger.log('GamifiveSDK', 'try to set on server', Constants.USER_SET_DATA, newBody);
+        return Network.xhr('POST', Constants.USER_SET_DATA, urlEncoded, headers).then(function(resp){            
             if(resp.success){
                 var newtonResponse = JSON.parse(resp.response);
                 if(newtonResponse.response.data){

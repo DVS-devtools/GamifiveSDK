@@ -75,6 +75,7 @@ module.exports = {
     USER_DELETE_LIKE: '/v01/favorites.delete',
     GAME_OVER_JSON_API_URL: '/v01/json/gameover/:CONTENT_ID', // ?score=&duration=
 
+    USER_SET_DATA:'http://resources2.buongiorno.com/lapis/apps/application-object.set',
     GAMEINFO_JSON_FILENAME:'offlineData.json',
     USER_JSON_FILENAME:'user.json',
     USER_DATA_JSON_FILENAME:'userData.json',
