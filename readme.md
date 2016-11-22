@@ -10,7 +10,16 @@
 <h1>Instructions</h1>
 
 <h2>1) Including GamifiveSDK</h2>
-Include the minified sdk within a SCRIPT tag with id <i>'gfsdk'</i>, inside HEAD tag of your HTML code game:
+
+### Debug (use it while developing or to test the implementation on your own)
+```html
+<script src="static.newton.pm/js/v2.2.3/newton.min.js"></script> 
+<script src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/2.x.x/debug/gfsdk.js"></script>
+```
+(See https://github.com/BuongiornoMIP/GamifiveSDK/wiki/Debug-mode for further details;)
+
+### Prod (before sending us the package remove newton and switch to the production build)
+Include the minified sdk within a SCRIPT tag with id <i>'gfsdk'</i>, inside HEAD tag of your HTML code game before sending us the package:
 
 ```html
 <script id="gfsdk" src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/2.x.x/dist/gfsdk.min.js"></script>
@@ -21,9 +30,6 @@ Include the minified sdk within a SCRIPT tag with id <i>'gfsdk'</i>, inside HEAD
 The SDK can be initialized calling its <i>init</i> method with a <i>param</i> object as a configuration parameter. Here's a brief description of the accepted configuration variables:
 
 <ul>
-    <li>
-        <i><b>debug</b></i> (boolean): toggles debug mode, if <i>true</i> a mock API is used instead of the original and log is enabled. If you're testing your game outside Gamifive's environment, you must set debug: true, otherwise the SDK will try to use a set of API that are not available into your environment. See https://github.com/BuongiornoMIP/GamifiveSDK/wiki/Debug-mode for further details;
-    </li>
     <li>
         <i><b>lite</b></i> (boolean): toggles lite mode, if <i>true</i> a reduced set of functionalities is used, in particular the GameOver screen is not loaded. Lite mode is useful for integrating the SDK into level-based games, so that the game's flow won't get interrupted by the gameover screen. Normal (non-lite) mode, instead, is meant to be used for other kind of games, i.e. those that feature an endless gameplay experience;
     </li>
@@ -36,7 +42,6 @@ The SDK can be initialized calling its <i>init</i> method with a <i>param</i> ob
 ```javascript
 GamifiveSDK.init({ 
 	lite: false,
-	debug: true,
 	moreGamesButtonStyle: { } // shows more games button with default style
 });
 ```
@@ -457,12 +462,20 @@ GamifiveSDK.endSession({ score: 300, level: 1 });
 ```
 # Set the debug environment
 
-1. Include the debug SDK version in your index.html (do not forget to change debug with dist before send the package) :)
+1. Include the debug SDK version in your index.html *do not forget to change debug with dist in the script tag before send the package*
+
+### Debug (while testing on local)
 ```javascript
     <script src="static.newton.pm/js/v2.2.3/newton.min.js"></script> 
     <script src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/2.x.x/debug/gfsdk.js"></script>
 ```
-2. Serve statically the game forlder with appsworld.gamifive-app.com as origin
+
+### Prod (Before sending us the package) without Newton script
+```javascript 
+    <script src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/2.x.x/dist/gfsdk.js"></script>
+```
+
+2. Serve statically the game folder with appsworld.gamifive-app.com as origin
 
 For the second point you need:
 
@@ -515,4 +528,4 @@ Then open the browser to
 ``` 
 
 That's it! Now you can test your implementation of the SDK. 
-Open a issue on github if you want encounter any issues
+Open a issue on github if you encounter any issues
