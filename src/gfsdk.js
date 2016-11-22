@@ -317,7 +317,7 @@ var GamefiveSDK = new function() {
 				config.MESSAGE_ERROR_TITLE = MESSAGE_ERROR_TITLE;
 
 				initPost();
-				trackGameLoad();
+				//trackGameLoad();
 			}
 
 			if (typeof window.GamifiveInfo !== 'undefined'){
@@ -360,7 +360,7 @@ var GamefiveSDK = new function() {
 			Utils.xhr('GET', API('gamifiveinfo'), function(resp, req){
 				Utils.copyProperties(resp, config);
 				initPost();
-				trackGameLoad();
+				//trackGameLoad();
 				config.user.level = parseInt(localStorage.getItem(config.user.userId + ":" + config.contentId));
 			});
 		}
