@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/BuongiornoMIP/GamifiveSDK.svg?branch=refactoring)](https://travis-ci.org/BuongiornoMIP/GamifiveSDK)
+[![Build Status](https://travis-ci.org/BuongiornoMIP/GamifiveSDK.svg?branch=master)](https://travis-ci.org/BuongiornoMIP/GamifiveSDK)
 
-[![Coverage Status](https://coveralls.io/repos/github/BuongiornoMIP/GamifiveSDK/badge.svg?branch=refactoring)](https://coveralls.io/github/BuongiornoMIP/GamifiveSDK?branch=refactoring)
+[![Coverage Status](https://coveralls.io/repos/github/BuongiornoMIP/GamifiveSDK/badge.svg?branch=master)](https://coveralls.io/github/BuongiornoMIP/GamifiveSDK?branch=master)
 
 <h1>GamifiveSDK 2.x.x</h1>
 <p>This is the how-to for game developers for integrating GamifiveSDK into their games.</p>
@@ -457,12 +457,20 @@ GamifiveSDK.endSession({ score: 300, level: 1 });
 ```
 # Set the debug environment
 
-1. Include the debug SDK version in your index.html (do not forget to change debug with dist before send the package) :)
+1. Include the debug SDK version in your index.html *do not forget to change debug with dist in the script tag before send the package*
+
+### Debug (while testing in local)
 ```javascript
     <script src="static.newton.pm/js/v2.2.3/newton.min.js"></script> 
     <script src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/2.x.x/debug/gfsdk.js"></script>
 ```
-2. Serve statically the game forlder with appsworld.gamifive-app.com as origin
+
+### Prod (Before sending us the package)
+```javascript 
+    <script src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/2.x.x/dist/gfsdk.js"></script>
+```
+
+2. Serve statically the game folder with appsworld.gamifive-app.com as origin
 
 For the second point you need:
 
@@ -515,4 +523,4 @@ Then open the browser to
 ``` 
 
 That's it! Now you can test your implementation of the SDK. 
-Open a issue on github if you want encounter any issues
+Open a issue on github if you encounter any issues
