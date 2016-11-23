@@ -464,13 +464,13 @@ GamifiveSDK.endSession({ score: 300, level: 1 });
 
 1. Include the debug SDK version in your index.html *do not forget to change debug with dist in the script tag before send the package*
 
-### Debug (while testing in local)
+### Debug (while testing on local)
 ```javascript
     <script src="static.newton.pm/js/v2.2.3/newton.min.js"></script> 
     <script src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/2.x.x/debug/gfsdk.js"></script>
 ```
 
-### Prod (Before sending us the package)
+### Prod (Before sending us the package) without Newton script
 ```javascript 
     <script src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/2.x.x/dist/gfsdk.js"></script>
 ```
