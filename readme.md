@@ -10,7 +10,16 @@
 <h1>Instructions</h1>
 
 <h2>1) Including GamifiveSDK</h2>
-Include the minified sdk within a SCRIPT tag with id <i>'gfsdk'</i>, inside HEAD tag of your HTML code game:
+
+### Debug (use it while developing or to test the implementation on your own)
+```html
+<script src="static.newton.pm/js/v2.2.3/newton.min.js"></script> 
+<script src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/2.x.x/debug/gfsdk.js"></script>
+```
+(See https://github.com/BuongiornoMIP/GamifiveSDK/wiki/Debug-mode for further details;)
+
+### Prod (before sending us the package remove newton and switch to the production build)
+Include the minified sdk within a SCRIPT tag with id <i>'gfsdk'</i>, inside HEAD tag of your HTML code game before sending us the package:
 
 ```html
 <script id="gfsdk" src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/2.x.x/dist/gfsdk.min.js"></script>
@@ -21,9 +30,6 @@ Include the minified sdk within a SCRIPT tag with id <i>'gfsdk'</i>, inside HEAD
 The SDK can be initialized calling its <i>init</i> method with a <i>param</i> object as a configuration parameter. Here's a brief description of the accepted configuration variables:
 
 <ul>
-    <li>
-        <i><b>debug</b></i> (boolean): toggles debug mode, if <i>true</i> a mock API is used instead of the original and log is enabled. If you're testing your game outside Gamifive's environment, you must set debug: true, otherwise the SDK will try to use a set of API that are not available into your environment. See https://github.com/BuongiornoMIP/GamifiveSDK/wiki/Debug-mode for further details;
-    </li>
     <li>
         <i><b>lite</b></i> (boolean): toggles lite mode, if <i>true</i> a reduced set of functionalities is used, in particular the GameOver screen is not loaded. Lite mode is useful for integrating the SDK into level-based games, so that the game's flow won't get interrupted by the gameover screen. Normal (non-lite) mode, instead, is meant to be used for other kind of games, i.e. those that feature an endless gameplay experience;
     </li>
@@ -36,7 +42,6 @@ The SDK can be initialized calling its <i>init</i> method with a <i>param</i> ob
 ```javascript
 GamifiveSDK.init({ 
 	lite: false,
-	debug: true,
 	moreGamesButtonStyle: { } // shows more games button with default style
 });
 ```
