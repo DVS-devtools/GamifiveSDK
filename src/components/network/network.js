@@ -15,7 +15,7 @@ var Network = new function(){
     * @function xhr
     * @memberof Network
     */
-    this.xhr = function(method, url, callback){
+    this.xhr = function(method, url, headers=null, responseType=null){
         Logger.log('GamifiveSDK', 'Network', method, url);
         
         var xhr = new XMLHttpRequest();
@@ -24,14 +24,19 @@ var Network = new function(){
                 if ( xhr.readyState === 4 ) {
                     var resp = xhr;
                     resp.success = (xhr.status >= 200 && xhr.status <= 399);
-                    if (callback) {
-                        callback(resp);
-                    }
                     resolve(resp);
                 }
             };
 
             xhr.open(method, url);
+            if(headers){
+                for(var key in headers){
+                    xhr.setRequestHeader(key, headers[key]);
+                }
+            }
+            if(responseType){
+                xhr.responseType = responseType
+            }
             xhr.send();
         });
     }
