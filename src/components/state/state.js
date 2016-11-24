@@ -3,5 +3,9 @@ module.exports = {
         pending:false,
         finished:false
     },
-    userDataPromise:null
+    userDataPromise:null,
+    userDataTask:{
+        isFetching:false,
+        isSaving:false
+    }
 }

@@ -83,6 +83,7 @@ var Session = new function(){
     };
 
     Event.on('INIT_FINISHED', function(){
+        initialized = true;
         if(Stargate.isHybrid()){
             NewtonService.trackEvent({
                 rank: calculateContentRanking(GameInfo, User, VHost, 'Play', 'GameLoad'),
@@ -228,14 +229,13 @@ var Session = new function(){
                     }
 
                     queryString.http_referrer = window.document.referrer;
-                    NewtonService.login({
+                    /** wait newton login */
+                    return NewtonService.login({
                         type: 'external',
                         userId: User.getUserId(), 
                         userProperties: queryString,
                         logged: (User.getUserType() !== 'guest')
                     });
-          
-                    initialized = true;
                 }).then(function(){               
                     Logger.log('GamifiveSDK', 'register sync function for gameover/leaderboard results');
                     Stargate.addListener('connectionchange', sync);
@@ -245,6 +245,31 @@ var Session = new function(){
                     }                    
                 }).then(function(){
                     Event.trigger('INIT_FINISHED', {type:'INIT_FINISHED'});
+                    if(!Stargate.isHybrid() && Location.isGameasy()){
+                        Logger.log('GamifiveSDK init build INGAME_BANNER');
+                        return Network.xhr('GET', [Location.getOrigin(), Constants.INGAME_BANNER].join(''), null, 'document')
+                            .then((resp)=>{
+                                try{
+                                    let ingame_banner;
+                                    Logger.log('GamifiveSDK: Silently build in game banner');
+                                    ingame_banner = resp.responseXML.querySelector('body div');
+                                    const stopPropagation = (e)=> {
+                                        e.stopPropagation();
+                                    }
+                                    ingame_banner.addEventListener('touchmove', stopPropagation, false);
+                                    ingame_banner.addEventListener('touchstart', stopPropagation, false);
+                                    ingame_banner.addEventListener('touchend', stopPropagation, false);
+                                    ingame_banner.addEventListener('click', (e)=>{
+                                        e.stopPropagation();
+                                        DOMUtils.hide('native-modal', 'hidden');
+                                    }, false);
+                                    
+                                    window.document.body.appendChild(ingame_banner);
+                                } catch(e){
+                                    Logger.warn('GamifiveSDK: Error parsing in game banner', e);
+                                }
+                            });
+                    }
                 }).catch(function(reason){
                     Event.trigger('INIT_ERROR', {type:'INIT_ERROR', reason:reason});                    
                     Logger.error('GamifiveSDK init error: ', reason);
@@ -471,6 +496,7 @@ var Session = new function(){
 
         var lastSession = getLastSession();
         if(config.lite){
+            DOMUtils.show('native-modal');
             // call only leaderboard
             var leaderboardParams = {
 				'start': lastSession.startTime.getTime(),

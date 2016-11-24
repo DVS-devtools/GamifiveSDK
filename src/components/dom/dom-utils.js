@@ -26,7 +26,7 @@ var DOMUtils = new function(){
             // add to DOM
             document.body.appendChild(element);
             // stop propagation events
-            var stopPropagation = function(e) {e.stopPropagation();}
+            var stopPropagation = function(e) { e.stopPropagation(); }
             element.addEventListener('touchmove', stopPropagation);
             element.addEventListener('touchstart', stopPropagation);
             element.addEventListener('touchend', stopPropagation);
@@ -74,11 +74,19 @@ var DOMUtils = new function(){
     * @param {string} id id of element
     */
     this.show = function(id){
-        if(!!document.getElementById(id)){
-            if(this.hasClass(id, "hide")){
-                document.getElementById(id).className = document.getElementById(id).className.replace(/\bhide\b/,'');
+        let theElement = document.getElementById(id);
+        if(!!theElement){
+            let className = '';
+            if(this.hasClass(id, 'hide')){
+                className = 'hide';
+            } else if(this.hasClass(id, 'hidden')){
+                className = 'hidden';
             }
+            let regex = new RegExp('\s?'+ className, 'g');
+            theElement.className = theElement.className.replace(regex, '');
+            return true;
         }
+        return false;
     }
 
     /**
@@ -87,10 +95,10 @@ var DOMUtils = new function(){
     * @memberof DOMUtils
     * @param {string} id id of element
     */
-    this.hide = function(id){
+    this.hide = function(id, className){
         if(!!document.getElementById(id)){
-            if(!this.hasClass(id, "hide")){
-                document.getElementById(id).className += " hide";
+            if(!this.hasClass(id, className)){
+                document.getElementById(id).className += ` ${className}`;    
             }
         }
     }

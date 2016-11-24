@@ -61,7 +61,7 @@ var Location = new function(){
         toJoin.push(theWindow.location.origin);
         if(gameasyCountryCode && gameasyCountryCode !== ''){
             toJoin.push(gameasyCountryCode);
-        }        
+        } 
         // Logger.log("origin and country code:", theWindow.location.href, isGameasyMatch);
         return toJoin.join("/");
     }
@@ -92,6 +92,30 @@ var Location = new function(){
     this.getQueryString = function(){
         __setTestEnvIfAny__();
         return Utils.dequeryfy(theWindow.location.href);
+    }
+    
+    /**
+     * gameasy.ru, gameasy.sg, www.gameasy.com
+     * @returns {Boolean} - return if the hostname it's a gamifive whitelabel
+     */
+    this.isGameasy = function(){
+        __setTestEnvIfAny__();
+        /**
+         * this regex should get host
+         * let hostRegex = new RegExp(/(https?:)\/\/(www2?)?\.?([a-zA-Z0-9_-]+)\.?\.[a-zA-Z0-9_-]{2,}/, 'g');
+         */
+        let host = theWindow.location.host || theWindow.location.hostname;
+        let domainLevels = host.split('.');
+        return domainLevels.some((level)=> { return level.indexOf("gameasy") > -1;  });
+    }
+
+    /**
+     * For now every whitelabel that it's not gameasy it's a gamifive
+     * @returns {Boolean} - return if the hostname it's a gamifive whitelabel
+     */
+    this.isGamifive = function(){
+        __setTestEnvIfAny__();
+        return !this.isGameasy();
     }
 
     if (process.env.NODE_ENV === "testing"){
