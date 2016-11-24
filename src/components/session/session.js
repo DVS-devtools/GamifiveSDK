@@ -202,7 +202,7 @@ var Session = new function(){
                     
                     return Promise.all(promises);
                })
-               .then(function(){
+               .then(function(){                    
                     Event.trigger('USER_LOADED');                 
                     Facebook.init({ fbAppId: GameInfo.getInfo().fbAppId });
                     
@@ -229,7 +229,8 @@ var Session = new function(){
                     }
 
                     queryString.http_referrer = window.document.referrer;
-                    NewtonService.login({
+                    /** wait newton login */
+                    return NewtonService.login({
                         type: 'external',
                         userId: User.getUserId(), 
                         userProperties: queryString,
@@ -244,7 +245,6 @@ var Session = new function(){
                     }                    
                 }).then(function(){
                     Event.trigger('INIT_FINISHED', {type:'INIT_FINISHED'});
-                }).then(()=>{
                     if(!Stargate.isHybrid() && Location.isGameasy()){
                         Logger.log('GamifiveSDK init build INGAME_BANNER');
                         return Network.xhr('GET', [Location.getOrigin(), Constants.INGAME_BANNER].join(''), null, 'document')
@@ -253,11 +253,16 @@ var Session = new function(){
                                     let ingame_banner;
                                     Logger.log('GamifiveSDK: Silently build in game banner');
                                     ingame_banner = resp.responseXML.querySelector('body div');
-                                    var stopPropagation = function(e) {e.stopPropagation();}
-                                    ingame_banner.addEventListener('touchmove', stopPropagation);
-                                    ingame_banner.addEventListener('touchstart', stopPropagation);
-                                    ingame_banner.addEventListener('touchend', stopPropagation);
-                                    ingame_banner.addEventListener('click', stopPropagation);
+                                    const stopPropagation = (e)=> {
+                                        e.stopPropagation();
+                                    }
+                                    ingame_banner.addEventListener('touchmove', stopPropagation, false);
+                                    ingame_banner.addEventListener('touchstart', stopPropagation, false);
+                                    ingame_banner.addEventListener('touchend', stopPropagation, false);
+                                    ingame_banner.addEventListener('click', (e)=>{
+                                        e.stopPropagation();
+                                        DOMUtils.hide('native-modal', 'hidden');
+                                    }, false);
                                     
                                     window.document.body.appendChild(ingame_banner);
                                 } catch(e){
@@ -491,6 +496,7 @@ var Session = new function(){
 
         var lastSession = getLastSession();
         if(config.lite){
+            DOMUtils.show('native-modal');
             // call only leaderboard
             var leaderboardParams = {
 				'start': lastSession.startTime.getTime(),
@@ -507,9 +513,7 @@ var Session = new function(){
             var leaderboardCallUrl = API.get('LEADERBOARD_API_URL');
             leaderboardCallUrl = Utils.queryfy(leaderboardCallUrl, leaderboardParams);
             
-            Logger.log("Leaderboard ", leaderboardCallUrl);
-            
-            DOMUtils.show('native-modal');
+            Logger.log("Leaderboard ", leaderboardCallUrl);            
             
             if (Stargate.checkConnection().type === 'online'){
                 Network.xhr('GET', leaderboardCallUrl);

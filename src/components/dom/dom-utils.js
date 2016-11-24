@@ -95,10 +95,10 @@ var DOMUtils = new function(){
     * @memberof DOMUtils
     * @param {string} id id of element
     */
-    this.hide = function(id){
+    this.hide = function(id, className){
         if(!!document.getElementById(id)){
-            if(!this.hasClass(id, "hide")){
-                document.getElementById(id).className += " hide";
+            if(!this.hasClass(id, className)){
+                document.getElementById(id).className += ` ${className}`;    
             }
         }
     }
