@@ -279,6 +279,8 @@ var Session = new function(){
                         userId: User.getUserId(), 
                         userProperties: queryString,
                         logged: (User.getUserType() !== 'guest')
+                    }).catch((reason)=>{
+                        return Promise.resolve();
                     });
                 }).then(function(){               
                     Logger.log('GamifiveSDK', 'register sync function for gameover/leaderboard results');
