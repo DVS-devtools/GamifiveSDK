@@ -14,10 +14,16 @@ var Network = new function(){
     * performs an XMLHttpRequest
     * @function xhr
     * @memberof Network
+    * @param {String} method - POST,GET,PUT,DELETE,PATCH
+    * @param {String} url - the url to call
+    * @param {Object} [options={data:null,headers:null,responseType:null}] - data to send headers to set responseType if any
+    * @returns {Promise<HTTPResponse>}
     */
-    this.xhr = function(method, url, headers=null, responseType=null){
+    this.xhr = function(method, url, options={data:null, headers:null, responseType:null}){
+
         var xhr = new XMLHttpRequest();
-        return new Promise(function(resolve, reject){
+        
+        let promise = new Promise(function(resolve, reject){
             xhr.onreadystatechange = function(){
                 if ( xhr.readyState === 4 ) {
                     var resp = xhr;
@@ -25,18 +31,21 @@ var Network = new function(){
                     resolve(resp);
                 }
             };
-
-            xhr.open(method, url);
-            if(headers){
-                for(var key in headers){
-                    xhr.setRequestHeader(key, headers[key]);
-                }
-            }
-            if(responseType){
-                xhr.responseType = responseType
-            }
-            xhr.send();
         });
+        xhr.open(method, url);
+        // Set headers if any
+        if(options.headers){
+            for(var key in options.headers){
+                xhr.setRequestHeader(key, options.headers[key]);
+            }
+        }
+        // Set responseType
+        if(options.responseType){
+            xhr.responseType = options.responseType
+        }
+
+        xhr.send(options.data);
+        return promise;
     }
 
     this.synCall = function(method, url){

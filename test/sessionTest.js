@@ -13,7 +13,7 @@ var NewtonAdapterMockClass = require("./mocks/newtonAdapterMock");
 
 require('jasmine-ajax');
 
-describe("Session",function(){
+describe("Session", function(){
 
     var originalUserFetch = null, originalGameInfoFetch = null, NewtonAdapterMock;
     var StargateMock, MenuMock;
@@ -159,66 +159,8 @@ describe("Session",function(){
         done();
     });
 
-    it("Sessions are ended, but can't be ended two times", function(done){
-        // Mocking canDownload url
-        var canDownloadMockURL = window.fakewindow.location.origin + "/ww-it" + Constants.CAN_DOWNLOAD_API_URL;
-        canDownloadMockURL = canDownloadMockURL.replace(":ID", GameInfoMock.game_info.contentId);
-
-        jasmine.Ajax.stubRequest(canDownloadMockURL).andReturn({            
-            'response': JSON.stringify({ canDownload:true }),            
-            'status': 200,
-            'contentType': 'text/json'                    
-        });
-
-        Session.init();
-
-        Session.start();
-        expect(Session.getConfig().sessions[0].endTime).toBeUndefined();
-        
-        Session.end({score:10});
-        expect(Session.getConfig().sessions[0].endTime).toBeDefined();
-
-        var errorEndSession;
-        try {
-            Session.end({score:5});
-        } catch (e){
-            errorEndSession = e;
-        }
-
-        expect(errorEndSession).toEqual(Constants.ERROR_SESSION_ALREADY_ENDED);
-        done();
-        
-    });
-
     it("Session cannot be started before init", function(){
         expect(Session.start()).toEqual(false);        
-    });
-
-    it("Session cannot be ended before init was called", function(){
-
-        var errorEndSession;
-        try {
-            Session.end({});
-        } catch (e){
-            errorEndSession = e;
-        }
-
-        expect(errorEndSession).toEqual(Constants.ERROR_SESSION_INIT_NOT_CALLED);        
-    });
-
-    it("Session cannot be ended before init", function(done){
-
-        Session.init();
-
-        var errorEndSession;
-        try {
-            Session.end({});
-        } catch (e){
-            errorEndSession = e;
-        }
-
-        expect(errorEndSession).toEqual(Constants.ERROR_SESSION_NO_SESSION_STARTED);
-        done();
     });
 
     it("Session end: Score type check string throw error", function(done){

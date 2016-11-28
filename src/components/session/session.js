@@ -16,6 +16,9 @@ import Facebook from '../fb/fb';
 import Event from '../event/event';
 import { Utils } from 'stargatejs';
 import { calculateContentRanking } from '../tracking_utils/tracking_utils';
+import { Banner } from '../banner/banner';
+let BannerIstance;
+let matchesPlayed = 0;
 const { getType } = Utils;
 var state = require('../state/state');
 
@@ -125,8 +128,49 @@ var Session = new function(){
                 reason: ev.reason
             }
         });    
-    })
+    });
 
+    Event.on('NATIVE_APP_PROMO_CLICK', function(){
+        let mfp_url = [Location.getOrigin(), '/#!/mfp'].join('');
+
+        mfp_url = Utils.queryfy(mfp_url, {
+            returnurl: '${Location.getCurrentHref()}',
+            title: ''
+        });
+
+        NewtonService.trackEvent({
+            name: 'NativeAppPromoClick',
+            properties:{
+                action: 'Yes',
+                category: 'Behavior',
+                valuable: 'Yes',
+            }
+        });
+        window.location.href = mfp_url;
+    });
+
+    Event.on('NATIVE_APP_PROMO_CLOSE', function(){
+        NewtonService.trackEvent({
+            name: 'NativeAppPromoClose',                        
+            properties:{
+                action: 'Yes',
+                category: 'Behavior',
+                valuable: 'Yes',
+            }
+        });
+    });
+
+    Event.on('NATIVE_APP_PROMO_LOAD', function(){
+        NewtonService.trackEvent({
+            name: 'NativeAppPromoLoad',                        
+            properties:{
+                action: 'Yes',
+                category: 'Behavior',
+                valuable: 'Yes',
+            }
+        });
+    });
+    
     /**
     * initializes the module with custom parameters
     * @function init
@@ -247,28 +291,21 @@ var Session = new function(){
                     Event.trigger('INIT_FINISHED', {type:'INIT_FINISHED'});
                     if(!Stargate.isHybrid() && Location.isGameasy()){
                         Logger.log('GamifiveSDK init build INGAME_BANNER');
-                        return Network.xhr('GET', [Location.getOrigin(), Constants.INGAME_BANNER].join(''), null, 'document')
-                            .then((resp)=>{
-                                try{
-                                    let ingame_banner;
-                                    Logger.log('GamifiveSDK: Silently build in game banner');
-                                    ingame_banner = resp.responseXML.querySelector('body div');
-                                    const stopPropagation = (e)=> {
-                                        e.stopPropagation();
-                                    }
-                                    ingame_banner.addEventListener('touchmove', stopPropagation, false);
-                                    ingame_banner.addEventListener('touchstart', stopPropagation, false);
-                                    ingame_banner.addEventListener('touchend', stopPropagation, false);
-                                    ingame_banner.addEventListener('click', (e)=>{
-                                        e.stopPropagation();
-                                        DOMUtils.hide('native-modal', 'hidden');
-                                    }, false);
-                                    
-                                    window.document.body.appendChild(ingame_banner);
-                                } catch(e){
-                                    Logger.warn('GamifiveSDK: Error parsing in game banner', e);
-                                }
-                            });
+                        
+                        BannerIstance = new Banner({
+                            containerSelector: '#native-modal',
+                            closeButtonSelector: 'button#close-button',
+                            installButtonSelector: 'button#install-hybrid-button',
+                            onInstallClick: function(){
+                                Event.trigger('NATIVE_APP_PROMO_CLICK');
+                            },
+                            onCloseClick: function(){
+                                Event.trigger('NATIVE_APP_PROMO_CLOSE');
+                            },
+                            onOpen: function(){
+                                Event.trigger('NATIVE_APP_PROMO_LOAD');
+                            }
+                        });
                     }
                 }).catch(function(reason){
                     Event.trigger('INIT_ERROR', {type:'INIT_ERROR', reason:reason});                    
@@ -449,19 +486,19 @@ var Session = new function(){
     * @param {Number} [data.score=0] - the score of the user in the sesssion
     * @param {Number} [data.level=0] - the level
     */
-    this.end = function(data={score:0, level:1}){        
+    this.end = function(data={score:0, level:0}){        
         Logger.info('GamifiveSDK', 'Session', 'end', data);
         
         if (!initPromise){
-            throw Constants.ERROR_SESSION_INIT_NOT_CALLED;
+            Logger.warn(Constants.ERROR_SESSION_INIT_NOT_CALLED);
         }
 
         if (config.sessions.length < 1){
-            throw Constants.ERROR_SESSION_NO_SESSION_STARTED;
+            Logger.warn(Constants.ERROR_SESSION_NO_SESSION_STARTED);
         }
 
         if (getType(getLastSession().endTime) !== 'undefined'){
-            throw Constants.ERROR_SESSION_ALREADY_ENDED;
+            Logger.warn(Constants.ERROR_SESSION_ALREADY_ENDED);
         }
 
         NewtonService.trackEvent({
@@ -482,7 +519,7 @@ var Session = new function(){
             if (getType(data.score) === 'number'){
                 getLastSession().score = data.score;                
             } else {
-                throw new Error(Constants.ERROR_SCORE_TYPE + getType(data.score));            
+                Logger.warn(Constants.ERROR_SCORE_TYPE + getType(data.score));        
             }
         }
 
@@ -490,13 +527,17 @@ var Session = new function(){
             if (getType(data.level) === 'number'){
                getLastSession().level = data.level;
             } else {
-                throw Constants.ERROR_LEVEL_TYPE + getType(data.level);
+                Logger.warn(Constants.ERROR_LEVEL_TYPE + getType(data.level));
             }
         }
 
         var lastSession = getLastSession();
+
         if(config.lite){
-            DOMUtils.show('native-modal');
+            if(BannerIstance && !(matchesPlayed % 3) && VHost.get('INSTALL_HYBRID_VISIBLE')){
+                BannerIstance.open();
+            }
+            
             // call only leaderboard
             var leaderboardParams = {
 				'start': lastSession.startTime.getTime(),
@@ -508,7 +549,7 @@ var Session = new function(){
 	      		'label': GameInfo.getInfo().label,
 	      		'userId': User.getUserId(),
                 'format': 'jsonp'
-			};        
+			};
            
             var leaderboardCallUrl = API.get('LEADERBOARD_API_URL');
             leaderboardCallUrl = Utils.queryfy(leaderboardCallUrl, leaderboardParams);
@@ -520,9 +561,9 @@ var Session = new function(){
             } else {
                 enqueue('GET', leaderboardCallUrl);
             }
-
-        } else {           
-            // call gameover            
+            matchesPlayed++;
+        } else {
+            // call gameover
             var gameoverParams = {
                 start: lastSession.startTime.getTime(),
                 duration: lastSession.endTime - lastSession.startTime,
@@ -535,6 +576,9 @@ var Session = new function(){
             gameOver(gameoverParams)
                 .then(DOMUtils.create)
                 .then(function(){
+                    /**
+                     * The shit is coming
+                     */
                     // metaviewport fix
                     var metaViewportTag = window.document.querySelector("meta[name=viewport]");
                     if(metaViewportTag){
