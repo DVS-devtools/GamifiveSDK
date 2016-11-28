@@ -134,7 +134,7 @@ var Session = new function(){
         let mfp_url = [Location.getOrigin(), '/#!/mfp'].join('');
 
         mfp_url = Utils.queryfy(mfp_url, {
-            returnurl: '${Location.getCurrentHref()}',
+            returnurl: `${Location.getCurrentHref()}`,
             title: ''
         });
 
@@ -304,7 +304,8 @@ var Session = new function(){
                             },
                             onOpen: function(){
                                 Event.trigger('NATIVE_APP_PROMO_LOAD');
-                            }
+                            },
+                            onLoad: function(){}
                         });
                     }
                 }).catch(function(reason){
