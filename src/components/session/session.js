@@ -661,8 +661,12 @@ var Session = new function(){
         Logger.info('GamifiveSDK', 'Session', 'goToHome');
         Event.trigger('GO_TO_HOME_CLICK');
         if (Stargate.isHybrid()){
-            // In local index there's already a connection check
-            Stargate.goToLocalIndex();            
+            if(window.webview){
+                window.webview.Close();
+            } else {
+                // In local index there's already a connection check
+                Stargate.goToLocalIndex();
+            }
         } else {
             window.location.href = Location.getOrigin();
         }
