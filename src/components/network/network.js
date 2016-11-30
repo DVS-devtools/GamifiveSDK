@@ -9,7 +9,7 @@ var Promise = require('promise-polyfill');
 var Network = new function(){
 
     var networkInstance = this;
-    
+
     /**
     * performs an XMLHttpRequest
     * @function xhr
@@ -20,8 +20,12 @@ var Network = new function(){
     * @returns {Promise<HTTPResponse>}
     */
     this.xhr = function(method, url, options={data:null, headers:null, responseType:null}){
-
-        var xhr = new XMLHttpRequest();
+        var xhr;
+        if (window.XMLHttpRequest){
+            xhr = new XMLHttpRequest();
+        } else {
+            xhr = new ActiveXObject("Microsoft.XMLHTTP");            
+        }
         
         let promise = new Promise(function(resolve, reject){
             xhr.onreadystatechange = function(){
