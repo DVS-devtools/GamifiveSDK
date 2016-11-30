@@ -3,6 +3,7 @@ var Stargate = require('stargatejs');
 var Utils = Stargate.Utils;
 var VHost = require('../vhost/vhost');
 var windowConf = require('./windowConf');
+import Constants from '../constants/constants';
 
 /**
 * Utility module for managing locations
@@ -19,11 +20,16 @@ var Location = new function(){
             // Logger.log("TESTING ENV", theWindow);
         } else if(process.env.NODE_ENV === "debug"){
             // game_id f5df5ed9bdf6166bd38068440f50f144
-            DEBUG_OPTIONS = Utils.dequeryfy(window.location.href);
-            theWindow.location = windowConf(DEBUG_OPTIONS.host, DEBUG_OPTIONS.game_id, DEBUG_OPTIONS.country_code);
+            var _key;
+            Object.keys(window.localStorage)
+                .filter((key)=> key.startsWith(Constants.GFSDK_DEBUG_KEY_PREFIX))
+                .map((key)=> {
+                    _key = key.split(Constants.GFSDK_DEBUG_KEY_PREFIX)[1];
+                    DEBUG_OPTIONS[_key] = localStorage[key];
+                });
+            theWindow.location = windowConf(DEBUG_OPTIONS);
         } else {
             theWindow = window;
-            // Logger.log("original:", theWindow.location.href);
         }
     }
 

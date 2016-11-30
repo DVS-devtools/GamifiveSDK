@@ -1,13 +1,21 @@
-module.exports = function(HOST = 'appsworld.gamifive-app.com', GAME_ID = 'fakeid', COUNTRY_CODE = "ww-it"){
+import { Utils } from 'stargatejs';
+module.exports = function(OPTIONS){
+    let OPTIONS_DEFAULT = {
+        host: 'appsworld.gamifive-app.com', 
+        game_id: 'fakeid', 
+        country_code: 'ww-it'
+    };
+    let FINAL_OPTIONS = {...OPTIONS_DEFAULT, ...OPTIONS};
+    let QUERY = Utils.queryfy("", FINAL_OPTIONS);
     return {
         "hash": "",
-        "search": "",
-        "pathname": `/${COUNTRY_CODE}/html5gameplay/${GAME_ID}/game/sample`,
+        "search": `${QUERY}`,
+        "pathname": `/${FINAL_OPTIONS.country_code}/html5gameplay/${FINAL_OPTIONS.game_id}/game/sample`,
         "port": "",
-        "hostname": `${HOST}`,
-        "host": `${HOST}`,
+        "hostname": `${FINAL_OPTIONS.host}`,
+        "host": `${FINAL_OPTIONS.host}`,
         "protocol": "http:",
-        "origin": `http://${HOST}`,
-        "href": `http://${HOST}/${COUNTRY_CODE}/html5gameplay/${GAME_ID}/game/sample`,    
+        "origin": `http://${FINAL_OPTIONS.host}`,
+        "href": `http://${FINAL_OPTIONS.host}/${FINAL_OPTIONS.country_code}/html5gameplay/${FINAL_OPTIONS.game_id}/game/sample${QUERY}`,    
     }
 }

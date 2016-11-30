@@ -593,9 +593,20 @@ var User = function(){
 
     if(process.env.NODE_ENV === "debug"){
         this.fetch = function(callback){
+            userInfo = {...userInfo, ...UserCheckFakeResponse};
+            let userType = localStorage.getItem(Constants.GFSDK_DEBUG_KEY_PREFIX + 'user_type');
+            if(!userType || userType === 'guest'){
+                userInfo.user = null;
+                userInfo.subscribed = false;
+            } else if(userType === 'free') {
+                userInfo.user = localStorage.getItem(Constants.GFSDK_DEBUG_KEY_PREFIX + 'user_id') || 'gfsdk_fake_user';
+                userInfo.subscribed = false;
+            } else if(userType == 'premium'){
+                userInfo.user = localStorage.getItem(Constants.GFSDK_DEBUG_KEY_PREFIX + 'user_id') || 'gfsdk_fake_user';
+                userInfo.subscribed = true;
+            }
+
             callback ? callback() : null;
-            userInfo = Utils.extend(userInfo, UserCheckFakeResponse);
-            userInfo.user = Date.now() + "_gfsdk_fakeuser";
             return Promise.resolve(userInfo);
         }
 
