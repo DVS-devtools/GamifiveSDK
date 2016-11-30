@@ -122,7 +122,6 @@ var Session = new function(){
             properties:{
                 action: 'No',
                 category: 'SDK_ERROR',
-                game_title: GameInfo.getInfo().game.title,
                 label: GameInfo.getContentId(),
                 valuable: 'No',
                 reason: ev.reason
