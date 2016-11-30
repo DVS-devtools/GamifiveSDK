@@ -284,7 +284,7 @@ var Session = new function(){
                 }).then(function(){               
                     Logger.log('GamifiveSDK', 'register sync function for gameover/leaderboard results');
                     Stargate.addListener('connectionchange', sync);
-                    // if he calls me before init finished let's wait
+                    // If the user calls loadUserData before init finished this is not empty
                     if(state.userDataPromise){
                         return state.userDataPromise();
                     }                    
@@ -626,7 +626,7 @@ var Session = new function(){
      * @param {number} gameoverParams.duration
      * @param {number} gameoverParams.score
      * @param {number} [gameoverParams.level]
-     * @returns {Promise<string>} the html as string gameover
+     * @returns {Promise<String>} the html as string gameover
      */
     function gameOver(gameoverParams){
         var url = [API.get('GAMEOVER_API_URL'), GameInfo.getContentId()].join("/");
