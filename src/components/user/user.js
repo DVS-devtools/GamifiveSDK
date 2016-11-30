@@ -162,7 +162,7 @@ var User = function(){
                     .replace(':ID', GameInfo.getContentId());
             
             urlToCall = Utils.queryfy(urlToCall, {format:'jsonp'});
-            
+
             var callDefer = new JSONPRequest(urlToCall, 5000).prom;
             return callDefer
                 .then(function(result){
@@ -344,7 +344,7 @@ var User = function(){
                 Logger.info("GamifiveSDK: sync userData", "local won");
                 return localGameInfo;    
             } else if(localUpdatedAt < serverUpdatedAt){
-            // server is more relevant
+                // server is more relevant
                 Logger.info("GamifiveSDK: sync userData", "server won");
                 return serverGameInfo;
             } else if(localUpdatedAt === serverUpdatedAt){
@@ -378,7 +378,7 @@ var User = function(){
     };
 
     /**
-     * Get the user type: guest free or premium
+     * Get the user type: guest(unlogged) free(facebook) or premium(subscribed)
      * @returns {String}
      */
     this.getUserType = function(){
@@ -423,7 +423,7 @@ var User = function(){
      * @returns {Promise<Object>}
      */
     function getUserDataFromServer(){
-        if(!NewtonService.isUserLogged()){
+        if(userInstance.getUserType() === 'guest'){
             Logger.log('GamifiveSDK', 'userData cannot not get on server: user not logged');
             return Promise.resolve(userInfo.gameInfo);
         }
@@ -456,7 +456,7 @@ var User = function(){
      * @returns {Promise<Object>} - the gameInfo object with data and metadata
      */
     function setUserDataOnServer(data){
-        if(!NewtonService.isUserLogged()){
+        if(userInstance.getUserType() === 'guest'){
             Logger.log('GamifiveSDK', 'userData cannot not be set on server: user not logged');
             return Promise.resolve(userInfo.gameInfo);
         }
@@ -526,8 +526,8 @@ var User = function(){
     }
 
     function setUserDataOnLocal(){
-        if(!NewtonService.isUserLogged()){
-            Logger.log('GamifiveSDK', 'userData cannot not be set on local: user not logged');
+        if(userInstance.getUserType() === 'guest'){
+            Logger.warn('GamifiveSDK: User not logged cannot save userData');
             return Promise.resolve(userInfo.gameInfo);
         }
         let key = `${userInstance.getUserId()}-${GameInfo.getContentId()}`;
@@ -535,8 +535,8 @@ var User = function(){
     }
 
     function getUserDataFromLocal(){
-        if(!NewtonService.isUserLogged()){
-            Logger.log('GamifiveSDK', 'userData cannot not be get on local: user not logged');
+        if(userInstance.getUserType() === 'guest'){
+            Logger.warn('GamifiveSDK: User not logged cannot get userData');
             return Promise.resolve(userInfo.gameInfo);
         }
         let key = `${userInstance.getUserId()}-${GameInfo.getContentId()}`;
@@ -606,7 +606,7 @@ var User = function(){
                 userInfo.subscribed = true;
             }
 
-            callback ? callback() : null;
+            callback ? callback() : null; 
             return Promise.resolve(userInfo);
         }
 
