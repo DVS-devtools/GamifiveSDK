@@ -36,7 +36,7 @@ var User = function(){
             domain: null,
             Creator: null,
             _id: null,
-            info:null
+            info: null
         }
     };
     var favorites = [];
@@ -436,8 +436,8 @@ var User = function(){
         var userDataId = userInfo.gameInfo._id || '';
         var urlToCall = loadUserDataUrl
                             .replace(':QUERY', JSON.stringify({contentId: contentId}))
-                            .replace(':ID', '')
-                            .replace(':ACCESS_TOKEN', userDataId)
+                            .replace(':ID', userDataId)
+                            .replace(':ACCESS_TOKEN', '')
                             .replace(':EXTERNAL_TOKEN', userId)
                             .replace(':COLLECTION', 'gameInfo');
 
