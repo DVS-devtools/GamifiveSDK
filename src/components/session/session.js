@@ -268,10 +268,11 @@ var Session = new function(){
 
                     var queryString = Location.getQueryString();
                     if (getType(queryString.dest) === 'undefined'){
-    					queryString.dest = 'N/A';                        
+    					queryString.dest = 'N/A';
                     }
 
                     queryString.http_referrer = window.document.referrer;
+                    queryString.white_label_id = GameInfo.getInfo().label;
                     /** wait newton login */
                     return NewtonService.login({
                         type: 'external',
