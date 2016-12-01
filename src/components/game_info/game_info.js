@@ -101,7 +101,7 @@ var GameInfo = function(){
                             gameInfo = extend(gameInfo, toSave);                            
                         }  else {
                             throw new Error('GamifiveSDK could not retrieve GameInfo for ' + gameInfoInstance.getContentId() + ' from file');
-                        }                        
+                        }
                     }
                     
                     if (typeof callback === "function") { callback(gameInfo); }
@@ -148,8 +148,8 @@ var GameInfo = function(){
 
     if(process.env.NODE_ENV === "debug"){
         this.fetch = function(){            
-            gameInfo = extend(gameInfo, GameInfoFakeResponse.game_info);
-            var fakeId = Location.getQueryString()['game_id'];
+            gameInfo = {...gameInfo, ...GameInfoFakeResponse.game_info};
+            var fakeId = localStorage.getItem(Constants.GFSDK_DEBUG_KEY_PREFIX + 'game_id');
             gameInfo.contentId = fakeId;
             gameInfo.game.content_id = fakeId;
             gameInfo.id = fakeId;

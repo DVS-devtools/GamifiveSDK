@@ -1,7 +1,7 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.GamifiveSDK = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
 
-module.exports = ["CONTENT_RANKING", "GAMEOVER_LIKE_CLASS_TO_TOGGLE", "GAMEOVER_LIKE_SELECTOR", "IMAGES_SPRITE_GAME", "MOA_API_APPLICATION_OBJECTS_GET", "MOA_API_APPLICATION_OBJECTS_SET", "MOA_API_USER_CHECK", "NEWTON_SECRETID"];
+module.exports = ["CONTENT_RANKING", "GAMEOVER_LIKE_CLASS_TO_TOGGLE", "GAMEOVER_LIKE_SELECTOR", "IMAGES_SPRITE_GAME", "INSTALL_HYBRID_VISIBLE", "MOA_API_APPLICATION_OBJECTS_GET", "MOA_API_APPLICATION_OBJECTS_SET", "MOA_API_USER_CHECK", "NEWTON_SECRETID"];
 
 },{}],2:[function(require,module,exports){
 (function (global){
@@ -9867,7 +9867,242 @@ var RotatingLogger = new function(){
 module.exports = RotatingLogger;
 
 },{"./base-logger.js":301}],304:[function(require,module,exports){
-var PromiseLite = require('promiselite');
+(function (root) {
+
+  // Store setTimeout reference so promise-polyfill will be unaffected by
+  // other code modifying setTimeout (like sinon.useFakeTimers())
+  var setTimeoutFunc = setTimeout;
+
+  function noop() {}
+  
+  // Polyfill for Function.prototype.bind
+  function bind(fn, thisArg) {
+    return function () {
+      fn.apply(thisArg, arguments);
+    };
+  }
+
+  function Promise(fn) {
+    if (typeof this !== 'object') throw new TypeError('Promises must be constructed via new');
+    if (typeof fn !== 'function') throw new TypeError('not a function');
+    this._state = 0;
+    this._handled = false;
+    this._value = undefined;
+    this._deferreds = [];
+
+    doResolve(fn, this);
+  }
+
+  function handle(self, deferred) {
+    while (self._state === 3) {
+      self = self._value;
+    }
+    if (self._state === 0) {
+      self._deferreds.push(deferred);
+      return;
+    }
+    self._handled = true;
+    Promise._immediateFn(function () {
+      var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
+      if (cb === null) {
+        (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
+        return;
+      }
+      var ret;
+      try {
+        ret = cb(self._value);
+      } catch (e) {
+        reject(deferred.promise, e);
+        return;
+      }
+      resolve(deferred.promise, ret);
+    });
+  }
+
+  function resolve(self, newValue) {
+    try {
+      // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+      if (newValue === self) throw new TypeError('A promise cannot be resolved with itself.');
+      if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
+        var then = newValue.then;
+        if (newValue instanceof Promise) {
+          self._state = 3;
+          self._value = newValue;
+          finale(self);
+          return;
+        } else if (typeof then === 'function') {
+          doResolve(bind(then, newValue), self);
+          return;
+        }
+      }
+      self._state = 1;
+      self._value = newValue;
+      finale(self);
+    } catch (e) {
+      reject(self, e);
+    }
+  }
+
+  function reject(self, newValue) {
+    self._state = 2;
+    self._value = newValue;
+    finale(self);
+  }
+
+  function finale(self) {
+    if (self._state === 2 && self._deferreds.length === 0) {
+      Promise._immediateFn(function() {
+        if (!self._handled) {
+          Promise._unhandledRejectionFn(self._value);
+        }
+      });
+    }
+
+    for (var i = 0, len = self._deferreds.length; i < len; i++) {
+      handle(self, self._deferreds[i]);
+    }
+    self._deferreds = null;
+  }
+
+  function Handler(onFulfilled, onRejected, promise) {
+    this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
+    this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+    this.promise = promise;
+  }
+
+  /**
+   * Take a potentially misbehaving resolver function and make sure
+   * onFulfilled and onRejected are only called once.
+   *
+   * Makes no guarantees about asynchrony.
+   */
+  function doResolve(fn, self) {
+    var done = false;
+    try {
+      fn(function (value) {
+        if (done) return;
+        done = true;
+        resolve(self, value);
+      }, function (reason) {
+        if (done) return;
+        done = true;
+        reject(self, reason);
+      });
+    } catch (ex) {
+      if (done) return;
+      done = true;
+      reject(self, ex);
+    }
+  }
+
+  Promise.prototype['catch'] = function (onRejected) {
+    return this.then(null, onRejected);
+  };
+
+  Promise.prototype.then = function (onFulfilled, onRejected) {
+    var prom = new (this.constructor)(noop);
+
+    handle(this, new Handler(onFulfilled, onRejected, prom));
+    return prom;
+  };
+
+  Promise.all = function (arr) {
+    var args = Array.prototype.slice.call(arr);
+
+    return new Promise(function (resolve, reject) {
+      if (args.length === 0) return resolve([]);
+      var remaining = args.length;
+
+      function res(i, val) {
+        try {
+          if (val && (typeof val === 'object' || typeof val === 'function')) {
+            var then = val.then;
+            if (typeof then === 'function') {
+              then.call(val, function (val) {
+                res(i, val);
+              }, reject);
+              return;
+            }
+          }
+          args[i] = val;
+          if (--remaining === 0) {
+            resolve(args);
+          }
+        } catch (ex) {
+          reject(ex);
+        }
+      }
+
+      for (var i = 0; i < args.length; i++) {
+        res(i, args[i]);
+      }
+    });
+  };
+
+  Promise.resolve = function (value) {
+    if (value && typeof value === 'object' && value.constructor === Promise) {
+      return value;
+    }
+
+    return new Promise(function (resolve) {
+      resolve(value);
+    });
+  };
+
+  Promise.reject = function (value) {
+    return new Promise(function (resolve, reject) {
+      reject(value);
+    });
+  };
+
+  Promise.race = function (values) {
+    return new Promise(function (resolve, reject) {
+      for (var i = 0, len = values.length; i < len; i++) {
+        values[i].then(resolve, reject);
+      }
+    });
+  };
+
+  // Use polyfill for setImmediate for performance gains
+  Promise._immediateFn = (typeof setImmediate === 'function' && function (fn) { setImmediate(fn); }) ||
+    function (fn) {
+      setTimeoutFunc(fn, 0);
+    };
+
+  Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
+    if (typeof console !== 'undefined' && console) {
+      console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
+    }
+  };
+
+  /**
+   * Set the immediate function to execute callbacks
+   * @param fn {function} Function to execute
+   * @deprecated
+   */
+  Promise._setImmediateFn = function _setImmediateFn(fn) {
+    Promise._immediateFn = fn;
+  };
+
+  /**
+   * Change the function to execute on unhandled rejection
+   * @param {function} fn Function to execute on unhandled rejection
+   * @deprecated
+   */
+  Promise._setUnhandledRejectionFn = function _setUnhandledRejectionFn(fn) {
+    Promise._unhandledRejectionFn = fn;
+  };
+  
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Promise;
+  } else if (!root.Promise) {
+    root.Promise = Promise;
+  }
+
+})(this);
+
+},{}],305:[function(require,module,exports){
+var Promise = require('promise-polyfill');
 
 /**
 * @ngdoc object
@@ -9878,9 +10113,34 @@ var PromiseLite = require('promiselite');
 */
 var NewtonAdapter = new function(){
 
-    var newtonInstance, logger, newtonversion;
-    var enablePromise = new PromiseLite(); 
-    var loginPromise = new PromiseLite(); 
+    var newtonInstance, logger, newtonversion, beforeInit;
+    var enablePromise, enablePromiseResolve, enablePromiseReject, enablePromiseFullfilled;
+    var loginPromise, loginPromiseResolve, loginPromiseReject, loginPromiseFullfilled;
+
+    (beforeInit = function(){
+        enablePromiseFullfilled = false;
+        loginPromiseFullfilled = false;
+        enablePromise = new Promise(function(resolve, reject){
+            enablePromiseResolve = function(data){
+                enablePromiseFullfilled = true;
+                resolve(data);
+            };
+            enablePromiseReject = function(data){
+                enablePromiseFullfilled = true;
+                reject(data);
+            };
+        }); 
+        loginPromise = new Promise(function(resolve, reject){
+            loginPromiseResolve = function(data){
+                loginPromiseFullfilled = true;
+                resolve(data);
+            };
+            loginPromiseReject = function(data){
+                loginPromiseFullfilled = true;
+                reject(data);
+            };
+        }); 
+    })();
 
     var createSimpleObject = function(object){
         object = object || {};
@@ -9889,8 +10149,7 @@ var NewtonAdapter = new function(){
 
     // USE ONLY FOR TEST!
     this.resetForTest = function(){
-        enablePromise = new PromiseLite(); 
-        loginPromise = new PromiseLite(); 
+        beforeInit();
     };
 
     /**
@@ -9908,7 +10167,7 @@ var NewtonAdapter = new function(){
     * @param {Object} [options.logger=disabled logger] logger object containing the methods: debug, log, info, warn, error
     * @param {Object} [options.properties={}] custom data for Newton session<br/><i>Newton version 1: this property is not supported</i>
     *
-    * @return {PromiseLite} promise that will be resolved when the init has been completed
+    * @return {Promise} promise that will be resolved when the init has been completed
     * 
     * @example
     * <pre>
@@ -9957,28 +10216,30 @@ var NewtonAdapter = new function(){
             }
             logger.log('NewtonAdapter', 'Init', options);
         });
-        enablePromise.fail(function(){});
+        enablePromise.catch(function(){});
 
         // check if enabled
         var isNewtonExist = !!window.Newton;
         if(!isNewtonExist){
             logger.error('NewtonAdapter', 'Newton not exist');
-            enablePromise.reject();
-        } else if(options.enable){
-            enablePromise.resolve();
+            enablePromiseReject(new Error('Newton not exist'));
+            loginPromiseReject(new Error('Newton not exist'));
+        } else if(options.enable){           
+            enablePromiseResolve();
         } else {
             logger.warn('NewtonAdapter', 'Newton not enabled');
-            enablePromise.reject();
+            enablePromiseReject(new Error('Newton not enabled'));
+            loginPromiseReject(new Error('Newton not enabled'));
         }
 
         // init loginPromise
-        loginPromise.fail(function(error){
+        loginPromise.catch(function(error){
             logger.warn('NewtonAdapter', 'Newton login failed', error);
         });
 
         // resolve loginPromise if not waitLogin and enable
         if(!options.waitLogin && options.enable){
-            loginPromise.resolve();
+            loginPromiseResolve();
         }
 
         return enablePromise;
@@ -9998,7 +10259,7 @@ var NewtonAdapter = new function(){
     * @param {boolean} [options.logged=false] true if user is logged, false if user is unlogged
     * @param {Object} [options.userProperties={}] custom user properties
     *
-    * @return {PromiseLite} promise that will be resolved when the login has been completed
+    * @return {Promise} promise that will be resolved when the login has been completed
     *
     * @example
     * <pre>
@@ -10018,10 +10279,10 @@ var NewtonAdapter = new function(){
             try {
                 if(options.callback){ options.callback.call(); }
                 logger.log('NewtonAdapter', 'Login', options);
-                loginPromise.resolve();
+                loginPromiseResolve();
             } catch(err) {
                 logger.error('NewtonAdapter', 'Login', err);
-                loginPromise.reject();
+                loginPromiseReject(err);
             }
         };
 
@@ -10076,6 +10337,8 @@ var NewtonAdapter = new function(){
     * @param {string} scope type of action performed on the content
     * @param {number} score the score associated to the content
     *
+    * @return {Promise} promise that will be resolved when the login has been completed
+    *
     * @example
     * <pre>
     * NewtonAdapter.rankContent({
@@ -10095,6 +10358,7 @@ var NewtonAdapter = new function(){
             }
             logger.log('NewtonAdapter', 'rankContent', options);
         });
+        return loginPromise;
     };
 
     /**
@@ -10109,6 +10373,7 @@ var NewtonAdapter = new function(){
     * @param {object} [options.properties={}] custom datas of the event
     * @param {object} [options.rank={}] rank event datas. Newton version 1: feature not supported
     *
+    * @return {Promise} promise that will be resolved when the login has been completed
     *
     * @example
     * <pre>
@@ -10140,6 +10405,7 @@ var NewtonAdapter = new function(){
                 }
             }
         });
+        return loginPromise;
     };
 
     /**
@@ -10152,6 +10418,8 @@ var NewtonAdapter = new function(){
     * @param {Object} options configuration object
     * @param {Object} options.properties Properties of the pageview
     * @param {string} [options.properties.url=window.location.href] url of pageview
+    *
+    * @return {Promise} promise that will be resolved when the login has been completed
     *
     * @example
     * <pre>
@@ -10175,7 +10443,7 @@ var NewtonAdapter = new function(){
             options.properties.url = window.location.href;
         }
         options.name = 'pageview';
-        NewtonAdapter.trackEvent(options);
+        return NewtonAdapter.trackEvent(options);
     };
 
     /**
@@ -10188,6 +10456,8 @@ var NewtonAdapter = new function(){
     * @param {Object} options configuration object
     * @param {string} options.name name of the timed event
     * @param {Object} [options.properties={}] details of the timed event
+    *
+    * @return {Promise} promise that will be resolved when the login has been completed
     *
     * @example
     * <pre>
@@ -10205,6 +10475,7 @@ var NewtonAdapter = new function(){
             logger.log('NewtonAdapter', 'startHeartbeat', options);
             newtonInstance.timedEventStart(options.name, createSimpleObject(options.properties));
         });
+        return loginPromise;
     };
 
     /**
@@ -10217,6 +10488,8 @@ var NewtonAdapter = new function(){
     * @param {Object} options configuration object
     * @param {string} options.name name of the timed event
     * @param {Object} [options.properties={}] details of the timed event
+    *
+    * @return {Promise} promise that will be resolved when the login has been completed
     *
     * @example
     * <pre>
@@ -10234,6 +10507,7 @@ var NewtonAdapter = new function(){
             newtonInstance.timedEventStop(options.name, createSimpleObject(options.properties));
             logger.log('NewtonAdapter', 'stopHeartbeat', options);
         });
+        return loginPromise;
     };
 
     /**
@@ -10276,12 +10550,12 @@ var NewtonAdapter = new function(){
     * </pre>
     */
     this.isInitialized = function(){
-        return enablePromise.isSettled();
+        return !!enablePromiseFullfilled;
     };
 };
 
 module.exports = NewtonAdapter;
-},{"promiselite":307}],305:[function(require,module,exports){
+},{"promise-polyfill":304}],306:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -10463,7 +10737,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],306:[function(require,module,exports){
+},{}],307:[function(require,module,exports){
 (function (root) {
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -10694,386 +10968,6 @@ process.umask = function() { return 0; };
 
 })(this);
 
-},{}],307:[function(require,module,exports){
-var PROMISE_STATUS = {
-    0: 'pending',
-    1: 'fulfilled',
-    2: 'rejected'
-};
-
-var pass = function(arg){
-    return arg;
-};
-
-var PrivatePromise = function(executor, nextProm){
-
-    // executor called at the end of the definition of Promise
-    if (typeof executor !== 'undefined' && typeof executor !== 'function'){
-        throw new Error('PromiseLite :: executor must be a function, got ' + typeof executor);
-    }
-    
-    var promiseInstance = this;
-    var promiseStatusIndex = 0;
-    var promiseValue;
-    var promiseReason;
-    var next = nextProm || [];
-
-    var getValue = function(){
-        return promiseValue;
-    };
-
-    var getReason = function(){
-        return promiseReason;
-    };
-
-    /**
-    * Returns whether the current PromiseLite instance is in a "pending" state
-    * @function isPending
-    * @memberof PromiseLite#
-    */
-    this.isPending = function(){
-        return promiseStatusIndex === 0;
-    };
-
-    /**
-    * Returns whether the current PromiseLite instance is in a "fulfilled" state
-    * @function isFulfilled
-    * @memberof PromiseLite#
-    */
-    this.isFulfilled = function(){
-        return promiseStatusIndex === 1;
-    };
-
-    /**
-    * Returns whether the current PromiseLite instance is in a "rejected" state
-    * @function isRejected
-    * @memberof PromiseLite#
-    */
-    this.isRejected = function(){
-        return promiseStatusIndex === 2;
-    };
-
-    /**
-    * Returns whether the current PromiseLite instance is in a "settled" state (fulfilled or rejected)
-    * @function isSettled
-    * @memberof PromiseLite#
-    */
-    this.isSettled = function(){
-        return (promiseStatusIndex === 1) || (promiseStatusIndex === 2);
-    };
-
-    /**
-    * Returns the state of the current PromiseLite instance as a string
-    * @function getStatus
-    * @memberof PromiseLite#
-    */
-    this.getStatus = function(){
-        return PROMISE_STATUS[promiseStatusIndex];
-    };
-
-    var getDeferredPromises = function(){
-        var toReturn = next.slice(1, next.length);
-        next = [];
-        return toReturn;
-    };
-
-    var immediatelyFulfill = function(success, error){       
-
-        if (typeof success === 'undefined'){
-            success = pass;
-        }
-
-        if (typeof error === 'undefined'){
-            error = pass;
-        }
-
-        var deferred = getDeferredPromises();
-
-        return new PrivatePromise(function(res, rej){
-            try {
-                res(success(getValue()));
-            } catch (err){
-                // if we're trying to pass the error to the next node of the chain
-                // but the next node of the chain is undefined
-                // throw error, otherwise pass it forward through the chain
-                if (error === pass && deferred.length === 0){
-                    throw err;
-                } else {
-                    rej(error(err));
-                }
-            }
-        }, deferred);
-
-    };
-
-    var immediatelyReject = function(error){
-        if (typeof error === 'undefined'){
-            error = pass;
-        }
-
-        var deferred = getDeferredPromises(); 
-
-        return new PrivatePromise(function(res, rej){
-            try {
-                if (error === pass && deferred.length === 0){
-                    throw getReason();
-                } else {
-                    rej(error(getReason()));
-                }
-            } catch (err){
-
-                if (deferred.length === 0){
-                    throw err;
-                } else {
-                    rej(pass(err));
-                }
-            }
-        }, deferred);
-        
-    };
-
-    /**
-    * Resolves the current PromiseLite instance
-    * @function resolve
-    * @memberof PromiseLite#
-    * @param {any} value to which the current PromiseLite instance is resolved
-    */
-    this.resolve = function(value){
-        if (promiseInstance.isSettled()){
-            return promiseInstance;
-        }
-
-        promiseStatusIndex = 1;
-        promiseValue = value;
-
-        if (next.length > 0){
-            var toDo = next[0];
-            if (toDo.onSuccess === toDo.onError){
-                toDo.onError = pass;
-            }
-            return immediatelyFulfill(toDo.onSuccess, toDo.onError);   
-        }
-    };
-
-    /**
-    * Rejects the current PromiseLite instance
-    * @function reject
-    * @memberof PromiseLite#
-    * @param {any} reason the reason of the rejection
-    */
-    this.reject = function(reason){
-        if (promiseInstance.isRejected()){
-            return promiseInstance;
-        }
-
-        promiseStatusIndex = 2;
-        promiseReason = reason;
-
-        if (next.length > 0){
-            var toDo = next[0];
-            return immediatelyReject(toDo.onError);
-        }
-    };
-
-    var addNext = function(onSuccess, onError){
-
-        next.push({
-            onSuccess: onSuccess,
-            onError: onError
-        });
-    };
-
-    /**
-    * Adds a then block to the current PromiseLite instance
-    * @function then
-    * @memberof PromiseLite#
-    * @param {function} onSuccess function that will be executed if the PromiseLite is resolved
-    * @param {function} onError function that will be executed if the PromiseLite is rejected
-    */
-    this.then = function(onSuccess, onError){
-
-        if (promiseInstance.isPending()){
-            addNext(onSuccess, onError);
-            return promiseInstance;
-        }
-
-        if (promiseInstance.isFulfilled() && !!onSuccess){
-            return immediatelyFulfill(onSuccess, onError);
-        }
-
-        if (promiseInstance.isRejected() && !!onError){
-            return immediatelyReject(onError);
-        }
-    };
-
-    /**
-    * Adds a fail (catch) block to the current PromiseLite instance
-    * @function fail
-    * @memberof PromiseLite#
-    * @param {function} onError function that will be executed if the PromiseLite is rejected
-    */
-    this.fail = function(onError){
-        return promiseInstance.then(undefined, onError);
-    };
-
-    /**
-    * Adds a force (finally) block to the current PromiseLite instance
-    * @function force
-    * @memberof PromiseLite#
-    * @param {function} callback function that will be executed both if the PromiseLite is resolved or rejected
-    */
-    this.force = function(callback){
-        return promiseInstance.then(callback, callback);
-    };
-
-    if (typeof executor === 'function'){
-        executor(promiseInstance.resolve, promiseInstance.reject);
-    }
-
-};
-
-/**
-* PromiseLite public constructor
-* @class PromiseLite
-* @param {function(resolve, reject)} [executor] the executor of this promise
-*/
-var PublicPromise = function(executor){
-    return new PrivatePromise(executor, undefined);
-};
-
-
-/**
-* Returns a promise that takes an array of promises as argument and 
-* is fulfilled if and only if all of these are fulfilled 
-* @function all
-* @memberof PromiseLite
-* @param {Array} promiseList a list of PromiseLite instances
-*/
-PublicPromise.all = function(promiseList){
-    var promiseAll = new PublicPromise();
-    var promiseCount = promiseList.length;
-
-    var results = new Array(promiseCount);
-    var reasons = new Array(promiseCount);
-    var fulfilled = new Array(promiseCount);
-
-    var checkAllFulfilled = function(){
-        var counted = 0;
-        for (var key in fulfilled){
-            counted++;
-            if (!fulfilled[key]){
-                promiseAll.reject(reasons);
-                return;
-            }
-        }
-
-        if (counted === promiseCount){
-            promiseAll.resolve(results);
-        }
-    };
-    
-    var promise;
-
-    var innerFunction = function(num, prom){
-        prom.then(function(value){
-            fulfilled[num] = true;
-            results[num] = value;
-            checkAllFulfilled();
-        }).fail(function(reason){
-            fulfilled[num] = false;
-            reasons[num] = reason;
-            checkAllFulfilled();
-        });
-    };
-    
-    for (var i = 0; i < promiseList.length; i++){
-        promise = promiseList[i];
-        innerFunction(i, promise);
-    }
-
-    return promiseAll;
-};
-
-/**
-* Returns a promise that takes an array of promises as argument and 
-* is fulfilled if and only if the first of them that is settled is fulfilled (rejected otherwise) 
-* @function race
-* @memberof PromiseLite
-* @param {Array} promiseList a list of PromiseLite instances
-*/
-PublicPromise.race = function(promiseList){
-    var promiseRace = new PublicPromise();
-    var promiseCount = promiseList.length;
-    var results = new Array(promiseCount);
-    var reasons = new Array(promiseCount);
-    
-    var promise;
-    var innerFunction = function(num, prom){
-        prom.then(function(value){
-            results[num] = value;
-            promiseRace.resolve(results);
-        }).fail(function(reason){
-            reasons[num] = reason;
-            promiseRace.reject(reasons);
-        });
-    };
-    
-    for (var i = 0; i < promiseList.length; i++){
-        promise = promiseList[i];
-        innerFunction(i, promise);
-    }
-
-    return promiseRace;
-};
-
-/**
-* Returns a promise that takes an array of promises as argument and 
-* is fulfilled if at least one of them is fulfilled (rejected otherwise)
-* @function any
-* @memberof PromiseLite
-* @param {Array} promiseList a list of PromiseLite instances
-*/
-PublicPromise.any = function(promiseList){
-    var promiseAny = new PublicPromise();
-    var promiseCount = promiseList.length;
-
-    var rejected = new Array(promiseCount);
-    var reasons = new Array(promiseCount);
-    var values = new Array(promiseCount);
-
-    var allRejected = function(){
-        for (var j = 0; j < promiseCount; j++){
-            if (!rejected[j]){
-                return false;
-            }
-        }
-        return true;
-    };
-
-    var promise;
-    var innerFunction = function(num, prom){
-        prom.then(function(value){
-            values[num] = value;
-            promiseAny.resolve(values);
-        }).fail(function(reason){
-            rejected[num] = true;
-            reasons[num] = reason;
-
-            if (allRejected()){
-                promiseAny.reject(reasons);
-            }
-        });
-    };
-
-    for (var i = 0; i < promiseList.length; i++){
-        promise = promiseList[i];
-        innerFunction(i, promise);
-    }
-
-    return promiseAny;
-};
-
-module.exports = PublicPromise;
 },{}],308:[function(require,module,exports){
 (function (process,global){
 /**
@@ -11747,7 +11641,7 @@ module.exports = PublicPromise;
 );
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":305}],309:[function(require,module,exports){
+},{"_process":306}],309:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -13422,9 +13316,23 @@ Game.prototype.buildGameOver = function (data) {
         var htmlString = results[1];
         var metaJson = results[0];
         LOG.info('Meta JSON:', metaJson);
-        return htmlString.replace('{{score}}', data.score).replace('{{game_title}}', metaJson.title).replace('{{game_title}}', metaJson.title).replace('{{url_share}}', metaJson.url_share).replace('{{url_cover}}', metaJson.images.cover.ratio_1);
+        var newHtmlString = htmlString.replace('{{score}}', data.score).replace('{{game_title}}', metaJson.title).replace('{{game_title}}', metaJson.title).replace('{{url_share}}', metaJson.url_share).replace('{{url_cover}}', metaJson.images.cover.ratio_1);
+        if (window.DICTIONARY) {
+            return replaceAll(newHtmlString, window.DICTIONARY);
+        }
+        return newHtmlString;
     });
 };
+
+function replaceAll(str, obj) {
+    var _str = str.slice();
+    var re;
+    for (var key in obj) {
+        re = new RegExp('\{\{(' + key + ')\}\}', 'g');
+        _str = _str.replace(re, obj[key]);
+    }
+    return _str;
+}
 
 Game.prototype.isGameDownloaded = function (gameID) {
     return fileModule.dirExists(constants.GAMES_DIR + gameID);
@@ -13818,7 +13726,7 @@ require('../retro/retro-interface.js')(build);
 
 module.exports = build;
 
-},{"../components/fb/fb.js":326,"../components/game_info/game_info.js":328,"../components/logger/logger.js":331,"../components/menu/menu.js":332,"../components/session/session.js":335,"../components/user/user.js":339,"../retro/retro-interface.js":342,"../version":343}],322:[function(require,module,exports){
+},{"../components/fb/fb.js":327,"../components/game_info/game_info.js":329,"../components/logger/logger.js":332,"../components/menu/menu.js":333,"../components/session/session.js":336,"../components/user/user.js":340,"../retro/retro-interface.js":343,"../version":344}],322:[function(require,module,exports){
 'use strict';
 
 var Location = require('../location/location');
@@ -13833,7 +13741,98 @@ module.exports = {
     }
 };
 
-},{"../constants/constants":323,"../location/location":329}],323:[function(require,module,exports){
+},{"../constants/constants":324,"../location/location":330}],323:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.Banner = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _network = require('../network/network');
+
+var _network2 = _interopRequireDefault(_network);
+
+var _location = require('../location/location');
+
+var _location2 = _interopRequireDefault(_location);
+
+var _constants = require('../constants/constants');
+
+var _constants2 = _interopRequireDefault(_constants);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Banner = exports.Banner = function () {
+    function Banner(props) {
+        var _this = this;
+
+        _classCallCheck(this, Banner);
+
+        this.props = props;
+        this.load().then(function () {
+            _this.props.onLoad();
+        });
+    }
+
+    _createClass(Banner, [{
+        key: 'closeButtonHandler',
+        value: function closeButtonHandler(e) {
+            e.preventDefault();
+            this.close();
+            this.props.onCloseClick();
+        }
+    }, {
+        key: 'installButtonHandler',
+        value: function installButtonHandler(e) {
+            e.preventDefault();
+            this.props.onInstallClick();
+        }
+    }, {
+        key: 'install',
+        value: function install() {
+            this.props.onInstallClick();
+        }
+    }, {
+        key: 'close',
+        value: function close() {
+            this.container.classList.add("hidden");
+        }
+    }, {
+        key: 'open',
+        value: function open() {
+            this.container.classList.remove("hidden");
+            this.props.onOpen();
+        }
+    }, {
+        key: 'load',
+        value: function load() {
+            var _this2 = this;
+
+            return _network2.default.xhr('GET', [_location2.default.getOrigin(), _constants2.default.INGAME_BANNER].join(''), { responseType: 'document' }).then(function (resp) {
+                _this2.container = resp.responseXML.querySelector(_this2.props.containerSelector);
+                _this2.closeButton = _this2.container.querySelector(_this2.props.closeButtonSelector);
+                _this2.installButton = _this2.container.querySelector(_this2.props.installButtonSelector);
+
+                _this2.closeButton.addEventListener('touchend', _this2.closeButtonHandler.bind(_this2), false);
+                _this2.closeButton.addEventListener('click', _this2.closeButtonHandler.bind(_this2), false);
+
+                _this2.installButton.addEventListener('touchend', _this2.installButtonHandler.bind(_this2), false);
+                _this2.installButton.addEventListener('click', _this2.installButtonHandler.bind(_this2), false);
+
+                window.document.body.appendChild(_this2.container);
+            });
+        }
+    }]);
+
+    return Banner;
+}();
+
+},{"../constants/constants":324,"../location/location":330,"../network/network":334}],324:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -13855,7 +13854,7 @@ module.exports = {
         'position': 'absolute',
         'cursor': 'pointer'
     },
-    IMMUTABLE_MENU_STYLE_PROPERTIES: ['background-image', 'background-position', 'z-index', 'width', 'height'],
+    IMMUTABLE_MENU_STYLE_PROPERTIES: ['transform-origin', 'transform', 'background-image', 'background-position', 'z-index', 'width', 'height'],
 
     AFTER_LOAD_EVENT_KEY: 'VHOST_AFTER_LOAD',
     AFTER_INIT_EVENT_KEY: 'SESSION_AFTER_INIT',
@@ -13892,10 +13891,12 @@ module.exports = {
 
     CONTENT_ID_REGEX: '(html5gameplay|sdk_integration_test|games)\/([a-zA-Z0-9]+)',
     NEWTON_DEBUG_SECRET: '_BdH,S;lTr%Fd+#fka-]',
+    GFSDK_DEBUG_KEY_PREFIX: 'gfsdk-debug-',
 
     VHOST_API_URL: '/v01/config.getvars?keys=',
     GAME_INFO_API_URL: '/v01/gameplay?content_id=',
     GAMEOVER_API_URL: '/v01/gameover',
+    INGAME_BANNER: '/ingame_banner',
     LEADERBOARD_API_URL: '/v01/leaderboard',
     CAN_DOWNLOAD_API_URL: '/v01/user.candownload/:ID',
     USER_SET_LIKE: '/v01/favorites.set',
@@ -13910,7 +13911,7 @@ module.exports = {
     DICTIONARY_JSON_FILENAME: 'dict.json'
 };
 
-},{}],324:[function(require,module,exports){
+},{}],325:[function(require,module,exports){
 'use strict';
 
 var Constants = require('../constants/constants');
@@ -13956,17 +13957,25 @@ var DOMUtils = new function () {
     };
 
     this.show = function (id) {
-        if (!!document.getElementById(id)) {
-            if (this.hasClass(id, "hide")) {
-                document.getElementById(id).className = document.getElementById(id).className.replace(/\bhide\b/, '');
+        var theElement = document.getElementById(id);
+        if (!!theElement) {
+            var className = '';
+            if (this.hasClass(id, 'hide')) {
+                className = 'hide';
+            } else if (this.hasClass(id, 'hidden')) {
+                className = 'hidden';
             }
+            var regex = new RegExp('\s?' + className, 'g');
+            theElement.className = theElement.className.replace(regex, '');
+            return true;
         }
+        return false;
     };
 
-    this.hide = function (id) {
+    this.hide = function (id, className) {
         if (!!document.getElementById(id)) {
-            if (!this.hasClass(id, "hide")) {
-                document.getElementById(id).className += " hide";
+            if (!this.hasClass(id, className)) {
+                document.getElementById(id).className += ' ' + className;
             }
         }
     };
@@ -13986,14 +13995,14 @@ var DOMUtils = new function () {
 
 module.exports = DOMUtils;
 
-},{"../constants/constants":323,"../logger/logger":331,"../vhost/vhost":341}],325:[function(require,module,exports){
+},{"../constants/constants":324,"../logger/logger":332,"../vhost/vhost":342}],326:[function(require,module,exports){
 'use strict';
 
 var _stargatejs = require('stargatejs');
 
 module.exports = new _stargatejs.EventBus();;
 
-},{"stargatejs":309}],326:[function(require,module,exports){
+},{"stargatejs":309}],327:[function(require,module,exports){
 'use strict';
 
 var Constants = require('../constants/constants');
@@ -14111,7 +14120,7 @@ var Facebook = new function () {
 
 module.exports = Facebook;
 
-},{"../constants/constants":323,"../ga/ga":327,"../location/location":329,"../logger/logger":331,"stargatejs":309}],327:[function(require,module,exports){
+},{"../constants/constants":324,"../ga/ga":328,"../location/location":330,"../logger/logger":332,"stargatejs":309}],328:[function(require,module,exports){
 'use strict';
 
 var Logger = require('../logger/logger');
@@ -14134,8 +14143,10 @@ var GA = new function () {
 
 module.exports = GA;
 
-},{"../logger/logger":331,"../vhost/vhost":341}],328:[function(require,module,exports){
+},{"../logger/logger":332,"../vhost/vhost":342}],329:[function(require,module,exports){
 'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 if ("debug" === "debug") {
     var GameInfoFakeResponse = require('../../../test/mocks/gameInfoMock');
@@ -14242,8 +14253,8 @@ var GameInfo = function GameInfo() {
 
     if ("debug" === "debug") {
         this.fetch = function () {
-            gameInfo = extend(gameInfo, GameInfoFakeResponse.game_info);
-            var fakeId = Location.getQueryString()['game_id'];
+            gameInfo = _extends({}, gameInfo, GameInfoFakeResponse.game_info);
+            var fakeId = localStorage.getItem(Constants.GFSDK_DEBUG_KEY_PREFIX + 'game_id');
             gameInfo.contentId = fakeId;
             gameInfo.game.content_id = fakeId;
             gameInfo.id = fakeId;
@@ -14287,8 +14298,14 @@ var GameInfo = function GameInfo() {
 
 module.exports = new GameInfo();
 
-},{"../../../test/mocks/gameInfoMock":344,"../api/api":322,"../constants/constants":323,"../location/location":329,"../logger/logger":331,"../network/network":333,"http-francis":298,"stargatejs":309}],329:[function(require,module,exports){
+},{"../../../test/mocks/gameInfoMock":345,"../api/api":322,"../constants/constants":324,"../location/location":330,"../logger/logger":332,"../network/network":334,"http-francis":298,"stargatejs":309}],330:[function(require,module,exports){
 'use strict';
+
+var _constants = require('../constants/constants');
+
+var _constants2 = _interopRequireDefault(_constants);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var Logger = require('../logger/logger');
 var Stargate = require('stargatejs');
@@ -14304,8 +14321,14 @@ var Location = new function () {
         if ("debug" === "testing" && window.fakewindow) {
             theWindow = window.fakewindow;
         } else if ("debug" === "debug") {
-            DEBUG_OPTIONS = Utils.dequeryfy(window.location.href);
-            theWindow.location = windowConf(DEBUG_OPTIONS.host, DEBUG_OPTIONS.game_id, DEBUG_OPTIONS.country_code);
+            var _key;
+            Object.keys(window.localStorage).filter(function (key) {
+                return key.startsWith(_constants2.default.GFSDK_DEBUG_KEY_PREFIX);
+            }).map(function (key) {
+                _key = key.split(_constants2.default.GFSDK_DEBUG_KEY_PREFIX)[1];
+                DEBUG_OPTIONS[_key] = localStorage[key];
+            });
+            theWindow.location = windowConf(DEBUG_OPTIONS);
         } else {
             theWindow = window;
         }
@@ -14358,6 +14381,21 @@ var Location = new function () {
         return Utils.dequeryfy(theWindow.location.href);
     };
 
+    this.isGameasy = function () {
+        __setTestEnvIfAny__();
+
+        var host = theWindow.location.host || theWindow.location.hostname;
+        var domainLevels = host.split('.');
+        return domainLevels.some(function (level) {
+            return level.indexOf("gameasy") > -1;
+        });
+    };
+
+    this.isGamifive = function () {
+        __setTestEnvIfAny__();
+        return !this.isGameasy();
+    };
+
     if ("debug" === "testing") {
         var original = {
             Stargate: null
@@ -14386,33 +14424,40 @@ var Location = new function () {
 
 module.exports = Location;
 
-},{"../logger/logger":331,"../vhost/vhost":341,"./windowConf":330,"stargatejs":309}],330:[function(require,module,exports){
+},{"../constants/constants":324,"../logger/logger":332,"../vhost/vhost":342,"./windowConf":331,"stargatejs":309}],331:[function(require,module,exports){
 'use strict';
 
-module.exports = function () {
-    var HOST = arguments.length <= 0 || arguments[0] === undefined ? 'appsworld.gamifive-app.com' : arguments[0];
-    var GAME_ID = arguments.length <= 1 || arguments[1] === undefined ? 'fakeid' : arguments[1];
-    var COUNTRY_CODE = arguments.length <= 2 || arguments[2] === undefined ? "ww-it" : arguments[2];
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
+var _stargatejs = require('stargatejs');
+
+module.exports = function (OPTIONS) {
+    var OPTIONS_DEFAULT = {
+        host: 'appsworld.gamifive-app.com',
+        game_id: 'fakeid',
+        country_code: 'ww-it'
+    };
+    var FINAL_OPTIONS = _extends({}, OPTIONS_DEFAULT, OPTIONS);
+    var QUERY = _stargatejs.Utils.queryfy("", FINAL_OPTIONS);
     return {
         "hash": "",
-        "search": "",
-        "pathname": '/' + COUNTRY_CODE + '/html5gameplay/' + GAME_ID + '/game/sample',
+        "search": '' + QUERY,
+        "pathname": '/' + FINAL_OPTIONS.country_code + '/html5gameplay/' + FINAL_OPTIONS.game_id + '/game/sample',
         "port": "",
-        "hostname": '' + HOST,
-        "host": '' + HOST,
+        "hostname": '' + FINAL_OPTIONS.host,
+        "host": '' + FINAL_OPTIONS.host,
         "protocol": "http:",
-        "origin": 'http://' + HOST,
-        "href": 'http://' + HOST + '/' + COUNTRY_CODE + '/html5gameplay/' + GAME_ID + '/game/sample'
+        "origin": 'http://' + FINAL_OPTIONS.host,
+        "href": 'http://' + FINAL_OPTIONS.host + '/' + FINAL_OPTIONS.country_code + '/html5gameplay/' + FINAL_OPTIONS.game_id + '/game/sample' + QUERY
     };
 };
 
-},{}],331:[function(require,module,exports){
+},{"stargatejs":309}],332:[function(require,module,exports){
 "use strict";
 
 module.exports = window.console;
 
-},{}],332:[function(require,module,exports){
+},{}],333:[function(require,module,exports){
 'use strict';
 
 var Constants = require('../constants/constants');
@@ -14516,7 +14561,7 @@ var Menu = new function () {
 
 module.exports = Menu;
 
-},{"../constants/constants":323,"../ga/ga":327,"../location/location":329,"../logger/logger":331}],333:[function(require,module,exports){
+},{"../constants/constants":324,"../ga/ga":328,"../location/location":330,"../logger/logger":332}],334:[function(require,module,exports){
 'use strict';
 
 var Logger = require('../logger/logger');
@@ -14526,25 +14571,39 @@ var Network = new function () {
 
     var networkInstance = this;
 
-    this.xhr = function (method, url, callback) {
-        Logger.log('GamifiveSDK', 'Network', method, url);
+    this.xhr = function (method, url) {
+        var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : { data: null, headers: null, responseType: null };
 
-        var xhr = new XMLHttpRequest();
-        return new Promise(function (resolve, reject) {
+        var xhr;
+        if (window.XMLHttpRequest) {
+            xhr = new XMLHttpRequest();
+        } else {
+            xhr = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+
+        var promise = new Promise(function (resolve, reject) {
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     var resp = xhr;
                     resp.success = xhr.status >= 200 && xhr.status <= 399;
-                    if (callback) {
-                        callback(resp);
-                    }
                     resolve(resp);
                 }
             };
-
-            xhr.open(method, url);
-            xhr.send();
         });
+        xhr.open(method, url);
+
+        if (options.headers) {
+            for (var key in options.headers) {
+                xhr.setRequestHeader(key, options.headers[key]);
+            }
+        }
+
+        if (options.responseType) {
+            xhr.responseType = options.responseType;
+        }
+
+        xhr.send(options.data);
+        return promise;
     };
 
     this.synCall = function (method, url) {
@@ -14558,7 +14617,7 @@ var Network = new function () {
 
 module.exports = Network;
 
-},{"../logger/logger":331,"promise-polyfill":306}],334:[function(require,module,exports){
+},{"../logger/logger":332,"promise-polyfill":307}],335:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -14587,10 +14646,10 @@ exports.default = new function NewtonService() {
 }();
 module.exports = exports['default'];
 
-},{"newton-adapter":304}],335:[function(require,module,exports){
+},{"newton-adapter":305}],336:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _fb = require('../fb/fb');
 
@@ -14603,6 +14662,8 @@ var _event2 = _interopRequireDefault(_event);
 var _stargatejs = require('stargatejs');
 
 var _tracking_utils = require('../tracking_utils/tracking_utils');
+
+var _banner = require('../banner/banner');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -14620,7 +14681,12 @@ var VHost = require('../vhost/vhost');
 var Stargate = require('stargatejs');
 
 var NewtonService = require('../newton/newton');
+
+var BannerIstance = void 0;
+var matchesPlayed = 0;
 var getType = _stargatejs.Utils.getType;
+
+var state = require('../state/state');
 
 var Session = new function () {
 
@@ -14630,8 +14696,7 @@ var Session = new function () {
     var menuIstance;
     var startCallback = function startCallback() {};
     var contentRanking;
-
-    var config = {};
+    var config = { sessions: [] };
 
     var toDoXHR = [];
 
@@ -14643,8 +14708,6 @@ var Session = new function () {
         initPromise = null;
         config = { sessions: [] };
     };
-
-    sessionInstance.reset();
 
     this.getConfig = function () {
         return config;
@@ -14661,6 +14724,91 @@ var Session = new function () {
             throw new Error(Constants.ERROR_SESSION_INIT_NOT_CALLED);
         }
     };
+
+    _event2.default.on('INIT_FINISHED', function () {
+        initialized = true;
+        if (Stargate.isHybrid()) {
+            NewtonService.trackEvent({
+                rank: (0, _tracking_utils.calculateContentRanking)(GameInfo, User, VHost, 'Play', 'GameLoad'),
+                name: 'GameLoad',
+                properties: {
+                    action: 'Yes',
+                    category: 'Play',
+                    game_title: GameInfo.getInfo().game.title,
+                    label: GameInfo.getContentId(),
+                    valuable: 'No'
+                }
+            });
+        }
+    });
+
+    _event2.default.on('GO_TO_HOME_CLICK', function () {
+        NewtonService.trackEvent({
+            rank: (0, _tracking_utils.calculateContentRanking)(GameInfo, User, VHost, 'Play', 'GameLoad'),
+            name: 'GoToHome',
+            properties: {
+                action: 'Yes',
+                category: 'Behavior',
+                game_title: GameInfo.getInfo().game.title,
+                label: GameInfo.getContentId(),
+                valuable: 'No'
+            }
+        });
+    });
+
+    _event2.default.on('INIT_ERROR', function (ev) {
+        NewtonService.trackEvent({
+            name: 'SdkInitError',
+            properties: {
+                action: 'No',
+                category: 'SDK_ERROR',
+                label: GameInfo.getContentId(),
+                valuable: 'No',
+                reason: ev.reason
+            }
+        });
+    });
+
+    _event2.default.on('NATIVE_APP_PROMO_CLICK', function () {
+        var mfp_url = [Location.getOrigin(), '/#!/mfp'].join('');
+
+        mfp_url = _stargatejs.Utils.queryfy(mfp_url, {
+            returnurl: '' + Location.getCurrentHref(),
+            title: ''
+        });
+
+        NewtonService.trackEvent({
+            name: 'NativeAppPromoClick',
+            properties: {
+                action: 'Yes',
+                category: 'Behavior',
+                valuable: 'Yes'
+            }
+        });
+        window.location.href = mfp_url;
+    });
+
+    _event2.default.on('NATIVE_APP_PROMO_CLOSE', function () {
+        NewtonService.trackEvent({
+            name: 'NativeAppPromoClose',
+            properties: {
+                action: 'Yes',
+                category: 'Behavior',
+                valuable: 'Yes'
+            }
+        });
+    });
+
+    _event2.default.on('NATIVE_APP_PROMO_LOAD', function () {
+        NewtonService.trackEvent({
+            name: 'NativeAppPromoLoad',
+            properties: {
+                action: 'Yes',
+                category: 'Behavior',
+                valuable: 'Yes'
+            }
+        });
+    });
 
     this.init = function (params) {
         _event2.default.trigger('INIT_START', { type: 'INIT_START' });
@@ -14684,7 +14832,7 @@ var Session = new function () {
 
         config = _stargatejs.Utils.extend(config, params);
 
-        if (typeof config.moreGamesButtonStyle !== 'undefined') {
+        if (getType(config.moreGamesButtonStyle) !== 'undefined') {
             Menu.setCustomStyle(config.moreGamesButtonStyle);
         }
 
@@ -14706,15 +14854,17 @@ var Session = new function () {
         initPromise = Stargate.initialize(SG_CONF).then(function () {
             return VHost.load();
         }).then(function () {
+            _event2.default.trigger('VHOST_LOADED');
             Menu.setSpriteImage(VHost.get('IMAGES_SPRITE_GAME'));
             contentRanking = VHost.get('CONTENT_RANKING');
             Menu.show();
 
-            loadDictionary();
-
             var UserTasks = User.fetch().then(User.getFavorites);
-            return Promise.all([UserTasks, GameInfo.fetch()]);
+            var promises = [UserTasks, GameInfo.fetch(), loadDictionary()];
+
+            return Promise.all(promises);
         }).then(function () {
+            _event2.default.trigger('USER_LOADED');
             _fb2.default.init({ fbAppId: GameInfo.getInfo().fbAppId });
 
             var env = Stargate.isHybrid() ? 'hybrid' : 'webapp';
@@ -14735,47 +14885,50 @@ var Session = new function () {
             });
 
             var queryString = Location.getQueryString();
-            if (typeof queryString.dest === 'undefined') {
+            if (getType(queryString.dest) === 'undefined') {
                 queryString.dest = 'N/A';
             }
 
             queryString.http_referrer = window.document.referrer;
-            NewtonService.login({
+
+            return NewtonService.login({
                 type: 'external',
                 userId: User.getUserId(),
                 userProperties: queryString,
                 logged: User.getUserType() !== 'guest'
+            }).catch(function (reason) {
+                return Promise.resolve();
             });
-
-            NewtonService.trackEvent({
-                name: 'SdkInitFinished',
-                properties: {
-                    action: 'No',
-                    category: 'SDK_OK',
-                    game_title: GameInfo.getInfo().game.title,
-                    label: GameInfo.getContentId(),
-                    valuable: 'No'
-                }
-            });
-            initialized = true;
-            return initialized;
         }).then(function () {
             Logger.log('GamifiveSDK', 'register sync function for gameover/leaderboard results');
             Stargate.addListener('connectionchange', sync);
+
+            if (state.userDataPromise) {
+                return state.userDataPromise();
+            }
+        }).then(function () {
             _event2.default.trigger('INIT_FINISHED', { type: 'INIT_FINISHED' });
+            if (!Stargate.isHybrid() && Location.isGameasy()) {
+                Logger.log('GamifiveSDK init build INGAME_BANNER');
+
+                BannerIstance = new _banner.Banner({
+                    containerSelector: '#native-modal',
+                    closeButtonSelector: 'button#close-button',
+                    installButtonSelector: 'button#install-hybrid-button',
+                    onInstallClick: function onInstallClick() {
+                        _event2.default.trigger('NATIVE_APP_PROMO_CLICK');
+                    },
+                    onCloseClick: function onCloseClick() {
+                        _event2.default.trigger('NATIVE_APP_PROMO_CLOSE');
+                    },
+                    onOpen: function onOpen() {
+                        _event2.default.trigger('NATIVE_APP_PROMO_LOAD');
+                    },
+                    onLoad: function onLoad() {}
+                });
+            }
         }).catch(function (reason) {
             _event2.default.trigger('INIT_ERROR', { type: 'INIT_ERROR', reason: reason });
-            NewtonService.trackEvent({
-                name: 'SdkInitError',
-                properties: {
-                    action: 'No',
-                    category: 'SDK_ERROR',
-                    game_title: GameInfo.getInfo().game.title,
-                    label: GameInfo.getContentId(),
-                    valuable: 'No',
-                    reason: reason
-                }
-            });
             Logger.error('GamifiveSDK init error: ', reason);
             initialized = false;
             throw reason;
@@ -14844,6 +14997,7 @@ var Session = new function () {
                 rank: (0, _tracking_utils.calculateContentRanking)(GameInfo, User, VHost, 'Play', 'GameStart'),
                 properties: {
                     category: "Play",
+                    game_title: GameInfo.getInfo().game.title,
                     label: GameInfo.getContentId(),
                     valuable: "Yes",
                     action: "Yes"
@@ -14851,6 +15005,7 @@ var Session = new function () {
             });
 
             try {
+                _event2.default.trigger('ON_START_SESSION_CALLED');
                 startCallback();
             } catch (e) {
                 Logger.error('GamifiveSDK', 'onStartSession ERROR', e);
@@ -14858,7 +15013,6 @@ var Session = new function () {
         }
 
         if (!config.lite) {
-
             User.canPlay().then(function (canPlay) {
                 if (canPlay) {
                     DOMUtils.delete();
@@ -14874,13 +15028,15 @@ var Session = new function () {
 
     this.start = function () {
         if (!initPromise) {
-            throw Constants.ERROR_SESSION_INIT_NOT_CALLED;
+            Logger.warn(Constants.ERROR_SESSION_INIT_NOT_CALLED);
+            return false;
         }
 
         if (config.sessions && config.sessions.length > 0 && typeof getLastSession().endTime === 'undefined') {
             config.sessions.shift();
             Logger.warn(Constants.ERROR_SESSION_ALREADY_STARTED);
         }
+        _event2.default.trigger('START_SESSION_CALLED');
 
         config.sessions.unshift({
             startTime: new Date(),
@@ -14901,7 +15057,7 @@ var Session = new function () {
             Logger.info('GamifiveSDK', 'Session', 'register onStart callback');
             startCallback = callback;
         } else {
-            throw new Error(Constants.ERROR_ONSTART_CALLBACK_TYPE + (typeof callback === 'undefined' ? 'undefined' : _typeof(callback)));
+            Logger.warn(Constants.ERROR_ONSTART_CALLBACK_TYPE + (typeof callback === 'undefined' ? 'undefined' : _typeof(callback)));
         }
     };
 
@@ -14916,20 +15072,20 @@ var Session = new function () {
     };
 
     this.end = function () {
-        var data = arguments.length <= 0 || arguments[0] === undefined ? { score: 0, level: 0 } : arguments[0];
+        var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { score: 0, level: 0 };
 
         Logger.info('GamifiveSDK', 'Session', 'end', data);
 
         if (!initPromise) {
-            throw Constants.ERROR_SESSION_INIT_NOT_CALLED;
+            Logger.warn(Constants.ERROR_SESSION_INIT_NOT_CALLED);
         }
 
         if (config.sessions.length < 1) {
-            throw Constants.ERROR_SESSION_NO_SESSION_STARTED;
+            Logger.warn(Constants.ERROR_SESSION_NO_SESSION_STARTED);
         }
 
         if (getType(getLastSession().endTime) !== 'undefined') {
-            throw Constants.ERROR_SESSION_ALREADY_ENDED;
+            Logger.warn(Constants.ERROR_SESSION_ALREADY_ENDED);
         }
 
         NewtonService.trackEvent({
@@ -14937,6 +15093,7 @@ var Session = new function () {
             name: 'GameEnd',
             properties: {
                 category: 'Play',
+                game_title: GameInfo.getInfo().game.title,
                 label: GameInfo.getContentId(),
                 valuable: 'No',
                 action: 'No'
@@ -14949,7 +15106,7 @@ var Session = new function () {
             if (getType(data.score) === 'number') {
                 getLastSession().score = data.score;
             } else {
-                throw new Error(Constants.ERROR_SCORE_TYPE + getType(data.score));
+                Logger.warn(Constants.ERROR_SCORE_TYPE + getType(data.score));
             }
         }
 
@@ -14957,12 +15114,17 @@ var Session = new function () {
             if (getType(data.level) === 'number') {
                 getLastSession().level = data.level;
             } else {
-                throw Constants.ERROR_LEVEL_TYPE + getType(data.level);
+                Logger.warn(Constants.ERROR_LEVEL_TYPE + getType(data.level));
             }
         }
 
         var lastSession = getLastSession();
+
         if (config.lite) {
+            if (BannerIstance && !(matchesPlayed % 3) && VHost.get('INSTALL_HYBRID_VISIBLE')) {
+                BannerIstance.open();
+            }
+
             var leaderboardParams = {
                 'start': lastSession.startTime.getTime(),
                 'duration': lastSession.endTime - lastSession.startTime,
@@ -14985,6 +15147,7 @@ var Session = new function () {
             } else {
                 enqueue('GET', leaderboardCallUrl);
             }
+            matchesPlayed++;
         } else {
             var gameoverParams = {
                 start: lastSession.startTime.getTime(),
@@ -15009,7 +15172,7 @@ var Session = new function () {
                         e.preventDefault();
                         sessionInstance.goToHome();
 
-                        toHomeBtn.removeEventListener(tohome);
+                        toHomeBtn.removeEventListener('click', tohome);
                     });
                 }
 
@@ -15061,8 +15224,13 @@ var Session = new function () {
 
     this.goToHome = function () {
         Logger.info('GamifiveSDK', 'Session', 'goToHome');
+        _event2.default.trigger('GO_TO_HOME_CLICK');
         if (Stargate.isHybrid()) {
-            Stargate.goToLocalIndex();
+            if (window.webview) {
+                window.webview.Close();
+            } else {
+                Stargate.goToLocalIndex();
+            }
         } else {
             window.location.href = Location.getOrigin();
         }
@@ -15156,17 +15324,22 @@ var Session = new function () {
 
 module.exports = Session;
 
-},{"../api/api":322,"../constants/constants":323,"../dom/dom-utils":324,"../event/event":325,"../fb/fb":326,"../game_info/game_info":328,"../location/location":329,"../logger/logger":331,"../menu/menu":332,"../network/network":333,"../newton/newton":334,"../tracking_utils/tracking_utils":338,"../user/user":339,"../vhost/vhost":341,"promise-polyfill":306,"stargatejs":309}],336:[function(require,module,exports){
+},{"../api/api":322,"../banner/banner":323,"../constants/constants":324,"../dom/dom-utils":325,"../event/event":326,"../fb/fb":327,"../game_info/game_info":329,"../location/location":330,"../logger/logger":332,"../menu/menu":333,"../network/network":334,"../newton/newton":335,"../state/state":337,"../tracking_utils/tracking_utils":339,"../user/user":340,"../vhost/vhost":342,"promise-polyfill":307,"stargatejs":309}],337:[function(require,module,exports){
 "use strict";
 
 module.exports = {
     init: {
         pending: false,
         finished: false
+    },
+    userDataPromise: null,
+    userDataTask: {
+        isFetching: false,
+        isSaving: false
     }
 };
 
-},{}],337:[function(require,module,exports){
+},{}],338:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -15190,7 +15363,7 @@ var store = exports.store = _localforage2.default.createInstance({
     storeName: _location2.default.getOrigin()
 });
 
-},{"../location/location":329,"localforage":300}],338:[function(require,module,exports){
+},{"../location/location":330,"localforage":300}],339:[function(require,module,exports){
 'use strict';
 
 var Location = require('../location/location');
@@ -15219,7 +15392,7 @@ module.exports.calculateContentRanking = function (GameInfo, User, VHost, eventC
     };
 };
 
-},{"../location/location":329}],339:[function(require,module,exports){
+},{"../location/location":330}],340:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -15266,17 +15439,46 @@ var _User = function User() {
     var userInstance = this;
     var userInfo = {
         gameInfo: {
-            CreatedAt: String(new Date(0)),
-            UpdatedAt: String(new Date(0)),
-            ProductId: "",
-            contentId: "",
-            domain: "",
-            Creator: "",
-            _id: "",
+            CreatedAt: new Date(0).toISOString(),
+            UpdatedAt: new Date(0).toISOString(),
+            ProductId: null,
+            contentId: null,
+            domain: null,
+            Creator: null,
+            _id: null,
             info: null
         }
     };
     var favorites = [];
+    _event2.default.on('INIT_START', function (action) {
+        state.init.pending = true;
+    });
+
+    _event2.default.on('INIT_FINISHED', function (action) {
+        state.init.pending = false;
+        state.init.finished = true;
+    });
+
+    _event2.default.on('REGISTER_USER_DATA_PROMISE', function (userDataPromise) {
+        state.userDataPromise = userDataPromise;
+    });
+
+    _event2.default.on('USER_DATA_FETCH_END', function () {
+        state.userDataTask.isFetching = false;
+        return onUserDataCallback(userInfo.gameInfo.info);
+    });
+
+    _event2.default.on('USER_DATA_FETCH_START', function () {
+        state.userDataTask.isFetching = true;
+    });
+
+    _event2.default.on('USER_DATA_SAVE_START', function () {
+        state.userDataTask.isSaving = true;
+    });
+
+    _event2.default.on('USER_DATA_SAVE_END', function () {
+        state.userDataTask.isSaving = false;
+    });
 
     if (window.GamifiveInfo && window.GamifiveInfo.user) {
         Logger.info("GamifiveSDK:Load userInfo from in page data");
@@ -15292,15 +15494,6 @@ var _User = function User() {
     }
 
     var onUserDataCallback = function onUserDataCallback() {};
-
-    _event2.default.on('INIT_START', function (action) {
-        state.init.pending = true;
-    });
-
-    _event2.default.on('INIT_FINISHED', function (action) {
-        state.init.pending = false;
-        state.init.finished = true;
-    });
 
     this.getInfo = function () {
         return userInfo || {};
@@ -15409,7 +15602,7 @@ var _User = function User() {
     };
 
     this.saveData = function (info) {
-        var callback = arguments.length <= 1 || arguments[1] === undefined ? function () {} : arguments[1];
+        var callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {};
 
         if (getType(info) === 'string') {
             Logger.warn("GamifiveSDK:The data to be saved should be an object! got a:", getType(info));
@@ -15423,70 +15616,79 @@ var _User = function User() {
             }
         }
 
-        userInfo.gameInfo = _extends({}, userInfo.gameInfo, { info: info, UpdatedAt: String(new Date()) });
+        userInfo.gameInfo = _extends({}, userInfo.gameInfo, { info: info, UpdatedAt: new Date().toISOString() });
 
         if (state.init.pending && !state.init.finished) {
             _event2.default.on('INIT_FINISHED', function () {
-                Logger.info('GamifiveSDK', 'User', 'saveData', userInfo.gameInfo.info);
-                setUserDataOnLocal(userInfo.gameInfo);
-                setUserDataOnServer(userInfo.gameInfo);
+                userInstance.setUserData();
             });
         } else if (!state.init.pending && state.init.finished) {
-
-            setUserDataOnLocal(userInfo.gameInfo);
-            setUserDataOnServer(userInfo.gameInfo);
+            if (!state.userDataTask.isFetching && !state.userDataTask.isSaving) {
+                userInstance.setUserData();
+            } else {
+                Logger.warn("GamifiveSDK: You can't save on server while a load or save operation is occurring");
+            }
         } else {
             Logger.warn("GamifiveSDK: you can't call saveUserData before init. You should 1) GamifiveSDK.init 2) GamifiveSDK.loadUserData 3) then you can save");
         }
     };
 
+    this.getUserData = function () {
+        _event2.default.trigger('USER_DATA_FETCH_START');
+        return Promise.all([getUserDataFromLocal(), getUserDataFromServer()]).then(syncUserData).then(function (newGameInfo) {
+            if (newGameInfo) {
+                userInfo.gameInfo = newGameInfo;
+            }
+            _event2.default.trigger('USER_DATA_FETCH_END');
+            _event2.default.trigger('REGISTER_USER_DATA_PROMISE', null);
+            return userInfo.gameInfo.info;
+        });
+    };
+
+    this.setUserData = function () {
+        Logger.info('GamifiveSDK', 'User', 'saveData', userInfo.gameInfo.info);
+        _event2.default.trigger('USER_DATA_SAVE_START');
+        return Promise.all([setUserDataOnLocal(userInfo.gameInfo), setUserDataOnServer(userInfo.gameInfo)]).then(function () {
+            _event2.default.trigger('USER_DATA_SAVE_END');
+        });
+    };
+
     this.loadData = function (callback) {
         if (!callback) {
             callback = function callback() {};
+
             Logger.warn("GamifiveSDK: loadUserData() is deprecated from v2, please call loadUserData(callback)");
+            if (getType(userInfo.gameInfo.info) === 'object' && Object.keys(userInfo.gameInfo.info).length === 0) {
+                return undefined;
+            }
+            return userInfo.gameInfo.info;
         }
         onUserDataCallback = callback;
 
+        Logger.info('GamifiveSDK', 'User', 'loadData');
         if (state.init.pending && !state.init.finished) {
-            _event2.default.on('INIT_FINISHED', function (action) {
-                Logger.info('GamifiveSDK', 'User', 'loadData');
-                Promise.all([getUserDataFromLocal(), getUserDataFromServer()]).then(syncUserData).then(function (newGameInfo) {
-                    if (newGameInfo) {
-                        userInfo.gameInfo = newGameInfo;
-                    }
-                    onUserDataCallback(userInfo.gameInfo.info);
-                });
-            });
+            if (!state.userDataTask.isFetching && !state.userDataTask.isSaving) {
+                _event2.default.trigger('REGISTER_USER_DATA_PROMISE', userInstance.getUserData);
+            }
         } else if (!state.init.pending && state.init.finished) {
-            Logger.info('GamifiveSDK', 'User', 'loadData');
-            Promise.all([getUserDataFromLocal(), getUserDataFromServer()]).then(syncUserData).then(function (newGameInfo) {
-                if (newGameInfo) {
-                    userInfo.gameInfo = newGameInfo;
-                }
-                onUserDataCallback(userInfo.gameInfo.info);
-            });
-        } else {
-            Logger.warn("GamifiveSDK", "you can't call loadUserData before init");
+            if (!state.userDataTask.isFetching && !state.userDataTask.isSaving) {
+                return userInstance.getUserData();
+            }
         }
-
-        if (getType(userInfo.gameInfo.info) === 'object' && Object.keys(userInfo.gameInfo.info).length === 0) {
-            return undefined;
-        }
-
-        return userInfo.gameInfo.info;
     };
 
     function syncUserData(results) {
         Logger.info("GamifiveSDK: sync userData");
 
-        var _results = _slicedToArray(results, 2);
-
-        var localGameInfo = _results[0];
-        var serverGameInfo = _results[1];
+        var _results = _slicedToArray(results, 2),
+            localGameInfo = _results[0],
+            serverGameInfo = _results[1];
 
         if (localGameInfo && serverGameInfo) {
             var localUpdatedAt = new Date(localGameInfo.UpdatedAt);
             var serverUpdatedAt = new Date(serverGameInfo.UpdatedAt);
+
+            localGameInfo._id = serverGameInfo._id;
 
             if (localUpdatedAt > serverUpdatedAt) {
                 Logger.info("GamifiveSDK: sync userData", "local won");
@@ -15494,6 +15696,9 @@ var _User = function User() {
             } else if (localUpdatedAt < serverUpdatedAt) {
                 Logger.info("GamifiveSDK: sync userData", "server won");
                 return serverGameInfo;
+            } else if (localUpdatedAt === serverUpdatedAt) {
+                Logger.info("GamifiveSDK: sync userData", "same timestamp!");
+                return localGameInfo;
             }
         } else if (localGameInfo && !serverGameInfo) {
             Logger.info("GamifiveSDK: sync userData", "local won", "no serverGameInfo");
@@ -15507,7 +15712,7 @@ var _User = function User() {
     this.clearData = function (callback) {
         Logger.info('GamifiveSDK', 'clearUserData');
 
-        userInfo.gameInfo = _extends({}, userInfo.gameInfo, { info: null, UpdatedAt: String(new Date()) });
+        userInfo.gameInfo = _extends({}, userInfo.gameInfo, { info: null, UpdatedAt: new Date().toISOString() });
         return Promise.all([setUserDataOnServer(userInfo.gameInfo), setUserDataOnLocal(userInfo.gameInfo)]).then(callback);
     };
 
@@ -15546,7 +15751,7 @@ var _User = function User() {
     }
 
     function getUserDataFromServer() {
-        if (!NewtonService.isUserLogged()) {
+        if (userInstance.getUserType() === 'guest') {
             Logger.log('GamifiveSDK', 'userData cannot not get on server: user not logged');
             return Promise.resolve(userInfo.gameInfo);
         }
@@ -15558,9 +15763,8 @@ var _User = function User() {
 
         var contentId = GameInfo.getContentId();
         var userId = userInstance.getUserId();
-        var userDataId = VarCheck.get(GameInfo.getInfo(), ['user', 'gameInfo', '_id']) || '';
-        var params = { userId: userId, contentId: contentId, userDataId: userDataId };
-        var urlToCall = loadUserDataUrl.replace(':QUERY', JSON.stringify({ contentId: params.contentId })).replace(':ID', '').replace(':ACCESS_TOKEN', '').replace(':EXTERNAL_TOKEN', params.userId).replace(':COLLECTION', 'gameInfo');
+        var userDataId = userInfo.gameInfo._id || '';
+        var urlToCall = loadUserDataUrl.replace(':QUERY', JSON.stringify({ contentId: contentId })).replace(':ID', '').replace(':ACCESS_TOKEN', userDataId).replace(':EXTERNAL_TOKEN', userId).replace(':COLLECTION', 'gameInfo');
 
         urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random() * 1000);
         Logger.log('GamifiveSDK', 'User', 'getUserDataFromServer', 'url to call', urlToCall);
@@ -15569,7 +15773,7 @@ var _User = function User() {
     }
 
     function setUserDataOnServer(data) {
-        if (!NewtonService.isUserLogged()) {
+        if (userInstance.getUserType() === 'guest') {
             Logger.log('GamifiveSDK', 'userData cannot not be set on server: user not logged');
             return Promise.resolve(userInfo.gameInfo);
         }
@@ -15580,11 +15784,10 @@ var _User = function User() {
         }
         var contentId = GameInfo.getContentId();
         var userId = userInstance.getUserId();
-        var userDataId = VarCheck.get(GameInfo.getInfo(), ['user', 'gameInfo', '_id']) || '';
-        var params = { userId: userId, contentId: contentId, userDataId: userDataId };
+        var userDataId = userInfo.gameInfo._id || '';
 
         var saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
-        var urlToCall = saveUserDataUrl.replace(':QUERY', JSON.stringify({ contentId: params.contentId })).replace(':ID', params.userDataId).replace(':ACCESS_TOKEN', '').replace(':EXTERNAL_TOKEN', params.userId).replace(':COLLECTION', 'gameInfo');
+        var APPLICATION_OBJECT_SET_API = saveUserDataUrl.split("?")[0];
         var infoSerialized = void 0;
         if (getType(data.info) === 'object' || getType(data.info) === "null") {
             infoSerialized = JSON.stringify(data.info);
@@ -15592,27 +15795,42 @@ var _User = function User() {
             Logger.warn("GamifiveSDK: bad info type: ", getType(data.info));
         }
 
-        urlToCall = _stargatejs.Utils.queryfy(urlToCall, { info: infoSerialized, domain: Location.getOrigin(), contentId: params.contentId });
+        var queryObject = _stargatejs.Utils.dequeryfy(saveUserDataUrl);
 
-        Logger.log('GamifiveSDK', 'try to set on server', urlToCall);
-        return Network.xhr('GET', urlToCall).then(function (resp) {
+        var body = {
+            access_token: '',
+            external_token: userId,
+            id: userDataId,
+            info: infoSerialized,
+            domain: Location.getOrigin(),
+            contentId: contentId,
+            collection: 'gameInfo'
+        };
+        var newBody = _extends({}, queryObject, body);
+
+        var headers = { 'Content-type': 'application/x-www-form-urlencoded' };
+
+        var urlEncoded = _stargatejs.Utils.queryfy("", newBody).replace("?", "");
+        Logger.log('GamifiveSDK', 'try to set on server', APPLICATION_OBJECT_SET_API, newBody);
+
+        return Network.xhr('POST', APPLICATION_OBJECT_SET_API, { data: urlEncoded, headers: headers }).then(function (resp) {
             if (resp.success) {
                 var newtonResponse = JSON.parse(resp.response);
                 if (newtonResponse.response.data) {
                     Logger.log('GamifiveSDK', 'userData set with success on server');
                 } else {
-                    Logger.log('GamifiveSDK', 'userData FAIL to be set on server', newtonResponse.response.message);
+                    Logger.warn('GamifiveSDK', 'userData FAIL to be set on server', newtonResponse.response.message);
                 }
             } else {
-                Logger.log('GamifiveSDK', 'userData FAIL to be set on server', resp.response);
+                Logger.warn('GamifiveSDK', 'userData FAIL to be set on server', resp.response);
             }
             return data;
         });
     }
 
     function setUserDataOnLocal() {
-        if (!NewtonService.isUserLogged()) {
-            Logger.log('GamifiveSDK', 'userData cannot not be set on local: user not logged');
+        if (userInstance.getUserType() === 'guest') {
+            Logger.warn('GamifiveSDK: User not logged cannot save userData');
             return Promise.resolve(userInfo.gameInfo);
         }
         var key = userInstance.getUserId() + '-' + GameInfo.getContentId();
@@ -15620,8 +15838,8 @@ var _User = function User() {
     }
 
     function getUserDataFromLocal() {
-        if (!NewtonService.isUserLogged()) {
-            Logger.log('GamifiveSDK', 'userData cannot not be get on local: user not logged');
+        if (userInstance.getUserType() === 'guest') {
+            Logger.warn('GamifiveSDK: User not logged cannot get userData');
             return Promise.resolve(userInfo.gameInfo);
         }
         var key = userInstance.getUserId() + '-' + GameInfo.getContentId();
@@ -15676,9 +15894,20 @@ var _User = function User() {
 
     if ("debug" === "debug") {
         this.fetch = function (callback) {
+            userInfo = _extends({}, userInfo, UserCheckFakeResponse);
+            var userType = localStorage.getItem(_constants2.default.GFSDK_DEBUG_KEY_PREFIX + 'user_type');
+            if (!userType || userType === 'guest') {
+                userInfo.user = null;
+                userInfo.subscribed = false;
+            } else if (userType === 'free') {
+                userInfo.user = localStorage.getItem(_constants2.default.GFSDK_DEBUG_KEY_PREFIX + 'user_id') || 'gfsdk_fake_user';
+                userInfo.subscribed = false;
+            } else if (userType == 'premium') {
+                userInfo.user = localStorage.getItem(_constants2.default.GFSDK_DEBUG_KEY_PREFIX + 'user_id') || 'gfsdk_fake_user';
+                userInfo.subscribed = true;
+            }
+
             callback ? callback() : null;
-            userInfo = _stargatejs.Utils.extend(userInfo, UserCheckFakeResponse);
-            userInfo.user = Date.now() + "_gfsdk_fakeuser";
             return Promise.resolve(userInfo);
         };
 
@@ -15765,7 +15994,7 @@ var _User = function User() {
 
 module.exports = new _User();
 
-},{"../../../test/mocks/userCheck":345,"../api/api":322,"../constants/constants":323,"../dom/dom-utils":324,"../event/event":325,"../game_info/game_info":328,"../location/location":329,"../logger/logger":331,"../menu/menu":332,"../network/network":333,"../newton/newton":334,"../state/state":336,"../storage/storage":337,"../user/user":339,"../varcheck/varcheck":340,"../vhost/vhost":341,"http-francis":298,"stargatejs":309}],340:[function(require,module,exports){
+},{"../../../test/mocks/userCheck":346,"../api/api":322,"../constants/constants":324,"../dom/dom-utils":325,"../event/event":326,"../game_info/game_info":329,"../location/location":330,"../logger/logger":332,"../menu/menu":333,"../network/network":334,"../newton/newton":335,"../state/state":337,"../storage/storage":338,"../user/user":340,"../varcheck/varcheck":341,"../vhost/vhost":342,"http-francis":298,"stargatejs":309}],341:[function(require,module,exports){
 'use strict';
 
 var VarCheck = new function () {
@@ -15790,10 +16019,10 @@ var VarCheck = new function () {
 
 module.exports = VarCheck;
 
-},{}],341:[function(require,module,exports){
+},{}],342:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var API = require('../api/api');
 var Logger = require('../logger/logger');
@@ -15943,7 +16172,7 @@ var VHost = new function () {
 
 module.exports = VHost;
 
-},{"../../../gen/vhost/vhost-keys.js":1,"../api/api":322,"../constants/constants":323,"../game_info/game_info":328,"../logger/logger":331,"../menu/menu":332,"../network/network":333,"../user/user":339,"../vhost/vhost":341,"promise-polyfill":306,"stargatejs":309}],342:[function(require,module,exports){
+},{"../../../gen/vhost/vhost-keys.js":1,"../api/api":322,"../constants/constants":324,"../game_info/game_info":329,"../logger/logger":332,"../menu/menu":333,"../network/network":334,"../user/user":340,"../vhost/vhost":342,"promise-polyfill":307,"stargatejs":309}],343:[function(require,module,exports){
 'use strict';
 
 var addRetroInterface = function addRetroInterface(build) {
@@ -16010,12 +16239,12 @@ var addRetroInterface = function addRetroInterface(build) {
 
 module.exports = addRetroInterface;
 
-},{"../components/vhost/vhost":341}],343:[function(require,module,exports){
+},{"../components/vhost/vhost":342}],344:[function(require,module,exports){
 "use strict";
 
-var pkgInfo = { "version": "2.0.3", "build": "v2.0.3-25-gb718a68" };module.exports = pkgInfo;
+var pkgInfo = { "version": "2.0.4", "build": "v2.0.4-29-gdc23ebf" };module.exports = pkgInfo;
 
-},{}],344:[function(require,module,exports){
+},{}],345:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -16092,24 +16321,12 @@ module.exports = {
          avatar: {
             src: "http://s2.motime.com/img/wl/webstore_html5game/images/avatar/big/avatar_09.png?v=20160725092731",
             name: "avatar_09.png"
-         },
-         gameInfo: {
-            _id: "5795d57b7ab57f7e2aa8089f",
-            contentId: "c2701133414427fee732e051abdfe3e8",
-            info: {
-               "a": "1"
-            },
-            domain: "http://www2.gameasy.com/ww-it/",
-            ProductId: "gameasy",
-            CreatedAt: "2016-07-25T09:01:47.934Z",
-            UpdatedAt: "2016-07-25T09:01:47.934Z",
-            Creator: "5755989222b182b9262c0ebe"
          }
       }
    }
 };
 
-},{}],345:[function(require,module,exports){
+},{}],346:[function(require,module,exports){
 "use strict";
 
 module.exports = {

@@ -9,31 +9,47 @@ var Promise = require('promise-polyfill');
 var Network = new function(){
 
     var networkInstance = this;
-    
+
     /**
     * performs an XMLHttpRequest
     * @function xhr
     * @memberof Network
+    * @param {String} method - POST,GET,PUT,DELETE,PATCH
+    * @param {String} url - the url to call
+    * @param {Object} [options={data:null,headers:null,responseType:null}] - data to send headers to set responseType if any
+    * @returns {Promise<HTTPResponse>}
     */
-    this.xhr = function(method, url, callback){
-        Logger.log('GamifiveSDK', 'Network', method, url);
+    this.xhr = function(method, url, options={data:null, headers:null, responseType:null}){
+        var xhr;
+        if (window.XMLHttpRequest){
+            xhr = new XMLHttpRequest();
+        } else {
+            xhr = new ActiveXObject("Microsoft.XMLHTTP");            
+        }
         
-        var xhr = new XMLHttpRequest();
-        return new Promise(function(resolve, reject){
+        let promise = new Promise(function(resolve, reject){
             xhr.onreadystatechange = function(){
                 if ( xhr.readyState === 4 ) {
                     var resp = xhr;
                     resp.success = (xhr.status >= 200 && xhr.status <= 399);
-                    if (callback) {
-                        callback(resp);
-                    }
                     resolve(resp);
                 }
             };
-
-            xhr.open(method, url);
-            xhr.send();
         });
+        xhr.open(method, url);
+        // Set headers if any
+        if(options.headers){
+            for(var key in options.headers){
+                xhr.setRequestHeader(key, options.headers[key]);
+            }
+        }
+        // Set responseType
+        if(options.responseType){
+            xhr.responseType = options.responseType
+        }
+
+        xhr.send(options.data);
+        return promise;
     }
 
     this.synCall = function(method, url){

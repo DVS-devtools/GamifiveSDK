@@ -9,5 +9,6 @@ module.exports = function(){
 
     this.login = function(){
         console.log([].slice.call(arguments));
+        return Promise.resolve();
     }
 }

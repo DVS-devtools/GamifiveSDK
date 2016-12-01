@@ -147,4 +147,34 @@ describe("Location test", function(){
         expect(Location.getOrigin()).toEqual("http://www.gameasy.com/ww-it");
         Location.unsetMock("Stargate");
     });
+
+    it('Location.isGameasy and isGamifive', function(){
+        window.fakewindow = {
+            location:{
+                origin: null, 
+                hostname:"www.gameasy.com", 
+                port:"", 
+                protocol:"http:", 
+                href:"http://www.gameasy.com/asd"
+            }
+        }
+        expect(Location.isGameasy()).toEqual(true);
+        expect(Location.isGamifive()).toEqual(false);
+    });
+
+    it('Location.isGamifive', function(){
+        window.fakewindow = {
+            location:{
+                origin: null,
+                host:"www.giochissimo.it", 
+                hostname:"www.giochissimo.it", 
+                port:"", 
+                protocol:"http:", 
+                href:"http://www.giochissimo.com/asd"
+            }
+        }
+        expect(Location.isGameasy()).toEqual(false);
+        expect(Location.isGamifive()).toEqual(true);
+        
+    });
 });

@@ -31,12 +31,12 @@ var User = function(){
         gameInfo:{
             CreatedAt: new Date(0).toISOString(),
             UpdatedAt: new Date(0).toISOString(),
-            ProductId: "",
-            contentId: "",
-            domain: "",
-            Creator: "",
-            _id: "",
-            info:null
+            ProductId: null,
+            contentId: null,
+            domain: null,
+            Creator: null,
+            _id: null,
+            info: null
         }
     };
     var favorites = [];
@@ -53,8 +53,21 @@ var User = function(){
         state.userDataPromise = userDataPromise;
     });
 
-    Event.on('USER_DATA_FETCHED', function(){
+    Event.on('USER_DATA_FETCH_END', function(){
+        state.userDataTask.isFetching = false;
         return onUserDataCallback(userInfo.gameInfo.info);
+    });
+
+    Event.on('USER_DATA_FETCH_START', function(){
+        state.userDataTask.isFetching = true;
+    });
+
+    Event.on('USER_DATA_SAVE_START', function(){
+        state.userDataTask.isSaving = true;
+    });
+
+    Event.on('USER_DATA_SAVE_END', function(){
+        state.userDataTask.isSaving = false;
     });
 
     // retro compatibility
@@ -70,14 +83,7 @@ var User = function(){
             }
         }
     }
-    /**
-     * This is useful because some developers could call sdk in this way
-     * WRONG
-     * GamifiveSDK.init(); var user.data = GamifiveSDK.loadUserData();
-     * 
-     * RIGHT
-     * GamifiveSDK.init(); GamifiveSDK.loadUserData(saveSomewhereFunction)
-     */
+
     var onUserDataCallback = function(){};
 
     this.getInfo = function(){
@@ -156,7 +162,7 @@ var User = function(){
                     .replace(':ID', GameInfo.getContentId());
             
             urlToCall = Utils.queryfy(urlToCall, {format:'jsonp'});
-            
+
             var callDefer = new JSONPRequest(urlToCall, 5000).prom;
             return callDefer
                 .then(function(result){
@@ -243,21 +249,21 @@ var User = function(){
 
         if(state.init.pending && !state.init.finished){
             Event.on('INIT_FINISHED', function(){
-                Logger.info('GamifiveSDK', 'User', 'saveData', userInfo.gameInfo.info);
-                setUserDataOnLocal(userInfo.gameInfo);
-                setUserDataOnServer(userInfo.gameInfo);
+                userInstance.setUserData();
             });
         } else if(!state.init.pending && state.init.finished) {
-
-            setUserDataOnLocal(userInfo.gameInfo);
-            setUserDataOnServer(userInfo.gameInfo);
-
+            if(!state.userDataTask.isFetching && !state.userDataTask.isSaving){
+                userInstance.setUserData();
+            } else {
+                Logger.warn("GamifiveSDK: You can't save on server while a load or save operation is occurring");
+            }
         } else {
             Logger.warn("GamifiveSDK: you can't call saveUserData before init. You should 1) GamifiveSDK.init 2) GamifiveSDK.loadUserData 3) then you can save");
         }
     };
 
     this.getUserData = function(){
+        Event.trigger('USER_DATA_FETCH_START');
         return Promise.all([
             getUserDataFromLocal(), 
             getUserDataFromServer()
@@ -266,10 +272,21 @@ var User = function(){
                     if(newGameInfo){
                         userInfo.gameInfo = newGameInfo;
                     }
-                    Event.trigger('USER_DATA_FETCHED');
+                    Event.trigger('USER_DATA_FETCH_END');
                     Event.trigger('REGISTER_USER_DATA_PROMISE', null);
                     return userInfo.gameInfo.info;
                 });
+    }
+
+    this.setUserData = function(){
+        Logger.info('GamifiveSDK', 'User', 'saveData', userInfo.gameInfo.info);
+        Event.trigger('USER_DATA_SAVE_START');
+        return Promise.all([
+            setUserDataOnLocal(userInfo.gameInfo),
+            setUserDataOnServer(userInfo.gameInfo)
+        ]).then(function(){
+            Event.trigger('USER_DATA_SAVE_END');
+        });
     }
 
     /**
@@ -293,9 +310,13 @@ var User = function(){
         
         Logger.info('GamifiveSDK', 'User', 'loadData');
         if(state.init.pending && !state.init.finished){
-            Event.trigger('REGISTER_USER_DATA_PROMISE', userInstance.getUserData);
-        } else if(!state.init.pending && state.init.finished){            
-            return userInstance.getUserData();
+            if(!state.userDataTask.isFetching && !state.userDataTask.isSaving){
+                Event.trigger('REGISTER_USER_DATA_PROMISE', userInstance.getUserData);
+            }
+        } else if(!state.init.pending && state.init.finished){
+            if(!state.userDataTask.isFetching && !state.userDataTask.isSaving){
+                return userInstance.getUserData();
+            }
         }
     };
     
@@ -311,13 +332,19 @@ var User = function(){
         if(localGameInfo && serverGameInfo){
             let localUpdatedAt = new Date(localGameInfo.UpdatedAt);
             let serverUpdatedAt = new Date(serverGameInfo.UpdatedAt);
-            
+            /**
+             * This is the unique _id that in newton stands for userid-gameid object
+             * and should always be added to the request otherwise php try to set on newton with a POST and not
+             * with a PATCH resulting in a newton error 'Duplicate key error'
+             */
+            localGameInfo._id = serverGameInfo._id;
+
             // local is more relevant
             if(localUpdatedAt > serverUpdatedAt){
                 Logger.info("GamifiveSDK: sync userData", "local won");
                 return localGameInfo;    
             } else if(localUpdatedAt < serverUpdatedAt){
-            // server is more relevant
+                // server is more relevant
                 Logger.info("GamifiveSDK: sync userData", "server won");
                 return serverGameInfo;
             } else if(localUpdatedAt === serverUpdatedAt){
@@ -351,7 +378,7 @@ var User = function(){
     };
 
     /**
-     * Get the user type: guest free or premium
+     * Get the user type: guest(unlogged) free(facebook) or premium(subscribed)
      * @returns {String}
      */
     this.getUserType = function(){
@@ -396,7 +423,7 @@ var User = function(){
      * @returns {Promise<Object>}
      */
     function getUserDataFromServer(){
-        if(!NewtonService.isUserLogged()){
+        if(userInstance.getUserType() === 'guest'){
             Logger.log('GamifiveSDK', 'userData cannot not get on server: user not logged');
             return Promise.resolve(userInfo.gameInfo);
         }
@@ -406,13 +433,12 @@ var User = function(){
         
         var contentId  = GameInfo.getContentId();
         var userId     = userInstance.getUserId();
-        var userDataId = VarCheck.get(GameInfo.getInfo(), ['user', 'gameInfo', '_id']) || '';
-        var params = { userId: userId, contentId: contentId, userDataId: userDataId }
+        var userDataId = userInfo.gameInfo._id || '';
         var urlToCall = loadUserDataUrl
-                            .replace(':QUERY', JSON.stringify({contentId: params.contentId}))
-                            .replace(':ID', '')
+                            .replace(':QUERY', JSON.stringify({contentId: contentId}))
+                            .replace(':ID', userDataId)
                             .replace(':ACCESS_TOKEN', '')
-                            .replace(':EXTERNAL_TOKEN', params.userId)
+                            .replace(':EXTERNAL_TOKEN', userId)
                             .replace(':COLLECTION', 'gameInfo');
 
         // unique parameter in qs to avoid cache 
@@ -430,7 +456,7 @@ var User = function(){
      * @returns {Promise<Object>} - the gameInfo object with data and metadata
      */
     function setUserDataOnServer(data){
-        if(!NewtonService.isUserLogged()){
+        if(userInstance.getUserType() === 'guest'){
             Logger.log('GamifiveSDK', 'userData cannot not be set on server: user not logged');
             return Promise.resolve(userInfo.gameInfo);
         }
@@ -439,52 +465,69 @@ var User = function(){
             Logger.log('GamifiveSDK', 'userData cannot not be set on server: api endpoint disabled');
             return Promise.resolve(userInfo.gameInfo);
         }
-        var contentId  = GameInfo.getContentId();
-        var userId     = userInstance.getUserId();
-        var userDataId = VarCheck.get(GameInfo.getInfo(), ['user', 'gameInfo', '_id']) || '';
-        var params = { userId: userId, contentId: contentId, userDataId: userDataId };
+        let contentId  = GameInfo.getContentId();
+        let userId     = userInstance.getUserId();
+        let userDataId = userInfo.gameInfo._id || '';
 
-        var saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
-        var urlToCall = saveUserDataUrl
-                            .replace(':QUERY', JSON.stringify({contentId: params.contentId}))
-                            .replace(':ID', params.userDataId)
-                            .replace(':ACCESS_TOKEN', '')
-                            .replace(':EXTERNAL_TOKEN', params.userId)
-                            .replace(':COLLECTION', 'gameInfo');
+        let saveUserDataUrl = VHost.get('MOA_API_APPLICATION_OBJECTS_SET');
+        let APPLICATION_OBJECT_SET_API = saveUserDataUrl.split("?")[0];
         let infoSerialized;
         if(getType(data.info) === 'object' || getType(data.info) === "null"){
             infoSerialized = JSON.stringify(data.info);
         } else {
             Logger.warn("GamifiveSDK: bad info type: ", getType(data.info));
         }
-
-        urlToCall = Utils.queryfy(urlToCall, { info: infoSerialized, domain: Location.getOrigin(), contentId: params.contentId });
-
-        /**
-        * ATTENZIONE 
-        * è una get ma in realtà POSTa i dati dello user sul server        
+        
+        let queryObject = Utils.dequeryfy(saveUserDataUrl);
+        
+        /* 
+        http://resources.buongiorno.com/lapis/apps/application-object.set?
+            external_token=:EXTERNAL_TOKEN
+            &access_token=:ACCESS_TOKEN
+            &collection=:COLLECTION
+            &id=:ID
+            &white_label=ww_appsworld
+            &fw=gamifive
+            &vh=appsworld.gamifive-app.com 
         */
-        Logger.log('GamifiveSDK', 'try to set on server', urlToCall);
-        return Network.xhr('GET', urlToCall).then(function(resp){            
+        
+        let body = {
+            access_token: '',
+            external_token: userId,
+            id: userDataId,
+            info: infoSerialized,
+            domain: Location.getOrigin(), 
+            contentId: contentId,
+            collection: 'gameInfo'
+        }
+        let newBody = {...queryObject, ...body};
+        
+        let headers = {'Content-type': 'application/x-www-form-urlencoded'};
+
+        let urlEncoded = Utils.queryfy("", newBody).replace("?","");
+        Logger.log('GamifiveSDK', 'try to set on server', APPLICATION_OBJECT_SET_API, newBody);
+        
+        return Network.xhr('POST', APPLICATION_OBJECT_SET_API, {data:urlEncoded, headers: headers})
+        .then(function(resp){
             if(resp.success){
                 var newtonResponse = JSON.parse(resp.response);
                 if(newtonResponse.response.data){
                     Logger.log('GamifiveSDK', 'userData set with success on server');
                 } else {
                     // NEWTON error
-                    Logger.log('GamifiveSDK', 'userData FAIL to be set on server', newtonResponse.response.message);
+                    Logger.warn('GamifiveSDK', 'userData FAIL to be set on server', newtonResponse.response.message);
                 }
             } else {
                 // PHP error
-                Logger.log('GamifiveSDK', 'userData FAIL to be set on server', resp.response);
+                Logger.warn('GamifiveSDK', 'userData FAIL to be set on server', resp.response);
             }
             return data;
         });
     }
 
     function setUserDataOnLocal(){
-        if(!NewtonService.isUserLogged()){
-            Logger.log('GamifiveSDK', 'userData cannot not be set on local: user not logged');
+        if(userInstance.getUserType() === 'guest'){
+            Logger.warn('GamifiveSDK: User not logged cannot save userData');
             return Promise.resolve(userInfo.gameInfo);
         }
         let key = `${userInstance.getUserId()}-${GameInfo.getContentId()}`;
@@ -492,8 +535,8 @@ var User = function(){
     }
 
     function getUserDataFromLocal(){
-        if(!NewtonService.isUserLogged()){
-            Logger.log('GamifiveSDK', 'userData cannot not be get on local: user not logged');
+        if(userInstance.getUserType() === 'guest'){
+            Logger.warn('GamifiveSDK: User not logged cannot get userData');
             return Promise.resolve(userInfo.gameInfo);
         }
         let key = `${userInstance.getUserId()}-${GameInfo.getContentId()}`;
@@ -550,9 +593,20 @@ var User = function(){
 
     if(process.env.NODE_ENV === "debug"){
         this.fetch = function(callback){
-            callback ? callback() : null;
-            userInfo = Utils.extend(userInfo, UserCheckFakeResponse);
-            userInfo.user = Date.now() + "_gfsdk_fakeuser";
+            userInfo = {...userInfo, ...UserCheckFakeResponse};
+            let userType = localStorage.getItem(Constants.GFSDK_DEBUG_KEY_PREFIX + 'user_type');
+            if(!userType || userType === 'guest'){
+                userInfo.user = null;
+                userInfo.subscribed = false;
+            } else if(userType === 'free') {
+                userInfo.user = localStorage.getItem(Constants.GFSDK_DEBUG_KEY_PREFIX + 'user_id') || 'gfsdk_fake_user';
+                userInfo.subscribed = false;
+            } else if(userType == 'premium'){
+                userInfo.user = localStorage.getItem(Constants.GFSDK_DEBUG_KEY_PREFIX + 'user_id') || 'gfsdk_fake_user';
+                userInfo.subscribed = true;
+            }
+
+            callback ? callback() : null; 
             return Promise.resolve(userInfo);
         }
 

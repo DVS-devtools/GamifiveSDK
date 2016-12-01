@@ -72,18 +72,6 @@ module.exports ={
          avatar:{
             src:"http://s2.motime.com/img/wl/webstore_html5game/images/avatar/big/avatar_09.png?v=20160725092731",
             name:"avatar_09.png"
-         },
-         gameInfo:{
-            _id:"5795d57b7ab57f7e2aa8089f",
-            contentId:"c2701133414427fee732e051abdfe3e8",
-            info:{
-               "a":"1"
-            },
-            domain:"http://www2.gameasy.com/ww-it/",
-            ProductId:"gameasy",
-            CreatedAt:"2016-07-25T09:01:47.934Z",
-            UpdatedAt:"2016-07-25T09:01:47.934Z",
-            Creator:"5755989222b182b9262c0ebe"
          }
       }
    }

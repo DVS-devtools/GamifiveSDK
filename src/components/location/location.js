@@ -3,6 +3,7 @@ var Stargate = require('stargatejs');
 var Utils = Stargate.Utils;
 var VHost = require('../vhost/vhost');
 var windowConf = require('./windowConf');
+import Constants from '../constants/constants';
 
 /**
 * Utility module for managing locations
@@ -19,11 +20,16 @@ var Location = new function(){
             // Logger.log("TESTING ENV", theWindow);
         } else if(process.env.NODE_ENV === "debug"){
             // game_id f5df5ed9bdf6166bd38068440f50f144
-            DEBUG_OPTIONS = Utils.dequeryfy(window.location.href);
-            theWindow.location = windowConf(DEBUG_OPTIONS.host, DEBUG_OPTIONS.game_id, DEBUG_OPTIONS.country_code);
+            var _key;
+            Object.keys(window.localStorage)
+                .filter((key)=> key.startsWith(Constants.GFSDK_DEBUG_KEY_PREFIX))
+                .map((key)=> {
+                    _key = key.split(Constants.GFSDK_DEBUG_KEY_PREFIX)[1];
+                    DEBUG_OPTIONS[_key] = localStorage[key];
+                });
+            theWindow.location = windowConf(DEBUG_OPTIONS);
         } else {
             theWindow = window;
-            // Logger.log("original:", theWindow.location.href);
         }
     }
 
@@ -61,7 +67,7 @@ var Location = new function(){
         toJoin.push(theWindow.location.origin);
         if(gameasyCountryCode && gameasyCountryCode !== ''){
             toJoin.push(gameasyCountryCode);
-        }        
+        } 
         // Logger.log("origin and country code:", theWindow.location.href, isGameasyMatch);
         return toJoin.join("/");
     }
@@ -92,6 +98,30 @@ var Location = new function(){
     this.getQueryString = function(){
         __setTestEnvIfAny__();
         return Utils.dequeryfy(theWindow.location.href);
+    }
+    
+    /**
+     * gameasy.ru, gameasy.sg, www.gameasy.com
+     * @returns {Boolean} - return if the hostname it's a gamifive whitelabel
+     */
+    this.isGameasy = function(){
+        __setTestEnvIfAny__();
+        /**
+         * this regex should get host
+         * let hostRegex = new RegExp(/(https?:)\/\/(www2?)?\.?([a-zA-Z0-9_-]+)\.?\.[a-zA-Z0-9_-]{2,}/, 'g');
+         */
+        let host = theWindow.location.host || theWindow.location.hostname;
+        let domainLevels = host.split('.');
+        return domainLevels.some((level)=> { return level.indexOf("gameasy") > -1;  });
+    }
+
+    /**
+     * For now every whitelabel that it's not gameasy it's a gamifive
+     * @returns {Boolean} - return if the hostname it's a gamifive whitelabel
+     */
+    this.isGamifive = function(){
+        __setTestEnvIfAny__();
+        return !this.isGameasy();
     }
 
     if (process.env.NODE_ENV === "testing"){
