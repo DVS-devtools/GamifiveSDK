@@ -41,12 +41,23 @@
                     </select>
                 </label>
             </div>
+            <div class="form-group">
+                <label for="url_to_launch">
+                    URL to launch
+                    <input type='text' name='url_to_launch' id='url_to_launch' value='/index.html'>
+                </label>
+                <label for="button_launch">
+                    <button id="launch_button" class="btn btn-primary">Play</button>
+                </label>
+            </div>
             <button type="submit" class="btn btn-primary">Set</button>
             <button id="clear_setting" class="btn btn-default">Clear Setting</button>
         </form>
         <script type="text/javascript">
             var formElement = document.querySelector('form#settings-form');
             var clearButtonElement = document.querySelector('button#clear_setting');
+            var playButtonElement = document.querySelector('button#launch_button');
+            var urlToLaunchElement = document.querySelector('input#url_to_launch');
             var formData;
             function onSubmit(evt){
                 evt.preventDefault();
@@ -59,6 +70,12 @@
                     localStorage.setItem(setting[0], setting[1]);
                 });
             }
+            
+            playButtonElement.addEventListener('click', function(evt){
+                evt.preventDefault();
+                var redirect_url = urlToLaunchElement.value;
+                window.open([window.location.origin, redirect_url].join(''), '_blank');
+            }, false);
 
             clearButtonElement.addEventListener('click', function(evt){
                 evt.preventDefault();
