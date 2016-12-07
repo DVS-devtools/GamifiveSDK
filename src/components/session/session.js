@@ -537,8 +537,10 @@ var Session = new function(){
         var lastSession = getLastSession();
 
         if(config.lite){
-            if(BannerIstance && !(matchesPlayed % 3) && VHost.get('INSTALL_HYBRID_VISIBLE')){
-                BannerIstance.open();
+            if(navigator && navigator.userAgent && (navigator.userAgent.indexOf('Android')!==-1 && navigator.userAgent.indexOf('Android')!==-1)){
+                if(BannerIstance && !(matchesPlayed % 3) && VHost.get('INSTALL_HYBRID_VISIBLE')){
+                    BannerIstance.open();
+                }
             }
             
             // call only leaderboard
