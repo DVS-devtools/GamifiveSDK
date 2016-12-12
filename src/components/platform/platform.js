@@ -15,8 +15,10 @@ if (process.env.NODE_ENV === 'testing'){
  * @returns {Boolean} - true if it's android
  */
 const isAndroid = ()=>{
-	if(_platform.name && typeof _platform.name === 'string'){
-		return _platform.name.indexOf('Android') > -1;
+	let os = _platform.os.family;
+	if(os && typeof os === 'string'){
+		os = os.toLowerCase();
+		return os.indexOf('android') > -1;
 	} else {
 		return false;
 	}
