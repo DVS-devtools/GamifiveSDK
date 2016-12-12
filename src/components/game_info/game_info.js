@@ -149,7 +149,7 @@ var GameInfo = function(){
     if(process.env.NODE_ENV === "debug"){
         this.fetch = function(){            
             gameInfo = {...gameInfo, ...GameInfoFakeResponse.game_info};
-            var fakeId = localStorage.getItem(Constants.GFSDK_DEBUG_KEY_PREFIX + 'game_id');
+            var fakeId = Location.getQueryString()['game_id'];
             gameInfo.contentId = fakeId;
             gameInfo.game.content_id = fakeId;
             gameInfo.id = fakeId;
