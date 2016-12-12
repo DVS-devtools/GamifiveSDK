@@ -17,6 +17,7 @@ import Event from '../event/event';
 import { Utils } from 'stargatejs';
 import { calculateContentRanking } from '../tracking_utils/tracking_utils';
 import { Banner } from '../banner/banner';
+import { isAndroid } from '../platform/platform';
 let BannerIstance;
 let matchesPlayed = 0;
 const { getType } = Utils;
@@ -537,7 +538,7 @@ var Session = new function(){
         var lastSession = getLastSession();
 
         if(config.lite){
-            if(BannerIstance && !(matchesPlayed % 3) && VHost.get('INSTALL_HYBRID_VISIBLE')){
+            if(BannerIstance && !(matchesPlayed % 3) && VHost.get('INSTALL_HYBRID_VISIBLE') && isAndroid()){
                 BannerIstance.open();
             }
             
