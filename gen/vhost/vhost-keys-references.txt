@@ -1,9 +1,9 @@
 src/components/dom/dom-utils.js:109:GAMEOVER_LIKE_SELECTOR
 src/components/dom/dom-utils.js:110:GAMEOVER_LIKE_CLASS_TO_TOGGLE
-src/components/session/session.js:235:IMAGES_SPRITE_GAME
-src/components/session/session.js:236:CONTENT_RANKING
-src/components/session/session.js:259:NEWTON_SECRETID
-src/components/session/session.js:539:INSTALL_HYBRID_VISIBLE
+src/components/session/session.js:236:IMAGES_SPRITE_GAME
+src/components/session/session.js:237:CONTENT_RANKING
+src/components/session/session.js:260:NEWTON_SECRETID
+src/components/session/session.js:541:INSTALL_HYBRID_VISIBLE
 src/components/tracking_utils/tracking_utils.js:14:CONTENT_RANKING
 src/components/user/user.js:127:MOA_API_USER_CHECK
 src/components/user/user.js:431:MOA_API_APPLICATION_OBJECTS_GET

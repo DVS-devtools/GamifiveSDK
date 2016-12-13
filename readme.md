@@ -466,7 +466,7 @@ GamifiveSDK.endSession({ score: 300, level: 1 });
 
 ### Debug (while testing on local)
 ```javascript
-    <script src="static.newton.pm/js/v2.2.3/newton.min.js"></script> 
+    <script src="http://static.newton.pm/js/v2.2.3/newton.min.js"></script> 
     <script src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/2.x.x/debug/gfsdk.js"></script>
 ```
 
