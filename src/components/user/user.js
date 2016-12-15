@@ -445,7 +445,7 @@ var User = function(){
         urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random() * 1000);
         Logger.log('GamifiveSDK', 'User', 'getUserDataFromServer', 'url to call', urlToCall);
              
-        return Network.xhr('GET', urlToCall)
+        return Network.xhr('GET', urlToCall, {withCredentials: true})
             .then(parseUserDataResponse);
     }
 
@@ -507,7 +507,7 @@ var User = function(){
         let urlEncoded = Utils.queryfy("", newBody).replace("?","");
         Logger.log('GamifiveSDK', 'try to set on server', APPLICATION_OBJECT_SET_API, newBody);
         
-        return Network.xhr('POST', APPLICATION_OBJECT_SET_API, {data:urlEncoded, headers: headers})
+        return Network.xhr('POST', APPLICATION_OBJECT_SET_API, {data:urlEncoded, headers: headers, withCredentials: true})
         .then(function(resp){
             if(resp.success){
                 var newtonResponse = JSON.parse(resp.response);
