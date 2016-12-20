@@ -48,7 +48,8 @@ describe("Session", function(){
             loadData:function(){return Promise.resolve(true)},
             getUserType:function(){ return 'guest';},
             getUserId:function(){ return UserCheckMock.user; },
-            canPlay:function(){ return Promise.resolve(true)}
+            canPlay:function(){ return Promise.resolve(true)},
+            getFavorites:function(){ return Promise.resolve([]);}
         });
         Session.setMock("GameInfo", {
             fetch:function(){return Promise.resolve(true)},
@@ -95,6 +96,8 @@ describe("Session", function(){
             expect(Session.isInitialized()).toEqual(true);
             expect(menuShow).toHaveBeenCalled();           
             done();
+        }).catch(function(reason){
+            done.fail(reason);
         });
     });
 
@@ -240,7 +243,8 @@ describe("Session", function(){
             loadData:function(){return Promise.resolve(true)},
             getUserType:function(){ return 'guest';},
             getUserId:function(){ return UserCheckMock.user; },
-            canPlay:function(){ return Promise.resolve(false)}
+            canPlay:function(){ return Promise.resolve(false)},
+            getFavorites:function(){ return Promise.resolve([]);}
         });
 
         // Mocking modules into session
@@ -271,7 +275,8 @@ describe("Session", function(){
             loadData:function(){return Promise.resolve(true)},
             getUserType:function(){ return 'guest';},
             getUserId:function(){ return UserCheckMock.user; },
-            canPlay:function(){ return Promise.resolve(false)}
+            canPlay:function(){ return Promise.resolve(false)},
+            getFavorites:function(){ return Promise.resolve([]);}
         });
         // Mocking modules into session
         var menuShow = jasmine.createSpy("menushow");

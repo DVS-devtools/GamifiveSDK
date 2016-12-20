@@ -3,10 +3,12 @@ src/components/dom/dom-utils.js:110:GAMEOVER_LIKE_CLASS_TO_TOGGLE
 src/components/session/session.js:236:IMAGES_SPRITE_GAME
 src/components/session/session.js:237:CONTENT_RANKING
 src/components/session/session.js:260:NEWTON_SECRETID
-src/components/session/session.js:541:INSTALL_HYBRID_VISIBLE
+src/components/session/session.js:276:TLD
+src/components/session/session.js:277:NT_REAL_COUNTRY
+src/components/session/session.js:554:INSTALL_HYBRID_VISIBLE
 src/components/tracking_utils/tracking_utils.js:14:CONTENT_RANKING
 src/components/user/user.js:127:MOA_API_USER_CHECK
-src/components/user/user.js:431:MOA_API_APPLICATION_OBJECTS_GET
 src/components/user/user.js:432:MOA_API_APPLICATION_OBJECTS_GET
-src/components/user/user.js:464:MOA_API_APPLICATION_OBJECTS_SET
-src/components/user/user.js:472:MOA_API_APPLICATION_OBJECTS_SET
+src/components/user/user.js:433:MOA_API_APPLICATION_OBJECTS_GET
+src/components/user/user.js:465:MOA_API_APPLICATION_OBJECTS_SET
+src/components/user/user.js:473:MOA_API_APPLICATION_OBJECTS_SET

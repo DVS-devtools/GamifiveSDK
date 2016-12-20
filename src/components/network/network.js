@@ -47,6 +47,10 @@ var Network = new function(){
         if(options.responseType){
             xhr.responseType = options.responseType
         }
+        
+        if(options.withCredentials){
+            xhr.withCredentials = options.withCredentials;
+        }
 
         xhr.send(options.data);
         return promise;

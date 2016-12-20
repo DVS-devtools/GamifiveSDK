@@ -1,7 +1,7 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.GamifiveSDK = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
 
-module.exports = ["CONTENT_RANKING", "GAMEOVER_LIKE_CLASS_TO_TOGGLE", "GAMEOVER_LIKE_SELECTOR", "IMAGES_SPRITE_GAME", "INSTALL_HYBRID_VISIBLE", "MOA_API_APPLICATION_OBJECTS_GET", "MOA_API_APPLICATION_OBJECTS_SET", "MOA_API_USER_CHECK", "NEWTON_SECRETID"];
+module.exports = ["CONTENT_RANKING", "GAMEOVER_LIKE_CLASS_TO_TOGGLE", "GAMEOVER_LIKE_SELECTOR", "IMAGES_SPRITE_GAME", "INSTALL_HYBRID_VISIBLE", "MOA_API_APPLICATION_OBJECTS_GET", "MOA_API_APPLICATION_OBJECTS_SET", "MOA_API_USER_CHECK", "NEWTON_SECRETID", "NT_REAL_COUNTRY", "TLD"];
 
 },{}],2:[function(require,module,exports){
 (function (global){
@@ -15412,7 +15412,7 @@ var GameInfo = function GameInfo() {
     if ("debug" === "debug") {
         this.fetch = function () {
             gameInfo = _extends({}, gameInfo, GameInfoFakeResponse.game_info);
-            var fakeId = localStorage.getItem(Constants.GFSDK_DEBUG_KEY_PREFIX + 'game_id');
+            var fakeId = Location.getQueryString()['game_id'];
             gameInfo.contentId = fakeId;
             gameInfo.game.content_id = fakeId;
             gameInfo.id = fakeId;
@@ -15760,6 +15760,10 @@ var Network = new function () {
             xhr.responseType = options.responseType;
         }
 
+        if (options.withCredentials) {
+            xhr.withCredentials = options.withCredentials;
+        }
+
         xhr.send(options.data);
         return promise;
     };
@@ -15805,43 +15809,61 @@ exports.default = new function NewtonService() {
 module.exports = exports['default'];
 
 },{"newton-adapter":305}],337:[function(require,module,exports){
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-exports.setMock = exports.isIOS = undefined;
+exports.setMock = exports.isMacOS = exports.isAndroid = exports.isIOS = undefined;
 
-var _platform = require("platform");
+var _platform2 = require('platform');
 
-var _platform2 = _interopRequireDefault(_platform);
+var _platform3 = _interopRequireDefault(_platform2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var isTesting = false;
-if ("debug" === "testing") {
-	isTesting = true;
-}
-
-var platform_mock = {
-	manufacturer: ""
-};
+var _platform = _platform3.default;
 var setMock = function setMock() {};
-
-if (isTesting) {
+var isTesting = false;
+if ("debug" === 'testing') {
+	isTesting = true;
 	exports.setMock = setMock = function setMock(UAString) {
-		platform_mock = _platform2.default.parse(UAString);
+		_platform = _platform3.default.parse(UAString);
 	};
 }
 
-var isIOS = function isIOS() {
-	if (isTesting) {
-		return platform_mock.manufacturer.toLowerCase() === 'apple';
+var isAndroid = function isAndroid() {
+	var os = _platform.os.family;
+	if (os && typeof os === 'string') {
+		os = os.toLowerCase();
+		return os.indexOf('android') > -1;
+	} else {
+		return false;
 	}
-	return _platform2.default.manufacturer.toLowerCase() === 'apple';
 };
 
+var isIOS = function isIOS() {
+	var os = _platform.os.family;
+	if (os && typeof os === 'string') {
+		os = os.toLowerCase();
+		return os.indexOf('ios') > -1;
+	} else {
+		return false;
+	}
+};
+
+var isMacOS = function isMacOS() {
+	var os = _platform.os.family;
+	if (os && typeof os === 'string') {
+		os = os.toLowerCase();
+		return os.indexOf('os x') > -1;
+	} else {
+		return false;
+	}
+};
 exports.isIOS = isIOS;
+exports.isAndroid = isAndroid;
+exports.isMacOS = isMacOS;
 exports.setMock = setMock;
 
 },{"platform":306}],338:[function(require,module,exports){
@@ -16059,7 +16081,9 @@ var Session = new function () {
             contentRanking = VHost.get('CONTENT_RANKING');
             Menu.show();
 
-            var UserTasks = User.fetch().then(User.getFavorites);
+            var UserTasks = User.fetch().then(function () {
+                return User.getFavorites();
+            });
             var promises = [UserTasks, GameInfo.fetch(), loadDictionary()];
 
             return Promise.all(promises);
@@ -16089,13 +16113,19 @@ var Session = new function () {
                 queryString.dest = 'N/A';
             }
 
-            queryString.http_referrer = window.document.referrer;
-            queryString.white_label_id = GameInfo.getInfo().label;
+            var toAdd = [['country', VHost.get('TLD')], ['real_country', VHost.get('NT_REAL_COUNTRY')], ['white_label_id', GameInfo.getInfo().label], ['http_referrer', window.document.referrer]];
+
+            var userProperties = toAdd.reduce(function (accumulator, keyValue) {
+                if (keyValue[1]) {
+                    accumulator[keyValue[0]] = keyValue[1];
+                }
+                return accumulator;
+            }, queryString);
 
             return NewtonService.login({
                 type: 'external',
                 userId: User.getUserId(),
-                userProperties: queryString,
+                userProperties: userProperties,
                 logged: User.getUserType() !== 'guest'
             }).catch(function (reason) {
                 return Promise.resolve();
@@ -16149,6 +16179,7 @@ var Session = new function () {
         var path = [Stargate.file.BASE_DIR, Constants.DICTIONARY_JSON_FILENAME].join('');
         return Stargate.file.readFileAsJSON(path).then(function (dictjson) {
             window.DICTIONARY = dictjson || {};
+            return window.DICTIONARY;
         }).catch(function (reason) {
             Logger.warn('Cannot load dict.json', reason);
         });
@@ -16322,7 +16353,7 @@ var Session = new function () {
         var lastSession = getLastSession();
 
         if (config.lite) {
-            if (BannerIstance && !(matchesPlayed % 3) && VHost.get('INSTALL_HYBRID_VISIBLE') && !(0, _platform.isIOS)()) {
+            if (BannerIstance && !(matchesPlayed % 3) && VHost.get('INSTALL_HYBRID_VISIBLE') && (0, _platform.isAndroid)()) {
                 BannerIstance.open();
             }
 
@@ -16526,9 +16557,15 @@ var Session = new function () {
 module.exports = Session;
 
 },{"../api/api":323,"../banner/banner":324,"../constants/constants":325,"../dom/dom-utils":326,"../event/event":327,"../fb/fb":328,"../game_info/game_info":330,"../location/location":331,"../logger/logger":333,"../menu/menu":334,"../network/network":335,"../newton/newton":336,"../platform/platform":337,"../state/state":339,"../tracking_utils/tracking_utils":341,"../user/user":342,"../vhost/vhost":344,"promise-polyfill":308,"stargatejs":310}],339:[function(require,module,exports){
-"use strict";
+'use strict';
 
-module.exports = {
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _version = require('../../version');
+
+exports.default = {
     init: {
         pending: false,
         finished: false
@@ -16537,10 +16574,12 @@ module.exports = {
     userDataTask: {
         isFetching: false,
         isSaving: false
-    }
+    },
+    version: _version.version
 };
+module.exports = exports['default'];
 
-},{}],340:[function(require,module,exports){
+},{"../../version":346}],340:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -16740,6 +16779,7 @@ var _User = function User() {
                     if (typeof callback === 'function') {
                         callback(userInfo);
                     }
+                    return userInfo;
                 });
             }
         }
@@ -16970,7 +17010,7 @@ var _User = function User() {
         urlToCall += '&_ts=' + new Date().getTime() + Math.floor(Math.random() * 1000);
         Logger.log('GamifiveSDK', 'User', 'getUserDataFromServer', 'url to call', urlToCall);
 
-        return Network.xhr('GET', urlToCall).then(parseUserDataResponse);
+        return Network.xhr('GET', urlToCall, { withCredentials: true }).then(parseUserDataResponse);
     }
 
     function setUserDataOnServer(data) {
@@ -17014,7 +17054,7 @@ var _User = function User() {
         var urlEncoded = _stargatejs.Utils.queryfy("", newBody).replace("?", "");
         Logger.log('GamifiveSDK', 'try to set on server', APPLICATION_OBJECT_SET_API, newBody);
 
-        return Network.xhr('POST', APPLICATION_OBJECT_SET_API, { data: urlEncoded, headers: headers }).then(function (resp) {
+        return Network.xhr('POST', APPLICATION_OBJECT_SET_API, { data: urlEncoded, headers: headers, withCredentials: true }).then(function (resp) {
             if (resp.success) {
                 var newtonResponse = JSON.parse(resp.response);
                 if (newtonResponse.response.data) {
@@ -17096,15 +17136,15 @@ var _User = function User() {
     if ("debug" === "debug") {
         this.fetch = function (callback) {
             userInfo = _extends({}, userInfo, UserCheckFakeResponse);
-            var userType = localStorage.getItem(_constants2.default.GFSDK_DEBUG_KEY_PREFIX + 'user_type');
+            var userType = Location.getQueryString()['user_type'];
             if (!userType || userType === 'guest') {
                 userInfo.user = null;
                 userInfo.subscribed = false;
             } else if (userType === 'free') {
-                userInfo.user = localStorage.getItem(_constants2.default.GFSDK_DEBUG_KEY_PREFIX + 'user_id') || 'gfsdk_fake_user';
+                userInfo.user = Location.getQueryString()['user_id'] || 'gfsdk_fake_user';
                 userInfo.subscribed = false;
             } else if (userType == 'premium') {
-                userInfo.user = localStorage.getItem(_constants2.default.GFSDK_DEBUG_KEY_PREFIX + 'user_id') || 'gfsdk_fake_user';
+                userInfo.user = Location.getQueryString()['user_id'] || 'gfsdk_fake_user';
                 userInfo.subscribed = true;
             }
 
@@ -17443,7 +17483,7 @@ module.exports = addRetroInterface;
 },{"../components/vhost/vhost":344}],346:[function(require,module,exports){
 "use strict";
 
-var pkgInfo = { "version": "2.0.5", "build": "v2.0.5-0-g6c589aa" };module.exports = pkgInfo;
+var pkgInfo = { "version": "2.0.5", "build": "v2.0.5-10-gd94954e" };module.exports = pkgInfo;
 
 },{}],347:[function(require,module,exports){
 "use strict";
