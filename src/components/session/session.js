@@ -237,10 +237,10 @@ var Session = new function(){
                     contentRanking = VHost.get('CONTENT_RANKING');
                     Menu.show();
                     
-                    var UserTasks = User.fetch().then(User.getFavorites);
+                    let UserTasks = User.fetch().then(() => User.getFavorites());
                     let promises = [
                             UserTasks,
-                            GameInfo.fetch(),                    
+                            GameInfo.fetch(),
                             loadDictionary()
                         ];
                     
@@ -267,18 +267,30 @@ var Session = new function(){
                         }
                     });
 
-                    var queryString = Location.getQueryString();
+                    let queryString = Location.getQueryString();
                     if (getType(queryString.dest) === 'undefined'){
     					queryString.dest = 'N/A';
                     }
+                    
+                    let toAdd = [
+                        ['country', VHost.get('TLD')], 
+                        ['real_country', VHost.get('NT_REAL_COUNTRY')],
+                        ['white_label_id', GameInfo.getInfo().label],
+                        ['http_referrer', window.document.referrer]
+                    ];
 
-                    queryString.http_referrer = window.document.referrer;
-                    queryString.white_label_id = GameInfo.getInfo().label;
+                    let userProperties = toAdd.reduce((accumulator, keyValue)=>{
+                        if(keyValue[1]){
+                            accumulator[keyValue[0]] = keyValue[1];
+                        }
+                        return accumulator;
+                    }, queryString);
+
                     /** wait newton login */
                     return NewtonService.login({
                         type: 'external',
                         userId: User.getUserId(), 
-                        userProperties: queryString,
+                        userProperties: userProperties,
                         logged: (User.getUserType() !== 'guest')
                     }).catch((reason)=>{
                         return Promise.resolve();
@@ -331,6 +343,7 @@ var Session = new function(){
         return Stargate.file.readFileAsJSON(path)
             .then(function(dictjson){
                 window.DICTIONARY = dictjson || {};
+                return window.DICTIONARY;
             })
             .catch(function(reason){
                 Logger.warn('Cannot load dict.json', reason);
@@ -383,7 +396,7 @@ var Session = new function(){
                     game_title: GameInfo.getInfo().game.title,
                     label: GameInfo.getContentId(),
                     valuable: "Yes",
-                    action: "Yes"                    
+                    action: "Yes"                  
                 }
             });
             
