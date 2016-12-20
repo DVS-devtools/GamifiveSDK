@@ -94,7 +94,7 @@ var Menu = new function(){
 
         // create DOM element if it doesn't exist
         if (!menuElement){
-            menuElement = document.createElement('a');            
+            menuElement = document.createElement('a');
             menuElement.addEventListener("click", goToHomeCallback, false);
             menuElement.setAttribute("id", "gfsdk-more-games");
             document.body.appendChild(menuElement);

@@ -148,11 +148,12 @@ var User = function(){
                 // The file should be saved by webapp
                 var filePath = [Stargate.file.BASE_DIR, Constants.USER_JSON_FILENAME].join('');
                 return Stargate.file.readFileAsJSON(filePath)
-                        .then(function(responseData) {
-                                userInfo = {...userInfo, ...responseData};
-                                if (typeof callback === 'function') { callback(userInfo); }
+                        .then((responseData) => {
+                            userInfo = {...userInfo, ...responseData};
+                            if (typeof callback === 'function') { callback(userInfo); }
+                            return userInfo;
                         });
-            }            
+            }
         }
     };
    

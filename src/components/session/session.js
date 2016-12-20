@@ -237,10 +237,10 @@ var Session = new function(){
                     contentRanking = VHost.get('CONTENT_RANKING');
                     Menu.show();
                     
-                    var UserTasks = User.fetch().then(User.getFavorites);
+                    let UserTasks = User.fetch().then(() => User.getFavorites());
                     let promises = [
                             UserTasks,
-                            GameInfo.fetch(),                    
+                            GameInfo.fetch(),
                             loadDictionary()
                         ];
                     
@@ -331,6 +331,7 @@ var Session = new function(){
         return Stargate.file.readFileAsJSON(path)
             .then(function(dictjson){
                 window.DICTIONARY = dictjson || {};
+                return window.DICTIONARY;
             })
             .catch(function(reason){
                 Logger.warn('Cannot load dict.json', reason);
@@ -383,7 +384,7 @@ var Session = new function(){
                     game_title: GameInfo.getInfo().game.title,
                     label: GameInfo.getContentId(),
                     valuable: "Yes",
-                    action: "Yes"                    
+                    action: "Yes"                  
                 }
             });
             
