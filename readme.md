@@ -13,7 +13,7 @@
 
 ### Debug (use it while developing or to test the implementation on your own)
 ```html
-<script src="static.newton.pm/js/v2.2.3/newton.min.js"></script> 
+<script src="//static.newton.pm/js/v2.2.3/newton.min.js"></script> 
 <script src="http://s.motime.com/js/wl/webstore_html5game/gfsdk/2.x.x/debug/gfsdk.js"></script>
 ```
 (See https://github.com/BuongiornoMIP/GamifiveSDK/wiki/Debug-mode for further details;)
