@@ -514,6 +514,13 @@ var User = function(){
                 var newtonResponse = JSON.parse(resp.response);
                 if(newtonResponse.response.data){
                     Logger.log('GamifiveSDK', 'userData set with success on server');
+                    let mongoObjectId = newtonResponse.response.data._id;
+                    
+                    if(!userInfo.gameInfo._id || userInfo.gameInfo._id === ''){                        
+                        userInfo.gameInfo._id = mongoObjectId;
+                    } else if(userInfo.gameInfo._id !== mongoObjectId){
+                        Logger.warn('GamifiveSDK', 'userInfo.gameInfo._id !== mongoObjectId');
+                    }
                 } else {
                     // NEWTON error
                     Logger.warn('GamifiveSDK', 'userData FAIL to be set on server', newtonResponse.response.message);
