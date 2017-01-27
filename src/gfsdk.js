@@ -248,6 +248,7 @@ var GamefiveSDK = new function() {
 	*/
 	var doInit = function(param){
 		// get param
+		param.debug = false;
 		Utils.copyProperties(param, config);
 
         GameOverCore.initializeAPIUrls();
