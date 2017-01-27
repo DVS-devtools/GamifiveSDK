@@ -19,7 +19,7 @@ var GamefiveSDK = new function() {
 
 	// default key for guest (unknown) user's data
 	var userStatusKey = 'GamifiveSDKStatus_unknown';
-    var GA_FOR_GAME_JSON_URL = 'http://www2.gameasy.com/ww-it/ga_for_games.js?print_json_response=1';
+    var GA_FOR_GAME_JSON_URL = Utils.getAbsoluteUrl() + 'ga_for_games.js?print_json_response=1';
 
     var STARGATE_BASE_DIR; // this will be initialized after Stargate initialization
 
@@ -1125,7 +1125,7 @@ var GamefiveSDK = new function() {
 	*/
 	var API = function(name, param){
 		// set host
-		var host = (!config.debug) ? Utils.getAbsoluteUrl() : 'http://www2.giochissimo.it/';
+		var host = (!config.debug) ? Utils.getAbsoluteUrl() : Utils.getAbsoluteUrl();		
 
 		// set door (/v01/ or /mock/)
 		var door = (!config.debug) ? 'v01/' : 'mock01/';
