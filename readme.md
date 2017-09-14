@@ -1,3 +1,5 @@
+
+# !!! THIS SDK IS UNMAINTENED PLEASE REFER TO THIS ONE INSTEAD [https://github.com/D-Mobilelab/game-sdk/](https://github.com/D-Mobilelab/game-sdk/) !!!
 [![Build Status](https://travis-ci.org/BuongiornoMIP/GamifiveSDK.svg?branch=master)](https://travis-ci.org/BuongiornoMIP/GamifiveSDK)
 
 [![Coverage Status](https://coveralls.io/repos/github/BuongiornoMIP/GamifiveSDK/badge.svg?branch=master)](https://coveralls.io/github/BuongiornoMIP/GamifiveSDK?branch=master)
